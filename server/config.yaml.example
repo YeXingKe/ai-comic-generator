@@ -1,0 +1,14 @@
+server:
+  port: 8080
+  context_path: /api
+  session_secret: change-me-in-production
+
+database:
+  driver: mysql
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: root
+  dbname: ai_comic_generator
+  charset: utf8mb4
+  auto_migrate: true

@@ -1,0 +1,47 @@
+.global-footer {
+  background: var(--color-background-dark);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 48px 20px 32px;
+  margin-top: auto;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-logo {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+}
+
+.footer-desc {
+  margin: 8px 0 24px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+
+  a {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+
+    &:hover {
+      color: var(--color-primary-light);
+    }
+  }
+}
+
+.footer-copy {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.45);
+}

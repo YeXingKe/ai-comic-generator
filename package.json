@@ -1,0 +1,17 @@
+{
+  "name": "ai-comic-generator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI comic generator monorepo - web frontend + Go backend",
+  "scripts": {
+    "dev": "concurrently -n web,server -c blue,magenta \"npm run dev:web\" \"npm run dev:server\"",
+    "dev:web": "npm run dev --prefix web",
+    "dev:server": "go run -C server ./cmd/server/main.go",
+    "build:web": "npm run build --prefix web",
+    "build:server": "go build -C server -o ../bin/server ./cmd/server/main.go",
+    "install:web": "npm install --prefix web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.3"
+  }
+}

@@ -1,0 +1,83 @@
+#userManagePage {
+  background: var(--color-background-secondary);
+  min-height: calc(100vh - 64px);
+  padding-bottom: 60px;
+
+  .page-header {
+    background: var(--gradient-hero);
+    padding: 32px 20px;
+    margin-bottom: 24px;
+  }
+
+  .header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .content-card {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    background: white;
+  }
+
+  .search-section {
+    margin-bottom: 16px;
+  }
+
+  .search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+  }
+
+  .search-input {
+    width: 180px;
+  }
+
+  .search-btn {
+    border-radius: var(--radius-md);
+    font-weight: 500;
+  }
+
+  .user-avatar {
+    border: 2px solid var(--color-border);
+  }
+
+  .role-tag {
+    border-radius: var(--radius-full);
+  }
+
+  .time-text {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+  }
+
+  .delete-btn {
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  #userManagePage .search-input {
+    width: 100%;
+  }
+}
