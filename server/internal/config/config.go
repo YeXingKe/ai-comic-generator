@@ -28,7 +28,7 @@ type DatabaseConfig struct {
 	AutoMigrate bool   `mapstructure:"auto_migrate"`
 }
 
-func Load(path string) (*Config, error) {
+func LoadConfig(path string) (*Config, error) {
 	v := viper.New()
 	v.SetConfigFile(path)
 	v.SetDefault("server.port", 8080)

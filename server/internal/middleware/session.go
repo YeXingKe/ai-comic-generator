@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupSession(r *gin.Engine, cfg *config.ServerConfig) {
-	store := cookie.NewStore([]byte(cfg.SessionSecret))
+func SetupSession(r *gin.Engine, cfg *config.Config) {
+	store := cookie.NewStore([]byte(cfg.Server.SessionSecret))
 	store.Options(sessions.Options{
 		Path:     "/",
 		MaxAge:   86400 * 7,

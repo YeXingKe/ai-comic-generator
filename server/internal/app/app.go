@@ -5,10 +5,13 @@ import (
 	"github.com/ai-comic-generator/server/internal/database"
 	"github.com/ai-comic-generator/server/internal/handler"
 	"github.com/ai-comic-generator/server/internal/service"
+	"github.com/ai-comic-generator/server/internal/store"
 	"gorm.io/gorm"
 )
 
+// App 应用程序容器，持有基础设施与各 Handler，供 main 注册路由时使用。
 type App struct {
+	Config        *config.Config
 	DB            *gorm.DB
 	UserService   *service.UserService
 	HealthHandler *handler.HealthHandler
@@ -21,12 +24,14 @@ func New(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	userService := service.NewUserService(db)
+	userStore := store.NewUserStore(db)
+	userService := service.NewUserService(userStore)
 	if err := userService.EnsureAdmin(); err != nil {
 		return nil, err
 	}
 
 	return &App{
+		Config:        cfg,
 		DB:            db,
 		UserService:   userService,
 		HealthHandler: handler.NewHealthHandler(),

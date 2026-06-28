@@ -5,6 +5,7 @@ import (
 
 	"github.com/ai-comic-generator/server/internal/common"
 	"github.com/ai-comic-generator/server/internal/model"
+	"github.com/ai-comic-generator/server/internal/store"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -17,11 +18,11 @@ var (
 )
 
 type UserService struct {
-	db *gorm.DB
+	store *store.UserStore
 }
 
-func NewUserService(db *gorm.DB) *UserService {
-	return &UserService{db: db}
+func NewUserService(userStore *store.UserStore) *UserService {
+	return &UserService{store: userStore}
 }
 
 func (s *UserService) Register(req *model.UserRegisterRequest) (uint, error) {
@@ -29,8 +30,8 @@ func (s *UserService) Register(req *model.UserRegisterRequest) (uint, error) {
 		return 0, ErrInvalidParams
 	}
 
-	var count int64
-	if err := s.db.Model(&model.User{}).Where("user_account = ?", req.UserAccount).Count(&count).Error; err != nil {
+	count, err := s.store.CountByAccount(req.UserAccount)
+	if err != nil {
 		return 0, err
 	}
 	if count > 0 {
@@ -49,15 +50,15 @@ func (s *UserService) Register(req *model.UserRegisterRequest) (uint, error) {
 		UserRole:     common.UserRole,
 	}
 
-	if err := s.db.Create(&user).Error; err != nil {
+	if err := s.store.Create(&user); err != nil {
 		return 0, err
 	}
 	return user.ID, nil
 }
 
 func (s *UserService) Login(req *model.UserLoginRequest) (*model.UserVO, error) {
-	var user model.User
-	if err := s.db.Where("user_account = ?", req.UserAccount).First(&user).Error; err != nil {
+	user, err := s.store.GetByAccount(req.UserAccount)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrUserNotFound
 		}
@@ -68,19 +69,19 @@ func (s *UserService) Login(req *model.UserLoginRequest) (*model.UserVO, error) 
 		return nil, ErrPasswordMismatch
 	}
 
-	vo := model.UserToVO(&user)
+	vo := model.UserToVO(user)
 	return &vo, nil
 }
 
 func (s *UserService) GetByID(id uint) (*model.UserVO, error) {
-	var user model.User
-	if err := s.db.First(&user, id).Error; err != nil {
+	user, err := s.store.GetByID(id)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrUserNotFound
 		}
 		return nil, err
 	}
-	vo := model.UserToVO(&user)
+	vo := model.UserToVO(user)
 	return &vo, nil
 }
 
@@ -94,25 +95,9 @@ func (s *UserService) ListPage(req *model.UserQueryRequest) (*common.PageResult,
 		pageSize = 10
 	}
 
-	query := s.db.Model(&model.User{})
-	if req.UserAccount != "" {
-		query = query.Where("user_account LIKE ?", "%"+req.UserAccount+"%")
-	}
-	if req.UserName != "" {
-		query = query.Where("user_name LIKE ?", "%"+req.UserName+"%")
-	}
-	if req.UserRole != "" {
-		query = query.Where("user_role = ?", req.UserRole)
-	}
-
-	var total int64
-	if err := query.Count(&total).Error; err != nil {
-		return nil, err
-	}
-
-	var users []model.User
-	offset := (pageNum - 1) * pageSize
-	if err := query.Order("id DESC").Offset(offset).Limit(pageSize).Find(&users).Error; err != nil {
+	query := s.store.BuildQuery(req.UserAccount, req.UserName, req.UserRole)
+	users, total, err := s.store.List(query, pageNum, pageSize)
+	if err != nil {
 		return nil, err
 	}
 
@@ -130,19 +115,19 @@ func (s *UserService) ListPage(req *model.UserQueryRequest) (*common.PageResult,
 }
 
 func (s *UserService) Delete(id uint) error {
-	result := s.db.Delete(&model.User{}, id)
-	if result.Error != nil {
-		return result.Error
+	affected, err := s.store.Delete(id)
+	if err != nil {
+		return err
 	}
-	if result.RowsAffected == 0 {
+	if affected == 0 {
 		return ErrUserNotFound
 	}
 	return nil
 }
 
 func (s *UserService) EnsureAdmin() error {
-	var count int64
-	if err := s.db.Model(&model.User{}).Where("user_role = ?", common.AdminRole).Count(&count).Error; err != nil {
+	count, err := s.store.CountByRole(common.AdminRole)
+	if err != nil {
 		return err
 	}
 	if count > 0 {
@@ -161,5 +146,5 @@ func (s *UserService) EnsureAdmin() error {
 		UserRole:     common.AdminRole,
 		UserProfile:  "系统默认管理员",
 	}
-	return s.db.Create(&admin).Error
+	return s.store.Create(&admin)
 }
