@@ -1,16 +1,19 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import GlobalHeader from '@/components/GlobalHeader'
 import GlobalFooter from '@/components/GlobalFooter'
 import './BasicLayout.scss'
 
 export default function BasicLayout() {
+  const { pathname } = useLocation()
+  const isHome = pathname === '/'
+
   return (
-    <div className="basic-layout">
+    <div className={`basic-layout${isHome ? ' basic-layout--home' : ''}`}>
       <GlobalHeader />
       <main className="main-content">
         <Outlet />
       </main>
-      <GlobalFooter />
+      {!isHome && <GlobalFooter />}
     </div>
   )
 }

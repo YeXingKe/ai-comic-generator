@@ -43,7 +43,7 @@ export default function ArticleDetailPage() {
         <div className="container">
           <Card>
             <p>文章不存在或已被删除</p>
-            <Button type="primary" onClick={() => navigate('/article/list')}>
+            <Button type="primary" onClick={() => navigate('/history')}>
               返回列表
             </Button>
           </Card>
@@ -68,7 +68,7 @@ export default function ArticleDetailPage() {
           <Button
             type="text"
             icon={<ArrowLeftOutlined />}
-            onClick={() => navigate('/article/list')}
+            onClick={() => navigate('/history')}
             className="back-btn"
           >
             返回列表

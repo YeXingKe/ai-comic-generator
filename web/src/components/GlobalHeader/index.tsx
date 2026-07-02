@@ -2,14 +2,33 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Avatar, Button, Dropdown, Menu } from 'antd'
 import type { MenuProps } from 'antd'
-import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons'
+import {
+  HomeOutlined,
+  EditOutlined,
+  HistoryOutlined,
+  UserOutlined,
+  BarChartOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+} from '@ant-design/icons'
 import { useLoginUserStore, ADMIN_ROLE } from '@/stores/loginUser'
 import './index.scss'
 
 const navItems = [
-  { key: '/', label: '首页', path: '/' },
-  { key: '/article/list', label: '文章列表', path: '/article/list' },
+  { key: '/', label: '首页', path: '/', icon: <HomeOutlined /> },
+  { key: '/create', label: '创作', path: '/create', icon: <EditOutlined /> },
+  { key: '/history', label: '历史', path: '/history', icon: <HistoryOutlined /> },
+  { key: '/user/center', label: '用户', path: '/user/center', icon: <UserOutlined /> },
+  { key: '/data', label: '数据', path: '/data', icon: <BarChartOutlined /> },
 ]
+
+function matchNavKey(pathname: string) {
+  if (pathname === '/') return '/'
+  const matched = navItems
+    .filter((item) => item.path !== '/')
+    .find((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
+  return matched?.key ?? '/'
+}
 
 export default function GlobalHeader() {
   const location = useLocation()
@@ -20,22 +39,29 @@ export default function GlobalHeader() {
     fetchLoginUser()
   }, [fetchLoginUser])
 
-  const selectedKey =
-    navItems.find((item) => item.path === location.pathname)?.key ?? location.pathname
+  const selectedKey = matchNavKey(location.pathname)
+  const isImmersive = location.pathname === '/'
 
   const menuItems: MenuProps['items'] = navItems.map((item) => ({
     key: item.key,
-    label: <Link to={item.path}>{item.label}</Link>,
+    label: (
+      <Link to={item.path} className="nav-menu__link">
+        <span className="nav-menu__content">
+          <span className="nav-menu__icon">{item.icon}</span>
+          <span>{item.label}</span>
+        </span>
+        <span className="nav-menu__indicator" aria-hidden />
+      </Link>
+    ),
   }))
 
-  if (loginUser.id && loginUser.userRole === ADMIN_ROLE) {
-    menuItems.push({
-      key: '/admin/userManage',
-      label: <Link to="/admin/userManage">用户管理</Link>,
-    })
-  }
-
   const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'center',
+      icon: <UserOutlined />,
+      label: '用户中心',
+      onClick: () => navigate('/user/center'),
+    },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
@@ -57,7 +83,7 @@ export default function GlobalHeader() {
   }
 
   return (
-    <header className="global-header">
+    <header className={`global-header${isImmersive ? ' global-header--immersive' : ''}`}>
       <div className="header-inner">
         <Link to="/" className="logo">
           <span className="logo-icon">✦</span>
@@ -77,7 +103,7 @@ export default function GlobalHeader() {
               <div className="user-info">
                 <Avatar
                   size={32}
-                  src={loginUser.userAvatar}
+                  src={loginUser.userAvatar ?? undefined}
                   icon={<UserOutlined />}
                   className="user-avatar"
                 />
@@ -86,11 +112,12 @@ export default function GlobalHeader() {
             </Dropdown>
           ) : (
             <div className="auth-buttons">
-              <Button type="link" onClick={() => navigate('/user/login')}>
-                登录
-              </Button>
-              <Button type="primary" onClick={() => navigate('/user/register')}>
-                注册
+              <Button
+                type="primary"
+                className="header-auth-btn"
+                onClick={() => navigate('/user/login')}
+              >
+                登录 / 注册
               </Button>
             </div>
           )}

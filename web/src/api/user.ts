@@ -2,32 +2,33 @@ import request, { unwrap } from '@/utils/request'
 import type {
   BaseResponse,
   DeleteRequest,
+  LoginRequest,
+  LoginUser,
   PageResult,
-  UserLoginRequest,
-  UserQueryRequest,
-  UserRegisterRequest,
-  UserVO,
+  QueryUserRequest,
+  RegisterRequest,
+  UserInfo,
 } from '@/types/api'
 
-export async function userLogin(body: UserLoginRequest) {
-  return unwrap(await request.post<BaseResponse<UserVO>>('/user/login', body))
+export async function userLogin(body: LoginRequest) {
+  return unwrap(await request.post<BaseResponse<LoginUser>>('/user/login', body))
 }
 
-export async function userRegister(body: UserRegisterRequest) {
+export async function userRegister(body: RegisterRequest) {
   return unwrap(await request.post<BaseResponse<number>>('/user/register', body))
 }
 
 export async function getLoginUser() {
-  return unwrap(await request.get<BaseResponse<UserVO>>('/user/get/login'))
+  return unwrap(await request.get<BaseResponse<LoginUser>>('/user/get/login'))
 }
 
 export async function userLogout() {
   return unwrap(await request.post<BaseResponse<boolean>>('/user/logout'))
 }
 
-export async function listUserVoByPage(body: UserQueryRequest) {
+export async function listUserVoByPage(body: QueryUserRequest) {
   return unwrap(
-    await request.post<BaseResponse<PageResult<UserVO>>>('/user/list/page/vo', body),
+    await request.post<BaseResponse<PageResult<UserInfo>>>('/user/list/page/vo', body),
   )
 }
 

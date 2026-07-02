@@ -1,19 +1,22 @@
 import { create } from 'zustand'
 import { getLoginUser, userLogout } from '@/api/user'
-import type { UserVO } from '@/types/api'
+import type { LoginUser } from '@/types/api'
 
 interface LoginUserState {
-  loginUser: UserVO
+  loginUser: LoginUser
   loading: boolean
   fetchLoginUser: () => Promise<void>
-  setLoginUser: (user: UserVO) => void
+  setLoginUser: (user: LoginUser) => void
   logout: () => Promise<void>
 }
 
-const emptyUser: UserVO = {
+const emptyUser: LoginUser = {
   id: 0,
   userAccount: '',
   userRole: 'user',
+  quota: 0,
+  createTime: '',
+  updateTime: '',
 }
 
 export const useLoginUserStore = create<LoginUserState>((set) => ({

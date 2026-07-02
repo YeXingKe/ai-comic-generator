@@ -1,22 +1,34 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { Navigate, createBrowserRouter } from 'react-router-dom'
 import BasicLayout from '@/layouts/BasicLayout'
 import HomePage from '@/pages/HomePage'
-import LoginPage from '@/pages/user/LoginPage'
-import RegisterPage from '@/pages/user/RegisterPage'
-import ArticleListPage from '@/pages/article/ListPage'
+import AuthPage from '@/pages/user/AuthPage'
+import CreatePage from '@/pages/CreatePage'
+import HistoryPage from '@/pages/HistoryPage'
+import UserCenterPage from '@/pages/UserCenterPage'
+import DataPage from '@/pages/DataPage'
 import ArticleDetailPage from '@/pages/article/DetailPage'
 import UserManagePage from '@/pages/admin/UserManagePage'
 
 export const router = createBrowserRouter([
   {
+    path: '/user/login',
+    element: <AuthPage />,
+  },
+  {
+    path: '/user/register',
+    element: <Navigate to="/user/login?mode=register" replace />,
+  },
+  {
     element: <BasicLayout />,
     children: [
       { path: '/', element: <HomePage /> },
-      { path: '/article/list', element: <ArticleListPage /> },
+      { path: '/create', element: <CreatePage /> },
+      { path: '/history', element: <HistoryPage /> },
+      { path: '/user/center', element: <UserCenterPage /> },
+      { path: '/data', element: <DataPage /> },
       { path: '/article/:taskId', element: <ArticleDetailPage /> },
-      { path: '/user/login', element: <LoginPage /> },
-      { path: '/user/register', element: <RegisterPage /> },
       { path: '/admin/userManage', element: <UserManagePage /> },
+      { path: '/article/list', element: <Navigate to="/history" replace /> },
     ],
   },
 ])

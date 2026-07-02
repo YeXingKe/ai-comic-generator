@@ -11,8 +11,10 @@ export default function GlobalFooter() {
         </div>
         <div className="footer-links">
           <Link to="/">首页</Link>
-          <Link to="/article/list">文章列表</Link>
-          <Link to="/user/login">登录</Link>
+          <Link to="/create">创作</Link>
+          <Link to="/history">历史</Link>
+          <Link to="/user/center">用户</Link>
+          <Link to="/data">数据</Link>
         </div>
         <p className="footer-copy">© {new Date().getFullYear()} AI Comic Generator. All rights reserved.</p>
       </div>

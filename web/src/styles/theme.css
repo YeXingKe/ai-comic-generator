@@ -99,6 +99,8 @@ a:hover {
 }
 
 .ant-menu-horizontal > .ant-menu-item-selected::after,
-.ant-menu-horizontal > .ant-menu-item:hover::after {
+.ant-menu-horizontal > .ant-menu-item:hover::after,
+.ant-menu-horizontal > .ant-menu-submenu-selected::after,
+.ant-menu-horizontal > .ant-menu-submenu:hover::after {
   border-bottom-color: var(--color-primary) !important;
 }

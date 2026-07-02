@@ -15,15 +15,15 @@ import type { TablePaginationConfig } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { deleteUser, listUserVoByPage } from '@/api/user'
-import type { UserQueryRequest, UserVO } from '@/types/api'
+import type { QueryUserRequest, UserInfo } from '@/types/api'
 import './index.scss'
 
 export default function UserManagePage() {
-  const [form] = Form.useForm<UserQueryRequest>()
-  const [data, setData] = useState<UserVO[]>([])
+  const [form] = Form.useForm<QueryUserRequest>()
+  const [data, setData] = useState<UserInfo[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [searchParams, setSearchParams] = useState<UserQueryRequest>({
+  const [searchParams, setSearchParams] = useState<QueryUserRequest>({
     pageNum: 1,
     pageSize: 10,
   })
@@ -34,7 +34,7 @@ export default function UserManagePage() {
       const res = await listUserVoByPage(params)
       if (res.code === 0 && res.data) {
         setData(res.data.records ?? [])
-        setTotal(res.data.totalRow ?? 0)
+        setTotal(res.data.total ?? 0)
       } else {
         message.error('获取数据失败，' + res.message)
       }
@@ -74,8 +74,8 @@ export default function UserManagePage() {
     {
       title: '头像',
       dataIndex: 'userAvatar',
-      render: (url: string, record: UserVO) => (
-        <Avatar src={url} className="user-avatar">
+      render: (url: string | null, record: UserInfo) => (
+        <Avatar src={url ?? undefined} className="user-avatar">
           {(record.userName || record.userAccount)?.[0]}
         </Avatar>
       ),
@@ -85,8 +85,11 @@ export default function UserManagePage() {
       title: '用户角色',
       dataIndex: 'userRole',
       render: (role: string) => (
-        <Tag color={role === 'admin' ? 'purple' : 'default'} className="role-tag">
-          {role === 'admin' ? '管理员' : '普通用户'}
+        <Tag
+          color={role === 'admin' ? 'purple' : role === 'vip' ? 'gold' : 'default'}
+          className="role-tag"
+        >
+          {role === 'admin' ? '管理员' : role === 'vip' ? 'VIP' : '普通用户'}
         </Tag>
       ),
     },
@@ -100,7 +103,7 @@ export default function UserManagePage() {
     {
       title: '操作',
       key: 'action',
-      render: (_: unknown, record: UserVO) => (
+      render: (_: unknown, record: UserInfo) => (
         <Popconfirm title="确定删除该用户？" onConfirm={() => doDelete(record.id)}>
           <Button type="link" danger className="delete-btn">
             删除
@@ -148,6 +151,7 @@ export default function UserManagePage() {
                   allowClear
                   options={[
                     { label: '管理员', value: 'admin' },
+                    { label: 'VIP', value: 'vip' },
                     { label: '普通用户', value: 'user' },
                   ]}
                 />
