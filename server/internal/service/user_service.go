@@ -1,150 +1,232 @@
 package service
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
+	"time"
 
 	"github.com/ai-comic-generator/server/internal/common"
 	"github.com/ai-comic-generator/server/internal/model"
 	"github.com/ai-comic-generator/server/internal/store"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/gin-contrib/sessions"
 	"gorm.io/gorm"
 )
 
-var (
-	ErrUserExists       = errors.New("账号已存在")
-	ErrUserNotFound     = errors.New("用户不存在")
-	ErrPasswordMismatch = errors.New("密码错误")
-	ErrInvalidParams    = errors.New("参数错误")
-)
+// 用户业务层（Service），负责业务规则、校验、Session 登录态、错误转换
+// 夹在 Handler 和 Store 之间：Handler 只负责 HTTP，Store 只负责数据库，
+// 架构图：Handler (user.go)  →  Service (本文件)  →  Store (store/user.go)  →  MySQL
 
+// UserService 用户服务
 type UserService struct {
 	store *store.UserStore
 }
 
-func NewUserService(userStore *store.UserStore) *UserService {
-	return &UserService{store: userStore}
+// NewUserService 创建用户服务
+func NewUserService(store *store.UserStore) *UserService {
+	return &UserService{store: store}
 }
 
-func (s *UserService) Register(req *model.UserRegisterRequest) (uint, error) {
+// Register 用户注册
+func (s *UserService) Register(req *model.RegisterRequest) (int64, error) {
+	// 校验参数
+	if req.UserAccount == "" || req.UserPassword == "" || req.CheckPassword == "" {
+		return 0, common.ErrParams.WithMessage("参数为空")
+	}
+	if len(req.UserAccount) < common.MinAccountLength {
+		return 0, common.ErrParams.WithMessage("账号长度过短")
+	}
+	if len(req.UserPassword) < common.MinPasswordLength || len(req.CheckPassword) < common.MinPasswordLength {
+		return 0, common.ErrParams.WithMessage("密码长度过短")
+	}
 	if req.UserPassword != req.CheckPassword {
-		return 0, ErrInvalidParams
+		return 0, common.ErrParams.WithMessage("两次输入的密码不一致")
 	}
 
+	// 查询用户是否已存在
 	count, err := s.store.CountByAccount(req.UserAccount)
 	if err != nil {
-		return 0, err
+		return 0, common.ErrSystem
 	}
 	if count > 0 {
-		return 0, ErrUserExists
+		return 0, common.ErrParams.WithMessage("账号重复")
 	}
 
-	hashed, err := bcrypt.GenerateFromPassword([]byte(req.UserPassword), bcrypt.DefaultCost)
-	if err != nil {
-		return 0, err
-	}
-
-	user := model.User{
+	// 创建用户
+	userName := "无名"
+	now := time.Now()
+	user := &model.User{
 		UserAccount:  req.UserAccount,
-		UserPassword: string(hashed),
-		UserName:     req.UserAccount,
-		UserRole:     common.UserRole,
+		UserPassword: encryptPassword(req.UserPassword),
+		UserName:     &userName,
+		UserRole:     string(model.RoleUser),
+		EditTime:     &now,
 	}
 
-	if err := s.store.Create(&user); err != nil {
-		return 0, err
+	if err := s.store.Create(user); err != nil {
+		return 0, common.ErrOperation.WithMessage("注册失败，数据库错误")
+	}
+
+	return user.ID, nil
+}
+
+// Login 用户登录
+func (s *UserService) Login(req *model.LoginRequest, session sessions.Session) (*model.LoginUser, error) {
+	// 校验参数
+	if req.UserAccount == "" || req.UserPassword == "" {
+		return nil, common.ErrParams.WithMessage("参数为空")
+	}
+	if len(req.UserAccount) < common.MinAccountLength {
+		return nil, common.ErrParams.WithMessage("账号长度过短")
+	}
+	if len(req.UserPassword) < common.MinPasswordLength {
+		return nil, common.ErrParams.WithMessage("密码长度过短")
+	}
+
+	// 查询用户
+	user, err := s.store.GetByAccountAndPassword(req.UserAccount, encryptPassword(req.UserPassword))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.ErrParams.WithMessage("用户不存在或密码错误")
+		}
+		return nil, common.ErrSystem
+	}
+
+	// 保存登录态 把用户 ID 写入 Session，键为 "userLoginState"
+	session.Set(common.UserLoginState, user.ID)
+	// 持久化 Session（如写 Cookie/Redis），失败则系统错误。
+	if err := session.Save(); err != nil {
+		return nil, common.ErrSystem
+	}
+
+	return user.ToLoginUser(), nil
+}
+
+// GetLoginUser 获取当前登录用户
+func (s *UserService) GetLoginUser(session sessions.Session) (*model.User, error) {
+	userID := session.Get(common.UserLoginState)
+	if userID == nil {
+		return nil, common.ErrNotLogin
+	}
+
+	id, ok := userID.(int64)
+	if !ok {
+		return nil, common.ErrNotLogin
+	}
+
+	user, err := s.store.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.ErrNotLogin
+		}
+		return nil, common.ErrSystem
+	}
+
+	return user, nil
+}
+
+// Logout 用户注销
+func (s *UserService) Logout(session sessions.Session) error {
+	if session.Get(common.UserLoginState) == nil {
+		return common.ErrOperation.WithMessage("用户未登录")
+	}
+	session.Delete(common.UserLoginState)
+	return session.Save()
+}
+
+// Create 创建用户（管理员）
+func (s *UserService) Create(req *model.AddUserRequest) (int64, error) {
+	now := time.Now()
+	user := &model.User{
+		UserAccount:  req.UserAccount,
+		UserPassword: encryptPassword(common.DefaultPassword),
+		UserName:     req.UserName,
+		UserAvatar:   req.UserAvatar,
+		UserProfile:  req.UserProfile,
+		UserRole:     req.UserRole,
+		EditTime:     &now,
+	}
+
+	if err := s.store.Create(user); err != nil {
+		return 0, common.ErrOperation
 	}
 	return user.ID, nil
 }
 
-func (s *UserService) Login(req *model.UserLoginRequest) (*model.UserVO, error) {
-	user, err := s.store.GetByAccount(req.UserAccount)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrUserNotFound
-		}
-		return nil, err
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.UserPassword), []byte(req.UserPassword)); err != nil {
-		return nil, ErrPasswordMismatch
-	}
-
-	vo := model.UserToVO(user)
-	return &vo, nil
-}
-
-func (s *UserService) GetByID(id uint) (*model.UserVO, error) {
+// GetByID 根据 ID 获取用户
+func (s *UserService) GetByID(id int64) (*model.User, error) {
 	user, err := s.store.GetByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrUserNotFound
+			return nil, common.ErrNotFound
 		}
-		return nil, err
+		return nil, common.ErrSystem
 	}
-	vo := model.UserToVO(user)
-	return &vo, nil
+	return user, nil
 }
 
-func (s *UserService) ListPage(req *model.UserQueryRequest) (*common.PageResult, error) {
-	pageNum := req.PageNum
-	pageSize := req.PageSize
-	if pageNum <= 0 {
-		pageNum = 1
+// Update 更新用户
+func (s *UserService) Update(req *model.UpdateUserRequest) error {
+	user := &model.User{
+		ID:          req.ID,
+		UserName:    req.UserName,
+		UserAvatar:  req.UserAvatar,
+		UserProfile: req.UserProfile,
 	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	query := s.store.BuildQuery(req.UserAccount, req.UserName, req.UserRole)
-	users, total, err := s.store.List(query, pageNum, pageSize)
-	if err != nil {
-		return nil, err
+	if req.UserRole != nil {
+		user.UserRole = *req.UserRole
 	}
 
-	vos := make([]model.UserVO, 0, len(users))
-	for i := range users {
-		vos = append(vos, model.UserToVO(&users[i]))
-	}
-
-	return &common.PageResult{
-		Records:  vos,
-		TotalRow: total,
-		PageNum:  pageNum,
-		PageSize: pageSize,
-	}, nil
-}
-
-func (s *UserService) Delete(id uint) error {
-	affected, err := s.store.Delete(id)
-	if err != nil {
-		return err
-	}
-	if affected == 0 {
-		return ErrUserNotFound
+	if err := s.store.Update(user); err != nil {
+		return common.ErrOperation
 	}
 	return nil
 }
 
-func (s *UserService) EnsureAdmin() error {
-	count, err := s.store.CountByRole(common.AdminRole)
-	if err != nil {
-		return err
+// Delete 删除用户
+func (s *UserService) Delete(id int64) error {
+	if err := s.store.Delete(id); err != nil {
+		return common.ErrOperation
 	}
-	if count > 0 {
-		return nil
+	return nil
+}
+
+// ListByPage 分页查询用户列表
+func (s *UserService) ListByPage(req *model.QueryUserRequest) (*model.PageResult, error) {
+	query := s.store.BuildQuery(
+		req.ID,
+		req.UserAccount,
+		req.UserName,
+		req.UserProfile,
+		req.UserRole,
+		req.SortField,
+		req.SortOrder,
+	)
+
+	users, total, err := s.store.List(query, req.PageNum, req.PageSize)
+	if err != nil {
+		return nil, common.ErrSystem
 	}
 
-	hashed, err := bcrypt.GenerateFromPassword([]byte("admin123456"), bcrypt.DefaultCost)
-	if err != nil {
-		return err
+	// 转换为用户信息列表
+	// 创建一个当前为空、但预留了 len(users) 个元素空间的 UserInfo 切片，方便后面循环 append 时更高效
+	userInfos := make([]model.UserInfo, 0, len(users))
+	for i := range users {
+		if info := users[i].ToUserInfo(); info != nil {
+			userInfos = append(userInfos, *info)
+		}
 	}
 
-	admin := model.User{
-		UserAccount:  "admin",
-		UserPassword: string(hashed),
-		UserName:     "管理员",
-		UserRole:     common.AdminRole,
-		UserProfile:  "系统默认管理员",
-	}
-	return s.store.Create(&admin)
+	return &model.PageResult{
+		Total:    total,
+		Records:  userInfos,
+		PageNum:  req.PageNum,
+		PageSize: req.PageSize,
+	}, nil
+}
+
+// encryptPassword 加密密码
+func encryptPassword(password string) string {
+	hash := md5.Sum([]byte(password + common.PasswordSalt))
+	return hex.EncodeToString(hash[:])
 }
