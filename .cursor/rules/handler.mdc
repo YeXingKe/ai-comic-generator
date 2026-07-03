@@ -1,0 +1,46 @@
+---
+description: server/internal/handler Gin 处理器约定
+globs: server/internal/handler/**
+alwaysApply: false
+---
+
+# Handler（`server/internal/handler`）
+
+Handler 是薄的 HTTP 适配层。业务逻辑在 `service/`，SQL 在 `store/`。
+
+## 响应格式
+
+统一 HTTP 200 + JSON 信封，使用 `common.Success` / `common.Error`：
+
+```go
+c.JSON(http.StatusOK, common.Success(data))
+c.JSON(http.StatusOK, common.Error(40000, "请求参数错误"))
+```
+
+前端期望 `{ code, data?, message }`，成功时 `code === 0`。
+
+## 请求绑定
+
+- JSON：`c.ShouldBindJSON(&req)` — 失败返回 `common.Error(40000, "请求参数错误")`
+- service 错误映射为稳定业务码（参考 `user_handler.go` 的 switch）
+- `50000` 响应勿向客户端泄露内部错误细节
+
+## 鉴权
+
+- Session：`sessions.Default(c)` 获取登录用户
+- 管理端路由：在 handler 或 service 校验角色，勿仅信任客户端传来的 role
+- 在 `cmd/server/main.go` 的 `/api` 路由组注册，并挂正确中间件
+
+## 命名
+
+- 结构体 `{Domain}Handler` + `New{Domain}Handler`
+- 方法按动作命名：`Register`、`Login`、`ListUserVOByPage`、`DeleteUser`
+- 每个领域一个文件（如 `user_handler.go`）
+
+## 新增接口步骤
+
+1. `model/` 定义请求/响应类型
+2. `service/` 实现业务方法
+3. `handler/` 只调 service
+4. `main.go` 注册路由 + 中间件
+5. 前端同步：`web/src/types/api.ts` + `web/src/api/`

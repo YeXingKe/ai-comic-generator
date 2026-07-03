@@ -1,15 +1,15 @@
-.user-manage-page {
+.page-shell {
   min-height: calc(100vh - 64px);
   background: var(--app-page-bg);
   padding: 32px 20px 48px;
 }
 
-.user-manage-page__inner {
+.page-shell__inner {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.user-manage-page__header {
+.page-shell__header {
   margin-bottom: 24px;
 
   h1 {
@@ -27,7 +27,7 @@
   }
 }
 
-.user-manage-page__search {
+.page-shell__search {
   margin-bottom: 16px;
   padding: 16px;
   border-radius: var(--radius-lg);
@@ -35,10 +35,9 @@
   border: 1px solid var(--app-surface-border);
 }
 
-.user-manage-page__table {
+.page-shell__table {
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--app-surface-border);
   background: var(--app-surface);
 }
-

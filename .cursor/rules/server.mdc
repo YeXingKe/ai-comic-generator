@@ -1,0 +1,52 @@
+---
+description: server/ 目录 Go 后端约定
+globs: server/**
+alwaysApply: false
+---
+
+# Server（Go + Gin + GORM）
+
+## 目录分层
+
+```text
+server/
+  cmd/server/main.go     # 入口、路由注册
+  internal/
+    app/                 # 组装：DB、Redis、service、handler
+    config/              # YAML 配置
+    handler/             # HTTP 处理（薄层）
+    service/             # 业务逻辑
+    store/               # GORM 数据访问
+    model/               # 实体与请求/响应 DTO
+    middleware/          # session、鉴权、CORS
+    common/              # 响应封装、错误码、常量
+```
+
+模块路径：`github.com/ai-comic-generator/server/...`
+
+## API 约定
+
+- 路由均在 `/api` 下（见 `config.yaml` 的 `context_path`）
+- JSON 统一：`{ code, data?, message }`，使用 `common` 辅助函数
+- `code === 0` 表示成功（与前端 `BaseResponse` 一致）
+
+## 鉴权
+
+- Session（Redis + Cookie），中间件在 `internal/middleware/`
+- 管理员接口必须在 service 或 handler 校验角色
+- 首次启动在 `UserService.EnsureAdmin()` 创建默认管理员
+
+## 配置
+
+- 从 `config.yaml.example` 复制为 `config.yaml`，勿提交真实密码
+- 数据库：MySQL `ai_comic_generator`
+
+## 新增功能顺序
+
+1. `model/` — 结构体 + 请求类型
+2. `store/` — GORM 查询
+3. `service/` — 校验与业务规则
+4. `handler/` — 绑定 JSON、调 service、返回 `common` 响应
+5. 在 `cmd/server/main.go` 注册路由
+
+Handler 保持薄层，不在 handler 写 SQL。命名与现有一致（`UserHandler`、`UserService`、`UserStore`）。

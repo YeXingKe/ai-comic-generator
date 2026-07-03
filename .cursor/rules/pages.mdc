@@ -1,0 +1,36 @@
+---
+description: web/src/pages 页面组件约定
+globs: web/src/pages/**/*.tsx
+alwaysApply: false
+---
+
+# 页面（`web/src/pages`）
+
+## 目录职责
+
+| 路径 | 面向 | 示例 |
+|------|------|------|
+| `common/` | 公开 | `home`、`auth` |
+| `user/` | 登录用户 | `center`、`create`、`history`、`article/detail` |
+| `admin/` | 管理员 | `users`、`data` |
+| `_shared/` | 共享样式/工具 | `pageShell.scss`、`userTableHelpers.ts` |
+
+勿在 `user/center` 做管理员 CRUD。勿把个人资料与用户列表混在同一页。
+
+## 文件组织
+
+- 每功能：`index.tsx` + `index.scss`
+- 引入共享布局：`@import '@/pages/_shared/pageShell.scss';`
+- 类名：`page-shell`、`page-shell__header`、`page-shell__table`
+
+## UI 模式
+
+- 列表 → Ant Design `Table` + 分页（不用 `AppleCardList`）
+- 管理端表格列抽到同目录 `*TableColumns.tsx`
+- 未登录：用 `Empty` 跳转 `/user/login`，或依赖 `RequireAuth` 路由守卫
+
+## 数据
+
+- 示例文章：`@/constants/mockArticles`
+- 用户 API：`@/api/user.ts`，类型在 `@/types/api.ts`
+- 编辑后由 hook 自动 Prettier 格式化，勿为 antd 手写 import

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
-import './DetailPage.scss'
+import './index.scss'
 
 const mockDetail: Record<
   string,

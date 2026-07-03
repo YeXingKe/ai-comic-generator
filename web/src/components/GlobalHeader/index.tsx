@@ -1,20 +1,24 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { MenuProps } from 'antd'
 import ThemeToggle from '@/components/ThemeToggle'
-import { useLoginUserStore } from '@/stores/loginUser'
+import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
 import { useThemeStore } from '@/stores/theme'
 import './index.scss'
 
-const navItems = [
+const baseNavItems = [
   { key: '/', label: '首页', path: '/', icon: <HomeOutlined /> },
   { key: '/create', label: '创作', path: '/create', icon: <EditOutlined /> },
   { key: '/history', label: '历史', path: '/history', icon: <HistoryOutlined /> },
   { key: '/user/center', label: '用户', path: '/user/center', icon: <UserOutlined /> },
-  { key: '/data', label: '数据', path: '/data', icon: <BarChartOutlined /> },
 ]
 
-function matchNavKey(pathname: string) {
+const adminNavItems = [
+  { key: '/admin/users', label: '用户管理', path: '/admin/users', icon: <TeamOutlined /> },
+  { key: '/admin/data', label: '数据', path: '/admin/data', icon: <BarChartOutlined /> },
+]
+
+function matchNavKey(pathname: string, navItems: { key: string; path: string }[]) {
   if (pathname === '/') return '/'
   const matched = navItems
     .filter((item) => item.path !== '/')
@@ -32,7 +36,12 @@ export default function GlobalHeader() {
     fetchLoginUser()
   }, [fetchLoginUser])
 
-  const selectedKey = matchNavKey(location.pathname)
+  const isAdmin = loginUser.userRole === ADMIN_ROLE
+  const navItems = useMemo(
+    () => (isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems),
+    [isAdmin],
+  )
+  const selectedKey = matchNavKey(location.pathname, navItems)
   const isImmersive = appTheme === 'immersive'
 
   const menuItems: MenuProps['items'] = navItems.map((item) => ({

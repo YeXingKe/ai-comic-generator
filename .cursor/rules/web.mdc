@@ -1,0 +1,44 @@
+---
+description: web/ 目录 React 前端约定
+globs: web/**
+alwaysApply: false
+---
+
+# Web（React + Vite）
+
+## 技术栈
+
+React 19、React Router 7、Zustand、Axios、Ant Design 6、Sass，路径别名 `@/` → `src/`。
+
+## Ant Design 自动引入
+
+配置在 `vite.config.ts`。全局类型在 `components.d.ts` / `auto-imports.d.ts` — `.oxlintrc.json` 已关闭 `react/jsx-no-undef`。
+
+仍需手动 import：
+
+- `import type { ... } from 'antd'`（如 `MenuProps`、`TablePaginationConfig`）
+- `import zhCN from 'antd/locale/zh_CN'`
+- 静态 API 已自动引入：`message`、`Form`（用于 `Form.useForm()`）
+
+勿在 `main.tsx` 把根组件改名为 `App`，除非同步修改 vite resolver 排除项。
+
+## 页面
+
+- 每个功能一个文件夹：`index.tsx` + `index.scss`
+- 复用布局：`@import '@/pages/_shared/pageShell.scss'`
+- 管理端 UI → `pages/admin/`；用户端 → `pages/user/`
+- 列表页用 Ant Design `Table`，不用卡片列表
+
+## API 层
+
+- 类型：`src/types/api.ts`（与 Go `model` 对齐）
+- 请求：`src/api/*.ts`，使用 `request` + `unwrap()`（`src/utils/request.ts`）
+- Session：`withCredentials: true`
+
+## 主题
+
+`stores/theme.ts`：`classic` | `immersive`。SCSS 使用 CSS 变量（`--app-page-bg`、`--app-surface` 等）。
+
+## 构建
+
+`npm run build` = `vite build && tsc -b`（typecheck 前由 Vite 生成自动引入的 `.d.ts`）。

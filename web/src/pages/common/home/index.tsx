@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { mockArticles } from '@/constants/mockArticles'
+import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
 import { useThemeStore } from '@/stores/theme'
 import HomeScene from './HomeScene'
 import HomeMascots from './HomeMascots'
@@ -75,6 +76,8 @@ export default function HomePage() {
   const navigate = useNavigate()
   const [topic, setTopic] = useState('')
   const appTheme = useThemeStore((s) => s.theme)
+  const loginUser = useLoginUserStore((s) => s.loginUser)
+  const isAdmin = loginUser.userRole === ADMIN_ROLE
 
   const goToCreate = (value?: string) => {
     const next = (value ?? topic).trim()
@@ -247,7 +250,7 @@ export default function HomePage() {
             <Link to="/create">创作</Link>
             <Link to="/history">历史</Link>
             <Link to="/user/center">用户</Link>
-            <Link to="/data">数据</Link>
+            {isAdmin && <Link to="/admin/data">数据</Link>}
           </nav>
           <p className="home-page__copyright-text">
             © {new Date().getFullYear()} AI Comic Generator. All rights reserved.

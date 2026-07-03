@@ -1,0 +1,48 @@
+---
+description: ai-comic-generator  monorepo 总览、命令与跨端约定
+alwaysApply: true
+---
+
+# ai-comic-generator
+
+Monorepo：`web/`（React + Vite）+ `server/`（Go + Gin + GORM）。API 前缀 `/api`，开发时代理 web → server。
+
+## 目录结构
+
+```text
+web/src/pages/
+  common/   # 公开：home、auth
+  user/     # 登录用户：center、create、history、article/detail
+  admin/    # 管理员：users、data
+  _shared/  # pageShell.scss、userTableHelpers.ts
+```
+
+路由守卫：`web/src/router/guards.tsx`（`RequireAuth`、`RequireAdmin`）。
+
+## 命令（仓库根目录）
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | web :5173 + server :8080 |
+| `npm run web` | 仅前端 |
+| `npm run server` | 仅后端 |
+| `npm run build:web` / `build:server` | 生产构建 |
+
+首次搭建：复制 `server/config.yaml.example` → `server/config.yaml`，创建 MySQL 库 `ai_comic_generator`，执行 `/init` skill。Cloud Agent 总览见 `AGENTS.md`。
+
+Hooks（`.cursor/hooks.json`）：编辑后格式化，`git commit` 前 lint。
+
+默认管理员（自动创建）：`admin` / `admin123456`
+
+## 编辑原则
+
+- 最小 diff，与当前包内现有写法一致
+- 勿提交密钥（`config.yaml`、`.env`）
+- 勿提交生成的 `web/src/components.d.ts`、`web/src/auto-imports.d.ts`
+- 用户/管理员页面分离：个人资料 → `user/center`，用户 CRUD → `admin/users`
+
+## 关键路由
+
+- `/user/center` — 需登录
+- `/admin/users`、`/admin/data` — 仅管理员
+- 兼容：`/data` → `/admin/data`，`/admin/userManage` → `/admin/users`
