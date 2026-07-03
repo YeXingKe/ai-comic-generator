@@ -77,9 +77,15 @@ export default function HomePage() {
   const [topic, setTopic] = useState('')
   const appTheme = useThemeStore((s) => s.theme)
   const loginUser = useLoginUserStore((s) => s.loginUser)
+  const isLoggedIn = loginUser.id > 0
   const isAdmin = loginUser.userRole === ADMIN_ROLE
 
   const goToCreate = (value?: string) => {
+    if (!isLoggedIn) {
+      navigate('/user/login', { state: { from: '/create' } })
+      return
+    }
+
     const next = (value ?? topic).trim()
     if (next) {
       navigate(`/create?topic=${encodeURIComponent(next)}`)
@@ -197,9 +203,11 @@ export default function HomePage() {
               <h2>最近灵感</h2>
               <p>你的创作记录，随时继续</p>
             </div>
-            <Link to="/history" className="home-works__more glass-panel glass-panel--sm">
-              查看全部 <RightOutlined />
-            </Link>
+            {isAdmin && (
+              <Link to="/history" className="home-works__more glass-panel glass-panel--sm">
+                查看全部 <RightOutlined />
+              </Link>
+            )}
           </div>
 
           <div className="home-works__track">
@@ -207,10 +215,14 @@ export default function HomePage() {
               <article
                 key={article.taskId}
                 className="home-works__card glass-panel"
-                onClick={() => navigate(`/article/${article.taskId}`)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && navigate(`/article/${article.taskId}`)}
+                onClick={() => isAdmin && navigate(`/article/${article.taskId}`)}
+                role={isAdmin ? 'button' : undefined}
+                tabIndex={isAdmin ? 0 : undefined}
+                onKeyDown={
+                  isAdmin
+                    ? (e) => e.key === 'Enter' && navigate(`/article/${article.taskId}`)
+                    : undefined
+                }
               >
                 <div className="home-works__cover">
                   {article.coverImage ? (
@@ -247,10 +259,14 @@ export default function HomePage() {
 
         <footer className="home-page__copyright">
           <nav className="home-page__copyright-links" aria-label="页脚导航">
-            <Link to="/create">创作</Link>
-            <Link to="/history">历史</Link>
-            <Link to="/user/center">用户</Link>
-            {isAdmin && <Link to="/admin/data">数据</Link>}
+            {isLoggedIn && <Link to="/create">创作</Link>}
+            {isAdmin && (
+              <>
+                <Link to="/history">历史</Link>
+                <Link to="/user/center">用户</Link>
+                <Link to="/admin/data">数据</Link>
+              </>
+            )}
           </nav>
           <p className="home-page__copyright-text">
             © {new Date().getFullYear()} AI Comic Generator. All rights reserved.

@@ -1,22 +1,19 @@
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { MenuProps } from 'antd'
 import ThemeToggle from '@/components/ThemeToggle'
+import { getVisibleNavItems } from '@/router/nav'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
 import { useThemeStore } from '@/stores/theme'
 import './index.scss'
 
-const baseNavItems = [
-  { key: '/', label: '首页', path: '/', icon: <HomeOutlined /> },
-  { key: '/create', label: '创作', path: '/create', icon: <EditOutlined /> },
-  { key: '/history', label: '历史', path: '/history', icon: <HistoryOutlined /> },
-  { key: '/user/center', label: '用户', path: '/user/center', icon: <UserOutlined /> },
-]
-
-const adminNavItems = [
-  { key: '/admin/users', label: '用户管理', path: '/admin/users', icon: <TeamOutlined /> },
-  { key: '/admin/data', label: '数据', path: '/admin/data', icon: <BarChartOutlined /> },
-]
+const navIcons: Record<string, React.ReactNode> = {
+  '/': <HomeOutlined />,
+  '/create': <EditOutlined />,
+  '/user/center': <UserOutlined />,
+  '/history': <HistoryOutlined />,
+  '/admin/data': <BarChartOutlined />,
+}
 
 function matchNavKey(pathname: string, navItems: { key: string; path: string }[]) {
   if (pathname === '/') return '/'
@@ -29,17 +26,14 @@ function matchNavKey(pathname: string, navItems: { key: string; path: string }[]
 export default function GlobalHeader() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { loginUser, fetchLoginUser, logout } = useLoginUserStore()
+  const { loginUser, logout } = useLoginUserStore()
   const appTheme = useThemeStore((s) => s.theme)
 
-  useEffect(() => {
-    fetchLoginUser()
-  }, [fetchLoginUser])
-
+  const isLoggedIn = loginUser.id > 0
   const isAdmin = loginUser.userRole === ADMIN_ROLE
   const navItems = useMemo(
-    () => (isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems),
-    [isAdmin],
+    () => getVisibleNavItems(isLoggedIn, isAdmin),
+    [isLoggedIn, isAdmin],
   )
   const selectedKey = matchNavKey(location.pathname, navItems)
   const isImmersive = appTheme === 'immersive'
@@ -49,7 +43,7 @@ export default function GlobalHeader() {
     label: (
       <Link to={item.path} className="nav-menu__link">
         <span className="nav-menu__content">
-          <span className="nav-menu__icon">{item.icon}</span>
+          <span className="nav-menu__icon">{navIcons[item.key]}</span>
           <span>{item.label}</span>
         </span>
         <span className="nav-menu__indicator" aria-hidden />
@@ -80,7 +74,7 @@ export default function GlobalHeader() {
         <div className="header-actions">
           <ThemeToggle />
           <div className="auth-buttons">
-            {loginUser.id ? (
+            {isLoggedIn ? (
               <Button icon={<LogoutOutlined />} className="header-auth-btn" onClick={handleLogout}>
                 退出登录
               </Button>

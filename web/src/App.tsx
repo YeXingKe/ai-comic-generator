@@ -1,5 +1,6 @@
 import zhCN from 'antd/locale/zh_CN'
 import { RouterProvider } from 'react-router-dom'
+import AuthInit from '@/components/AuthInit'
 import { useThemeStore } from '@/stores/theme'
 import { router } from '@/router'
 
@@ -19,7 +20,9 @@ export default function App() {
         },
       }}
     >
-      <RouterProvider router={router} />
+      <AuthInit>
+        <RouterProvider router={router} />
+      </AuthInit>
     </ConfigProvider>
   )
 }

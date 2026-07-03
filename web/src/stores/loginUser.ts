@@ -21,7 +21,7 @@ const emptyUser: LoginUser = {
 
 export const useLoginUserStore = create<LoginUserState>((set) => ({
   loginUser: emptyUser,
-  loading: false,
+  loading: true,
   fetchLoginUser: async () => {
     set({ loading: true })
     try {

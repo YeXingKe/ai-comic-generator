@@ -1,6 +1,6 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom'
 import BasicLayout from '@/layouts/BasicLayout'
-import { RequireAdmin, RequireAuth } from '@/router/guards'
+import { RequireAdmin, RequireAuth, RequireGuest } from '@/router/guards'
 import HomePage from '@/pages/common/home'
 import AuthPage from '@/pages/common/auth'
 import UserCenterPage from '@/pages/user/center'
@@ -13,7 +13,11 @@ import AdminDataPage from '@/pages/admin/data'
 export const router = createBrowserRouter([
   {
     path: '/user/login',
-    element: <AuthPage />,
+    element: (
+      <RequireGuest>
+        <AuthPage />
+      </RequireGuest>
+    ),
   },
   {
     path: '/user/register',
@@ -23,8 +27,22 @@ export const router = createBrowserRouter([
     element: <BasicLayout />,
     children: [
       { path: '/', element: <HomePage /> },
-      { path: '/create', element: <CreatePage /> },
-      { path: '/history', element: <HistoryPage /> },
+      {
+        path: '/create',
+        element: (
+          <RequireAuth>
+            <CreatePage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: '/history',
+        element: (
+          <RequireAdmin>
+            <HistoryPage />
+          </RequireAdmin>
+        ),
+      },
       {
         path: '/user/center',
         element: (
@@ -33,7 +51,14 @@ export const router = createBrowserRouter([
           </RequireAuth>
         ),
       },
-      { path: '/article/:taskId', element: <ArticleDetailPage /> },
+      {
+        path: '/article/:taskId',
+        element: (
+          <RequireAdmin>
+            <ArticleDetailPage />
+          </RequireAdmin>
+        ),
+      },
       {
         path: '/admin/users',
         element: (

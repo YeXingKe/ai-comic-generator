@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { userLogin, userRegister } from '@/api/user'
 import { useLoginUserStore } from '@/stores/loginUser'
 import AuthScene from './AuthScene'
@@ -9,10 +9,13 @@ type AuthMode = 'login' | 'register'
 
 export default function AuthPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const { setLoginUser } = useLoginUserStore()
   const [loading, setLoading] = useState(false)
   const [form] = Form.useForm()
+
+  const redirectTo = (location.state as { from?: string } | null)?.from ?? '/'
 
   const mode: AuthMode = searchParams.get('mode') === 'register' ? 'register' : 'login'
   const isLogin = mode === 'login'
@@ -36,7 +39,7 @@ export default function AuthPage() {
       if (res.code === 0 && res.data) {
         setLoginUser(res.data)
         message.success('登录成功，欢迎回来！')
-        navigate('/')
+        navigate(redirectTo, { replace: true })
       } else {
         message.error(res.message || '登录失败')
       }

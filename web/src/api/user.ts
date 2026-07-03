@@ -19,7 +19,7 @@ export async function userRegister(body: RegisterRequest) {
 }
 
 export async function getLoginUser() {
-  return unwrap(await request.get<BaseResponse<LoginUser>>('/user/getUserInfo'))
+  return unwrap(await request.get<BaseResponse<LoginUser>>('/user/get/login'))
 }
 
 export async function userLogout() {
@@ -28,7 +28,7 @@ export async function userLogout() {
 
 export async function listUserVoByPage(body: QueryUserRequest) {
   return unwrap(
-    await request.post<BaseResponse<PageResult<UserInfo>>>('/user/page/vo', body),
+    await request.post<BaseResponse<PageResult<UserInfo>>>('/user/list/page/vo', body),
   )
 }
 
