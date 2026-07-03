@@ -15,7 +15,9 @@ import {
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { mockArticles } from '@/constants/mockArticles'
+import { useThemeStore } from '@/stores/theme'
 import HomeScene from './HomeScene'
+import HomeMascots from './HomeMascots'
 import './index.scss'
 
 const features = [
@@ -85,6 +87,7 @@ function statusClass(status?: string) {
 export default function HomePage() {
   const navigate = useNavigate()
   const [topic, setTopic] = useState('')
+  const appTheme = useThemeStore((s) => s.theme)
 
   const goToCreate = (value?: string) => {
     const next = (value ?? topic).trim()
@@ -96,8 +99,8 @@ export default function HomePage() {
   }
 
   return (
-    <div className="home-page">
-      <HomeScene />
+    <div className={`home-page home-page--${appTheme}`}>
+      {appTheme === 'immersive' && <HomeScene />}
 
       <div className="home-page__content">
         <header className="home-hero">
@@ -119,6 +122,7 @@ export default function HomePage() {
           <div className="home-composer glass-panel">
             <Input
               size="large"
+              variant="borderless"
               placeholder="输入创作主题，例如：紫色奶龙的城市冒险..."
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
@@ -130,6 +134,8 @@ export default function HomePage() {
               开始创作 <RocketOutlined />
             </Button>
           </div>
+
+          {appTheme === 'immersive' && <HomeMascots />}
 
           <div className="home-quick-topics">
             {quickTopics.map((item) => (

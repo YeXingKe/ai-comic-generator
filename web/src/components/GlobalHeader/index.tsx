@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Avatar, Button, Dropdown, Menu } from 'antd'
+import { Button, Menu } from 'antd'
 import type { MenuProps } from 'antd'
 import {
   HomeOutlined,
@@ -9,9 +9,10 @@ import {
   UserOutlined,
   BarChartOutlined,
   LogoutOutlined,
-  SettingOutlined,
 } from '@ant-design/icons'
-import { useLoginUserStore, ADMIN_ROLE } from '@/stores/loginUser'
+import ThemeToggle from '@/components/ThemeToggle'
+import { useLoginUserStore } from '@/stores/loginUser'
+import { useThemeStore } from '@/stores/theme'
 import './index.scss'
 
 const navItems = [
@@ -34,13 +35,14 @@ export default function GlobalHeader() {
   const location = useLocation()
   const navigate = useNavigate()
   const { loginUser, fetchLoginUser, logout } = useLoginUserStore()
+  const appTheme = useThemeStore((s) => s.theme)
 
   useEffect(() => {
     fetchLoginUser()
   }, [fetchLoginUser])
 
   const selectedKey = matchNavKey(location.pathname)
-  const isImmersive = location.pathname === '/'
+  const isImmersive = appTheme === 'immersive'
 
   const menuItems: MenuProps['items'] = navItems.map((item) => ({
     key: item.key,
@@ -55,31 +57,9 @@ export default function GlobalHeader() {
     ),
   }))
 
-  const userMenuItems: MenuProps['items'] = [
-    {
-      key: 'center',
-      icon: <UserOutlined />,
-      label: '用户中心',
-      onClick: () => navigate('/user/center'),
-    },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: '退出登录',
-      onClick: async () => {
-        await logout()
-        navigate('/user/login')
-      },
-    },
-  ]
-
-  if (loginUser.userRole === ADMIN_ROLE) {
-    userMenuItems.unshift({
-      key: 'admin',
-      icon: <SettingOutlined />,
-      label: '管理后台',
-      onClick: () => navigate('/admin/userManage'),
-    })
+  const handleLogout = async () => {
+    await logout()
+    navigate('/user/login')
   }
 
   return (
@@ -98,20 +78,13 @@ export default function GlobalHeader() {
         />
 
         <div className="header-actions">
-          {loginUser.id ? (
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-              <div className="user-info">
-                <Avatar
-                  size={32}
-                  src={loginUser.userAvatar ?? undefined}
-                  icon={<UserOutlined />}
-                  className="user-avatar"
-                />
-                <span className="user-name">{loginUser.userName || loginUser.userAccount}</span>
-              </div>
-            </Dropdown>
-          ) : (
-            <div className="auth-buttons">
+          <ThemeToggle />
+          <div className="auth-buttons">
+            {loginUser.id ? (
+              <Button icon={<LogoutOutlined />} className="header-auth-btn" onClick={handleLogout}>
+                退出登录
+              </Button>
+            ) : (
               <Button
                 type="primary"
                 className="header-auth-btn"
@@ -119,8 +92,8 @@ export default function GlobalHeader() {
               >
                 登录 / 注册
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </header>

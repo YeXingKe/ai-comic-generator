@@ -2,6 +2,17 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--app-body-bg);
+  transition: background 0.35s ease;
+}
+
+.basic-layout--immersive {
+  background: var(--gradient-hero);
+  background-attachment: fixed;
+}
+
+.basic-layout--classic {
+  background: var(--app-body-bg);
 }
 
 .basic-layout--home {

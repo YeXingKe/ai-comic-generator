@@ -1,12 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap');
 
+/* ── 共享设计令牌 ── */
 :root {
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 200ms ease-out;
+  --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  --bg-primary: #8b5cf6;
+  --bg-primary-hover: #7c3aed;
+  --shadow-purple: 0 4px 14px rgba(139, 92, 246, 0.25);
+  --shadow-card-hover: 0 8px 24px rgba(139, 92, 246, 0.15);
+}
+
+/* ── 经典主题：上一版 git 提交前的浅色风格 ── */
+[data-theme='classic'] {
   --color-primary: #8b5cf6;
   --color-primary-light: #a78bfa;
   --color-primary-dark: #7c3aed;
-  --color-secondary: #0f172a;
-  --color-secondary-light: #334155;
-  --color-cta: #8b5cf6;
   --color-success: #22c55e;
   --color-warning: #eab308;
   --color-error: #ef4444;
@@ -20,25 +34,97 @@
   --color-text-muted: #94a3b8;
   --color-border: #e2e8f0;
   --color-border-light: #f1f5f9;
-  --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   --gradient-hero: linear-gradient(180deg, #ede9fe 0%, #ffffff 100%);
-  --gradient-hero-dark: linear-gradient(180deg, #5b21b6 0%, #4c1d95 100%);
+
+  --app-body-bg: #ffffff;
+  --app-page-bg: #f2f2f7;
+  --app-surface: #ffffff;
+  --app-surface-border: rgba(0, 0, 0, 0.04);
+  --app-surface-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --app-text: #0f172a;
+  --app-text-secondary: #475569;
+  --app-text-muted: #94a3b8;
+  --app-header-bg: rgba(255, 255, 255, 0.92);
+  --app-header-border: rgba(226, 232, 240, 0.95);
+  --app-header-shadow: 0 1px 0 rgba(139, 92, 246, 0.04);
+  --app-header-text: #0f172a;
+  --app-header-nav: #475569;
+  --app-header-nav-active: #7c3aed;
+  --app-footer-bg: #0f172a;
+  --app-glass-bg: #ffffff;
+  --app-glass-border: #e2e8f0;
+  --app-glass-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --app-glass-text: #0f172a;
+  --app-glass-text-muted: #475569;
+  --theme-toggle-track-bg: rgba(139, 92, 246, 0.08);
+  --theme-toggle-track-border: rgba(139, 92, 246, 0.15);
+  --theme-toggle-text: #64748b;
+  --theme-toggle-text-hover: #7c3aed;
+  --theme-toggle-active-bg: #ffffff;
+  --theme-toggle-active-text: #7c3aed;
+  --theme-toggle-active-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
+}
+
+/* ── 沉浸主题：当前最新深色宇宙风 ── */
+[data-theme='immersive'] {
+  --color-primary: #a78bfa;
+  --color-primary-light: #c4b5fd;
+  --color-primary-dark: #8b5cf6;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #60a5fa;
+  --color-background: #0a0618;
+  --color-background-secondary: rgba(255, 255, 255, 0.06);
+  --color-background-tertiary: rgba(255, 255, 255, 0.04);
+  --color-background-dark: #05030f;
+  --color-text: #faf5ff;
+  --color-text-secondary: rgba(233, 213, 255, 0.78);
+  --color-text-muted: rgba(196, 181, 253, 0.55);
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-light: rgba(255, 255, 255, 0.08);
+  --gradient-hero: linear-gradient(
+    165deg,
+    #0a0618 0%,
+    #1e1033 18%,
+    #2e1065 42%,
+    #4c1d95 58%,
+    #312e81 78%,
+    #0f0a2e 100%
+  );
+  --gradient-primary: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
   --bg-primary: #8b5cf6;
   --bg-primary-hover: #7c3aed;
-  --bg-dark: #0f172a;
-  --bg-dark-hover: #1e293b;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-card-hover: 0 8px 24px rgba(139, 92, 246, 0.15);
-  --shadow-purple: 0 4px 14px rgba(139, 92, 246, 0.25);
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 9999px;
-  --transition-fast: 150ms ease-out;
-  --transition-normal: 200ms ease-out;
+  --shadow-purple: 0 4px 14px rgba(139, 92, 246, 0.35);
+  --shadow-card-hover: 0 8px 32px rgba(139, 92, 246, 0.22);
+
+  --app-body-bg: #0a0618;
+  --app-page-bg: transparent;
+  --app-surface: rgba(255, 255, 255, 0.08);
+  --app-surface-border: rgba(255, 255, 255, 0.18);
+  --app-surface-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+  --app-text: #faf5ff;
+  --app-text-secondary: rgba(233, 213, 255, 0.78);
+  --app-text-muted: rgba(196, 181, 253, 0.55);
+  --app-header-bg: rgba(12, 8, 28, 0.72);
+  --app-header-border: rgba(255, 255, 255, 0.08);
+  --app-header-shadow: 0 4px 28px rgba(0, 0, 0, 0.18);
+  --app-header-text: #faf5ff;
+  --app-header-nav: rgba(233, 213, 255, 0.75);
+  --app-header-nav-active: #c4b5fd;
+  --app-footer-bg: rgba(5, 3, 15, 0.92);
+  --app-glass-bg: rgba(255, 255, 255, 0.08);
+  --app-glass-border: rgba(255, 255, 255, 0.18);
+  --app-glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+  --app-glass-text: #faf5ff;
+  --app-glass-text-muted: rgba(233, 213, 255, 0.72);
+  --theme-toggle-track-bg: rgba(255, 255, 255, 0.06);
+  --theme-toggle-track-border: rgba(255, 255, 255, 0.1);
+  --theme-toggle-text: rgba(196, 181, 253, 0.65);
+  --theme-toggle-text-hover: #e9d5ff;
+  --theme-toggle-active-bg: rgba(139, 92, 246, 0.35);
+  --theme-toggle-active-text: #faf5ff;
+  --theme-toggle-active-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
 }
 
 * {
@@ -50,9 +136,12 @@ body {
   padding: 0;
   font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: var(--color-background);
-  color: var(--color-text);
+  background: var(--app-body-bg);
+  color: var(--app-text);
   line-height: 1.6;
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease;
 }
 
 h1,
@@ -62,10 +151,11 @@ h4,
 h5,
 h6 {
   font-family: 'Outfit', sans-serif;
+  color: var(--app-text);
 }
 
 a {
-  color: var(--color-text);
+  color: var(--app-text);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
@@ -75,8 +165,8 @@ a:hover {
 }
 
 ::selection {
-  background: rgba(139, 92, 246, 0.2);
-  color: var(--color-text);
+  background: rgba(139, 92, 246, 0.25);
+  color: var(--app-text);
 }
 
 .ant-btn-primary {
@@ -95,7 +185,76 @@ a:hover {
 .ant-input-affix-wrapper:focus,
 .ant-input-affix-wrapper-focused {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1) !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15) !important;
+}
+
+.home-composer .home-composer__input.ant-input-affix-wrapper,
+.home-composer .home-composer__input.ant-input-affix-wrapper-focused,
+.home-composer .home-composer__input.ant-input-affix-wrapper:focus-within {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[data-theme='immersive'] {
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-select-selector,
+  .ant-input-textarea {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    color: var(--app-text) !important;
+  }
+
+  .home-composer .ant-input-affix-wrapper,
+  .home-composer .ant-input-affix-wrapper-focused,
+  .home-composer .ant-input-affix-wrapper:focus-within {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .home-composer .ant-input {
+    background: transparent !important;
+    border-color: transparent !important;
+  }
+
+  .ant-input::placeholder,
+  .ant-input-textarea::placeholder {
+    color: rgba(196, 181, 253, 0.45) !important;
+  }
+
+  .ant-form-item-label > label {
+    color: var(--app-text-secondary) !important;
+  }
+
+  .ant-table {
+    background: transparent !important;
+    color: var(--app-text) !important;
+  }
+
+  .ant-table-thead > tr > th {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: var(--app-text-secondary) !important;
+    border-bottom-color: var(--color-border) !important;
+  }
+
+  .ant-table-tbody > tr > td {
+    border-bottom-color: var(--color-border-light) !important;
+  }
+
+  .ant-table-tbody > tr:hover > td {
+    background: rgba(139, 92, 246, 0.08) !important;
+  }
+
+  .ant-pagination,
+  .ant-pagination-item a,
+  .ant-pagination-item-link {
+    color: var(--app-text-secondary) !important;
+  }
+
+  .ant-empty-description {
+    color: var(--app-text-muted) !important;
+  }
 }
 
 .ant-menu-horizontal > .ant-menu-item-selected::after,

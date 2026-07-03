@@ -1,83 +1,44 @@
-#userManagePage {
-  background: var(--color-background-secondary);
+.user-manage-page {
   min-height: calc(100vh - 64px);
-  padding-bottom: 60px;
+  background: var(--app-page-bg);
+  padding: 32px 20px 48px;
+}
 
-  .page-header {
-    background: var(--gradient-hero);
-    padding: 32px 20px;
-    margin-bottom: 24px;
-  }
+.user-manage-page__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-  .header-container {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
+.user-manage-page__header {
+  margin-bottom: 24px;
 
-  .page-title {
+  h1 {
+    margin: 0 0 8px;
+    font-family: 'Outfit', sans-serif;
     font-size: 28px;
     font-weight: 700;
-    margin: 0 0 6px;
+    color: var(--app-text);
   }
 
-  .page-subtitle {
-    font-size: 14px;
-    color: var(--color-text-secondary);
+  p {
     margin: 0;
-  }
-
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-  }
-
-  .content-card {
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-    background: white;
-  }
-
-  .search-section {
-    margin-bottom: 16px;
-  }
-
-  .search-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: flex-end;
-  }
-
-  .search-input {
-    width: 180px;
-  }
-
-  .search-btn {
-    border-radius: var(--radius-md);
-    font-weight: 500;
-  }
-
-  .user-avatar {
-    border: 2px solid var(--color-border);
-  }
-
-  .role-tag {
-    border-radius: var(--radius-full);
-  }
-
-  .time-text {
-    color: var(--color-text-secondary);
-    font-size: 13px;
-  }
-
-  .delete-btn {
-    padding: 4px 8px;
+    font-size: 15px;
+    color: var(--app-text-secondary);
   }
 }
 
-@media (max-width: 768px) {
-  #userManagePage .search-input {
-    width: 100%;
-  }
+.user-manage-page__search {
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--app-surface);
+  border: 1px solid var(--app-surface-border);
 }
+
+.user-manage-page__table {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--app-surface-border);
+  background: var(--app-surface);
+}
+

@@ -2,31 +2,26 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--app-header-bg);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 1px 0 rgba(139, 92, 246, 0.04);
+  border-bottom: 1px solid var(--app-header-border);
+  box-shadow: var(--app-header-shadow);
   transition:
-    background 0.3s ease,
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
 }
 
 .global-header--immersive {
-  background: rgba(12, 8, 28, 0.52);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 4px 28px rgba(0, 0, 0, 0.18),
-    0 1px 0 rgba(196, 181, 253, 0.06) inset;
   backdrop-filter: blur(22px);
 
   .logo {
-    color: #faf5ff;
+    color: var(--app-header-text);
   }
 
   .nav-menu {
     &.ant-menu-horizontal > .ant-menu-item {
-      color: rgba(233, 213, 255, 0.75);
+      color: var(--app-header-nav);
     }
 
     &.ant-menu-horizontal > .ant-menu-item:hover {
@@ -34,10 +29,10 @@
     }
 
     &.ant-menu-horizontal > .ant-menu-item-selected {
-      color: #c4b5fd;
+      color: var(--app-header-nav-active);
 
       .nav-menu__link {
-        color: #c4b5fd;
+        color: var(--app-header-nav-active);
       }
 
       .nav-menu__indicator {
@@ -70,6 +65,24 @@
   }
 }
 
+[data-theme='classic'] .global-header:not(.global-header--immersive) {
+  .logo {
+    color: var(--app-header-text);
+  }
+
+  .nav-menu.ant-menu-horizontal > .ant-menu-item {
+    color: var(--app-header-nav);
+  }
+
+  .nav-menu.ant-menu-horizontal > .ant-menu-item-selected {
+    color: var(--app-header-nav-active);
+
+    .nav-menu__link {
+      color: var(--app-header-nav-active);
+    }
+  }
+}
+
 .header-inner {
   max-width: 1200px;
   margin: 0 auto;
@@ -77,7 +90,7 @@
   height: 64px;
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
 }
 
 .logo {
@@ -86,7 +99,7 @@
   gap: 8px;
   font-weight: 700;
   font-size: 18px;
-  color: var(--color-text);
+  color: var(--app-header-text);
   flex-shrink: 0;
 }
 
@@ -168,6 +181,9 @@
 
 .header-actions {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .auth-buttons {
@@ -197,6 +213,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--app-text);
 }
 
 @media (max-width: 768px) {

@@ -1,6 +1,6 @@
 .create-page {
   min-height: calc(100vh - 64px);
-  background: #f2f2f7;
+  background: var(--app-page-bg);
   padding: 32px 20px 48px;
 }
 
@@ -17,13 +17,13 @@
     font-family: 'Outfit', sans-serif;
     font-size: 28px;
     font-weight: 700;
-    color: var(--color-text);
+    color: var(--app-text);
   }
 
   p {
     margin: 0;
     font-size: 15px;
-    color: var(--color-text-secondary);
+    color: var(--app-text-secondary);
   }
 }
 
@@ -33,10 +33,10 @@
   gap: 16px;
   margin-bottom: 32px;
   padding: 20px;
-  background: #fff;
+  background: var(--app-surface);
   border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: var(--app-surface-shadow);
+  border: 1px solid var(--app-surface-border);
 }
 
 .create-page__textarea {

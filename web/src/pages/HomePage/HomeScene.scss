@@ -76,56 +76,48 @@
 .home-scene__vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 80% 70% at 50% 45%, transparent 35%, rgba(5, 3, 15, 0.65) 100%);
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 28%, transparent 0%, rgba(5, 3, 15, 0.35) 55%, rgba(5, 3, 15, 0.72) 100%);
 }
 
-.home-scene__stars {
+.home-scene__hero-glow {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(900px, 92vw);
+  height: min(520px, 55vh);
+  background: radial-gradient(ellipse, rgba(139, 92, 246, 0.16) 0%, transparent 68%);
+  pointer-events: none;
+}
+
+.home-scene__orbs {
   position: absolute;
   inset: 0;
+  pointer-events: none;
 }
 
-.home-scene__star {
+.home-scene__orb {
   position: absolute;
   border-radius: 50%;
-  background: #fff;
-  animation: home-star-pulse var(--star-dur, 3s) ease-in-out infinite;
-  animation-delay: var(--star-delay, 0s);
-
-  &--bright {
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 14px rgba(196, 181, 253, 0.45);
-  }
-
-  &--purple {
-    background: #e9d5ff;
-    box-shadow: 0 0 6px rgba(196, 181, 253, 0.7);
-  }
+  filter: blur(2px);
+  animation: home-orb-drift var(--orb-dur, 14s) ease-in-out infinite;
+  animation-delay: var(--orb-delay, 0s);
 }
 
-.home-scene__char {
-  position: absolute;
-  bottom: 0;
-  width: min(26vw, 280px);
-  height: auto;
-  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.35));
-  opacity: 0.92;
-
-  svg {
-    display: block;
-    width: 100%;
-    height: auto;
+@keyframes home-orb-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translate(12px, -18px) scale(1.12);
+    opacity: 1;
   }
 }
 
-.home-scene__char--nailong {
-  left: 1%;
-  animation: home-char-float 5.5s ease-in-out infinite;
-}
-
-.home-scene__char--niuniu {
-  right: 1%;
-  animation: home-char-float 5.5s ease-in-out infinite 0.35s;
-}
-
+/* 角色局部动画（Hero 区 mascots 使用） */
 .home-scene__nailong-body,
 .home-scene__niuniu-body {
   animation: home-char-breathe 4s ease-in-out infinite;
@@ -169,38 +161,6 @@
 
 .home-scene__niuniu-face {
   animation-delay: 0.25s;
-}
-
-@keyframes home-aurora-drift {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(24px, -18px) scale(1.08);
-  }
-}
-
-@keyframes home-star-pulse {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(0.9);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-}
-
-@keyframes home-char-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
 }
 
 @keyframes home-char-breathe {
@@ -263,25 +223,52 @@
   }
 }
 
-@media (max-width: 992px) {
-  .home-scene__char {
-    width: min(32vw, 220px);
-    opacity: 0.62;
+@keyframes home-aurora-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
   }
-
-  .home-scene__char--nailong {
-    left: -4%;
-  }
-
-  .home-scene__char--niuniu {
-    right: -4%;
+  50% {
+    transform: translate(24px, -18px) scale(1.08);
   }
 }
 
-@media (max-width: 768px) {
-  .home-scene__char {
-    width: 150px;
-    opacity: 0.4;
-    bottom: -2%;
+@keyframes home-star-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.home-scene__stars {
+  position: absolute;
+  inset: 0;
+}
+
+.home-scene__star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  animation: home-star-pulse var(--star-dur, 3s) ease-in-out infinite;
+  animation-delay: var(--star-delay, 0s);
+
+  &--bright {
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 14px rgba(196, 181, 253, 0.45);
+  }
+
+  &--purple {
+    background: #e9d5ff;
+    box-shadow: 0 0 6px rgba(196, 181, 253, 0.7);
+  }
+}
+
+@media (max-width: 992px) {
+  .home-scene__hero-glow {
+    height: 45vh;
   }
 }

@@ -4,7 +4,6 @@ import HomePage from '@/pages/HomePage'
 import AuthPage from '@/pages/user/AuthPage'
 import CreatePage from '@/pages/CreatePage'
 import HistoryPage from '@/pages/HistoryPage'
-import UserCenterPage from '@/pages/UserCenterPage'
 import DataPage from '@/pages/DataPage'
 import ArticleDetailPage from '@/pages/article/DetailPage'
 import UserManagePage from '@/pages/admin/UserManagePage'
@@ -24,10 +23,10 @@ export const router = createBrowserRouter([
       { path: '/', element: <HomePage /> },
       { path: '/create', element: <CreatePage /> },
       { path: '/history', element: <HistoryPage /> },
-      { path: '/user/center', element: <UserCenterPage /> },
+      { path: '/user/center', element: <UserManagePage /> },
       { path: '/data', element: <DataPage /> },
       { path: '/article/:taskId', element: <ArticleDetailPage /> },
-      { path: '/admin/userManage', element: <UserManagePage /> },
+      { path: '/admin/userManage', element: <Navigate to="/user/center" replace /> },
       { path: '/article/list', element: <Navigate to="/history" replace /> },
     ],
   },

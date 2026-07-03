@@ -8,7 +8,7 @@
   margin: 0 0 8px 16px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--app-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -17,17 +17,15 @@
   margin: 8px 16px 0;
   font-size: 12px;
   line-height: 1.5;
-  color: var(--color-text-muted);
+  color: var(--app-text-muted);
 }
 
 .apple-card-list__card {
-  background: #fff;
+  background: var(--app-surface);
   border-radius: 14px;
   overflow: hidden;
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 4px 16px rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: var(--app-surface-shadow);
+  border: 1px solid var(--app-surface-border);
 }
 
 .apple-card-list__row {
@@ -37,11 +35,11 @@
   width: 100%;
   padding: 12px 14px 12px 12px;
   border: none;
-  background: #fff;
+  background: var(--app-surface);
   text-align: left;
   cursor: default;
   transition: background 0.15s ease;
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 0.5px solid var(--color-border-light);
 
   &--last {
     border-bottom: none;
@@ -51,16 +49,16 @@
     cursor: pointer;
 
     &:hover {
-      background: rgba(139, 92, 246, 0.04);
+      background: rgba(139, 92, 246, 0.08);
     }
 
     &:active {
-      background: rgba(139, 92, 246, 0.08);
+      background: rgba(139, 92, 246, 0.12);
     }
   }
 
   &--danger .apple-card-list__title {
-    color: #ef4444;
+    color: var(--color-error);
   }
 }
 
@@ -87,13 +85,13 @@
 .apple-card-list__title {
   font-size: 15px;
   font-weight: 500;
-  color: var(--color-text);
+  color: var(--app-text);
   line-height: 1.35;
 }
 
 .apple-card-list__desc {
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--app-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -102,11 +100,11 @@
 .apple-card-list__extra {
   flex-shrink: 0;
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--app-text-muted);
 }
 
 .apple-card-list__chevron {
   flex-shrink: 0;
   font-size: 11px;
-  color: #c7c7cc;
+  color: var(--app-text-muted);
 }

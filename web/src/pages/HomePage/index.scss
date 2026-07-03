@@ -1,17 +1,14 @@
 @mixin glass-panel {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--app-glass-bg);
+  border: 1px solid var(--app-glass-border);
   backdrop-filter: blur(22px);
-  box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.22),
-    0 0 0 1px rgba(139, 92, 246, 0.1) inset,
-    0 0 48px rgba(139, 92, 246, 0.08);
+  box-shadow: var(--app-glass-shadow);
 }
 
 .home-page {
   position: relative;
   min-height: 100vh;
-  color: #faf5ff;
+  color: var(--app-glass-text);
   padding-bottom: 16px;
 }
 
@@ -97,23 +94,50 @@
 
 .home-composer {
   display: flex;
+  align-items: center;
   gap: 10px;
   max-width: 680px;
   margin: 0 auto;
-  padding: 10px;
+  padding: 8px 8px 8px 12px;
   animation: home-fade-up 0.7s ease-out 0.1s both;
 }
 
+.home-composer__input.ant-input-affix-wrapper,
 .home-composer__input {
   flex: 1;
+  min-width: 0;
   border: none !important;
-  background: rgba(255, 255, 255, 0.06) !important;
-  color: #faf5ff !important;
-  border-radius: 14px !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
+  padding-inline: 4px !important;
+  color: var(--app-glass-text) !important;
   font-size: 15px !important;
 
-  &::placeholder {
-    color: rgba(233, 213, 255, 0.45) !important;
+  &:hover,
+  &:focus,
+  &:focus-within,
+  &.ant-input-affix-wrapper-focused {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+  }
+
+  .ant-input {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    padding: 8px 0 !important;
+
+    &::placeholder {
+      color: rgba(233, 213, 255, 0.45) !important;
+    }
+
+    &:focus {
+      box-shadow: none !important;
+    }
   }
 
   .ant-input-prefix {
@@ -128,6 +152,19 @@
   border-radius: 14px !important;
   font-weight: 600 !important;
   flex-shrink: 0;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.14);
+    pointer-events: none;
+  }
 }
 
 .home-quick-topics {
@@ -518,6 +555,10 @@
 
   .home-composer__btn {
     width: 100%;
+
+    &::before {
+      display: none;
+    }
   }
 
   .home-bento__grid,
@@ -538,5 +579,194 @@
     flex-direction: column;
     align-items: flex-start;
     text-align: left;
+  }
+}
+
+/* ── 经典主题：浅色首页（上一版风格） ── */
+@mixin classic-band-padding {
+  padding-left: max(20px, calc((100vw - 1120px) / 2));
+  padding-right: max(20px, calc((100vw - 1120px) / 2));
+}
+
+@mixin classic-inner {
+  max-width: 1120px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.home-page--classic {
+  color: var(--app-text);
+  background: var(--color-background);
+
+  .home-page__content {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .home-hero {
+    position: relative;
+    width: 100%;
+    margin: 0 0 32px;
+    padding: 72px 0 48px;
+    overflow: hidden;
+    @include classic-band-padding;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gradient-hero);
+      z-index: 0;
+    }
+
+    > * {
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  .home-hero__badge {
+    color: var(--color-primary-dark);
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.2);
+  }
+
+  .home-hero__title-line {
+    color: var(--app-text);
+
+    &--accent {
+      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+
+  .home-hero__desc {
+    color: var(--app-text-secondary);
+  }
+
+  .glass-panel {
+    background: var(--app-surface);
+    border-color: var(--app-surface-border);
+    box-shadow: var(--app-surface-shadow);
+    backdrop-filter: none;
+
+    &:hover {
+      border-color: rgba(139, 92, 246, 0.25);
+      box-shadow: var(--shadow-card-hover);
+    }
+  }
+
+  .home-composer__input.ant-input-affix-wrapper,
+  .home-composer__input {
+    background: transparent !important;
+    color: var(--app-text) !important;
+
+    .ant-input::placeholder {
+      color: var(--app-text-muted) !important;
+    }
+
+    .ant-input-prefix {
+      color: var(--color-primary);
+    }
+  }
+
+  .home-composer__btn::before {
+    background: var(--color-border);
+  }
+
+  .home-quick-topics__chip {
+    color: var(--color-primary-dark);
+    background: rgba(139, 92, 246, 0.08);
+    border-color: rgba(139, 92, 246, 0.15);
+
+    &:hover {
+      background: rgba(139, 92, 246, 0.14);
+    }
+  }
+
+  .home-stats__item strong {
+    color: var(--color-primary-dark);
+  }
+
+  .home-stats__item span {
+    color: var(--app-text-secondary);
+  }
+
+  .home-flow-divider {
+    @include classic-inner;
+    padding-left: 20px;
+    padding-right: 20px;
+
+    span {
+      color: var(--app-text-muted);
+      background: var(--color-background);
+    }
+  }
+
+  .home-bento {
+    width: 100%;
+    margin: 0;
+    padding: 48px 0;
+    background: var(--color-background-secondary);
+    @include classic-band-padding;
+
+    &__header,
+    &__grid {
+      @include classic-inner;
+    }
+  }
+
+  .home-works {
+    @include classic-inner;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .home-cta {
+    @include classic-inner;
+    margin-bottom: 32px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .home-page__copyright {
+    @include classic-inner;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 32px;
+  }
+
+  .home-bento__header h2,
+  .home-works__header h2,
+  .home-cta h2 {
+    color: var(--app-text);
+  }
+
+  .home-bento__header p,
+  .home-works__header p,
+  .home-cta p {
+    color: var(--app-text-secondary);
+  }
+
+  .home-bento__card h3,
+  .home-works__body h3 {
+    color: var(--app-text);
+  }
+
+  .home-bento__card p,
+  .home-works__body time {
+    color: var(--app-text-secondary);
+  }
+
+  .home-works__more {
+    color: var(--color-primary);
+  }
+
+  .home-page__copyright-text,
+  .home-page__copyright-links a {
+    color: var(--app-text-muted);
   }
 }

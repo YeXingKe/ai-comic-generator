@@ -1,5 +1,5 @@
 .article-detail-page {
-  background: var(--color-background-secondary);
+  background: var(--app-page-bg);
   min-height: calc(100vh - 64px);
   padding-bottom: 60px;
 }
@@ -17,18 +17,19 @@
 
 .back-btn {
   margin-bottom: 12px;
-  color: var(--color-text-secondary);
+  color: var(--app-text-secondary);
 }
 
 .page-title {
   font-size: 28px;
   font-weight: 700;
   margin: 0 0 6px;
+  color: var(--app-text);
 }
 
 .page-subtitle {
   font-size: 14px;
-  color: var(--color-text-secondary);
+  color: var(--app-text-secondary);
   margin: 0;
 }
 
@@ -40,7 +41,8 @@
 
 .detail-card {
   border-radius: var(--radius-lg) !important;
-  border: 1px solid var(--color-border) !important;
+  border: 1px solid var(--app-surface-border) !important;
+  background: var(--app-surface) !important;
 }
 
 .detail-meta {
@@ -51,6 +53,7 @@
   h2 {
     font-size: 18px;
     margin: 0 0 16px;
+    color: var(--app-text);
   }
 }
 
@@ -59,6 +62,6 @@
   background: var(--color-background-secondary);
   border-radius: var(--radius-md);
   line-height: 1.8;
-  color: var(--color-text-secondary);
+  color: var(--app-text-secondary);
   white-space: pre-wrap;
 }
