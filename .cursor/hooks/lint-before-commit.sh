@@ -43,4 +43,11 @@ if (cd server && go list ./... >/dev/null 2>&1); then
   fi
 fi
 
+commit_msg=$(printf '%s' "$command" | node scripts/extract-commit-msg.mjs)
+if [ -n "$commit_msg" ]; then
+  if ! node scripts/validate-commit-msg.mjs "$commit_msg"; then
+    deny "提交信息不符合 Conventional Commits。格式：<type>(<scope>): <subject>，例如 feat(web): 添加用户中心"
+  fi
+fi
+
 allow

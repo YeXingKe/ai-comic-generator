@@ -40,10 +40,27 @@ server/internal/        → handler → service → store → model
 
 路由：`/user/center`（需登录）、`/admin/users` 与 `/admin/data`（仅管理员）。API 前缀：`/api`。
 
-## 自动化（`.cursor/hooks.json`）
+## 自动化
+
+### Git Hooks（husky + commitlint）
+
+- **`commit-msg`**：校验 Conventional Commits（见 `commitlint.config.mjs`）
+- 安装依赖后执行 `npm run prepare` 注册 hooks
+
+### Cursor Hooks（`.cursor/hooks.json`）
 
 - **afterFileEdit**：Go 用 `gofmt`，web 用 `prettier`（npx）
-- **beforeShellExecution**（`git commit`）：运行 web oxlint + `go vet`
+- **beforeShellExecution**（`git commit`）：web oxlint + `go vet` + 提交信息规范（含 `-m` 时）
+
+## 提交信息格式
+
+```text
+<type>(<scope>): <subject>
+```
+
+type：`feat` `fix` `docs` `style` `refactor` `perf` `test` `chore` `ci` `build` `revert`
+
+示例：`feat(web): 添加用户中心表格`、`fix(server): 修复 session 过期`
 
 ## Agent 行为约定
 

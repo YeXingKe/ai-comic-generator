@@ -30,7 +30,21 @@ web/src/pages/
 
 首次搭建：复制 `server/config.yaml.example` → `server/config.yaml`，创建 MySQL 库 `ai_comic_generator`，执行 `/init` skill。Cloud Agent 总览见 `AGENTS.md`。
 
-Hooks（`.cursor/hooks.json`）：编辑后格式化，`git commit` 前 lint。
+Hooks（`.cursor/hooks.json`）：编辑后格式化，`git commit` 前 lint + 提交信息规范校验。
+
+## 提交信息规范
+
+采用 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/)，由 **husky `commit-msg`** + **commitlint** 校验（`npm run prepare` 后生效）。
+
+```text
+<type>(<scope>): <subject>
+
+type：feat | fix | docs | style | refactor | perf | test | chore | ci | build | revert
+示例：feat(web): 添加用户中心表格
+      fix(server): 修复登录 session 过期
+```
+
+手动校验：`echo "feat: demo" | npm run commitlint`
 
 默认管理员（自动创建）：`admin` / `admin123456`
 
