@@ -1,10 +1,3 @@
-import {
-  BarChartOutlined,
-  RiseOutlined,
-  FileDoneOutlined,
-  TeamOutlined,
-  ThunderboltOutlined,
-} from '@ant-design/icons'
 import AppleCardList from '@/components/AppleCardList'
 import './index.scss'
 

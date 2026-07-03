@@ -1,18 +1,5 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Input, Button } from 'antd'
-import {
-  RocketOutlined,
-  FileTextOutlined,
-  OrderedListOutlined,
-  EditOutlined,
-  PictureOutlined,
-  ThunderboltOutlined,
-  ClockCircleOutlined,
-  RightOutlined,
-  StarOutlined,
-  FireOutlined,
-} from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { mockArticles } from '@/constants/mockArticles'
 import { useThemeStore } from '@/stores/theme'

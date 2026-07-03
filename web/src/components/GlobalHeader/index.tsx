@@ -1,15 +1,6 @@
 import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Button, Menu } from 'antd'
 import type { MenuProps } from 'antd'
-import {
-  HomeOutlined,
-  EditOutlined,
-  HistoryOutlined,
-  UserOutlined,
-  BarChartOutlined,
-  LogoutOutlined,
-} from '@ant-design/icons'
 import ThemeToggle from '@/components/ThemeToggle'
 import { useLoginUserStore } from '@/stores/loginUser'
 import { useThemeStore } from '@/stores/theme'

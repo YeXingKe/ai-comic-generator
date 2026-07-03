@@ -1,4 +1,3 @@
-import { ConfigProvider } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import { RouterProvider } from 'react-router-dom'
 import { useThemeStore } from '@/stores/theme'

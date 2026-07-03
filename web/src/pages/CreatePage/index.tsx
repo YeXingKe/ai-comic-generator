@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Button, Input, message } from 'antd'
-import { EditOutlined, RocketOutlined, PictureOutlined, OrderedListOutlined } from '@ant-design/icons'
 import AppleCardList from '@/components/AppleCardList'
 import './index.scss'
 

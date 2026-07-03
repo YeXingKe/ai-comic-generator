@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build && tsc -b",
     "lint": "oxlint",
     "preview": "vite preview"
   },
@@ -27,6 +27,8 @@
     "oxlint": "^1.69.0",
     "sass": "^1.101.0",
     "typescript": "~6.0.2",
+    "unplugin-auto-import": "^21.0.0",
+    "unplugin-react-components": "^0.1.4",
     "vite": "^8.1.0"
   }
 }

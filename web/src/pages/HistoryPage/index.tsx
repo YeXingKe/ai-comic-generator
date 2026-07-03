@@ -1,11 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import {
-  FileTextOutlined,
-  ClockCircleOutlined,
-  CheckCircleOutlined,
-  SyncOutlined,
-  HourglassOutlined,
-} from '@ant-design/icons'
 import dayjs from 'dayjs'
 import AppleCardList from '@/components/AppleCardList'
 import { mockArticles } from '@/constants/mockArticles'

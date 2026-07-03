@@ -1,6 +1,4 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { Button, Card, Descriptions, Tag } from 'antd'
-import { ArrowLeftOutlined, FileTextOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import './DetailPage.scss'
 

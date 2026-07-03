@@ -1,6 +1,4 @@
 import type { ReactNode } from 'react'
-import { BulbOutlined, StarOutlined } from '@ant-design/icons'
-import { Tooltip } from 'antd'
 import { useThemeStore, type AppTheme } from '@/stores/theme'
 import './index.scss'
 

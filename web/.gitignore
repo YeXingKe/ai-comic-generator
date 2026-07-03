@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 插件自动生成的类型声明（dev/build 时重新生成）
+src/components.d.ts
+src/auto-imports.d.ts
