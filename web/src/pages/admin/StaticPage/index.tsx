@@ -8,21 +8,21 @@ const stats = [
   { label: '活跃用户', value: '342', trend: '+18%' },
 ]
 
-export default function DataPage() {
+export default function StaticPage() {
   return (
-    <div className="data-page">
-      <div className="data-page__inner">
-        <header className="data-page__header">
+    <div className="static-page">
+      <div className="static-page__inner">
+        <header className="static-page__header">
           <h1>数据中心</h1>
           <p>创作效率与平台数据概览（示例数据）</p>
         </header>
 
-        <div className="data-page__stats">
+        <div className="static-page__stats">
           {stats.map((item) => (
-            <div key={item.label} className="data-page__stat-card">
-              <span className="data-page__stat-label">{item.label}</span>
-              <span className="data-page__stat-value">{item.value}</span>
-              <span className="data-page__stat-trend">{item.trend}</span>
+            <div key={item.label} className="static-page__stat-card">
+              <span className="static-page__stat-label">{item.label}</span>
+              <span className="static-page__stat-value">{item.value}</span>
+              <span className="static-page__stat-trend">{item.trend}</span>
             </div>
           ))}
         </div>

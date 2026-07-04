@@ -1,5 +1,6 @@
 package service
 
+
 import (
 	"crypto/md5"
 	"encoding/hex"
@@ -13,10 +14,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// 用户业务层（Service），负责业务规则、校验、Session 登录态、错误转换
-// 夹在 Handler 和 Store 之间：Handler 只负责 HTTP，Store 只负责数据库，
-// 架构图：Handler (user.go)  →  Service (本文件)  →  Store (store/user.go)  →  MySQL
-
 // UserService 用户服务
 type UserService struct {
 	store *store.UserStore
@@ -25,6 +22,31 @@ type UserService struct {
 // NewUserService 创建用户服务
 func NewUserService(store *store.UserStore) *UserService {
 	return &UserService{store: store}
+}
+
+// EnsureAdmin 若无管理员则创建默认管理员账号
+func (s *UserService) EnsureAdmin() error {
+	count, err := s.store.CountByRole(string(model.RoleAdmin))
+	if err != nil {
+		return common.ErrSystem
+	}
+	if count > 0 {
+		return nil
+	}
+
+	userName := "管理员"
+	now := time.Now()
+	user := &model.User{
+		UserAccount:  "admin",
+		UserPassword: encryptPassword("admin123456"),
+		UserName:     &userName,
+		UserRole:     string(model.RoleAdmin),
+		EditTime:     &now,
+	}
+	if err := s.store.Create(user); err != nil {
+		return common.ErrOperation.WithMessage("初始化管理员失败")
+	}
+	return nil
 }
 
 // Register 用户注册
@@ -92,9 +114,8 @@ func (s *UserService) Login(req *model.LoginRequest, session sessions.Session) (
 		return nil, common.ErrSystem
 	}
 
-	// 保存登录态 把用户 ID 写入 Session，键为 "userLoginState"
+	// 保存登录态
 	session.Set(common.UserLoginState, user.ID)
-	// 持久化 Session（如写 Cookie/Redis），失败则系统错误。
 	if err := session.Save(); err != nil {
 		return nil, common.ErrSystem
 	}
@@ -209,7 +230,6 @@ func (s *UserService) ListByPage(req *model.QueryUserRequest) (*model.PageResult
 	}
 
 	// 转换为用户信息列表
-	// 创建一个当前为空、但预留了 len(users) 个元素空间的 UserInfo 切片，方便后面循环 append 时更高效
 	userInfos := make([]model.UserInfo, 0, len(users))
 	for i := range users {
 		if info := users[i].ToUserInfo(); info != nil {
