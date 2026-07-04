@@ -1,5 +1,5 @@
 import AppleCardList from '@/components/AppleCardList'
-import './index.scss'
+import './index.css'
 
 const stats = [
   { label: '总创作', value: '128', trend: '+12%' },

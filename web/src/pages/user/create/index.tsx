@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import AppleCardList from '@/components/AppleCardList'
-import './index.scss'
+import './index.css'
 
 export default function CreatePage() {
   const navigate = useNavigate()

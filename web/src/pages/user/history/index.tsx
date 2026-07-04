@@ -5,7 +5,7 @@ import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import { mockArticles } from '@/constants/mockArticles'
 import type { ArticleVO } from '@/types/api'
-import './index.scss'
+import '@/styles/pageShell.css'
 
 function formatTime(time?: string) {
   if (!time) return '--'

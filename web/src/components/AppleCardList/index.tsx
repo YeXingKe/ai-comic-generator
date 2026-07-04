@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import './index.scss'
+import './index.css'
 
 export interface AppleCardItem {
   key: string

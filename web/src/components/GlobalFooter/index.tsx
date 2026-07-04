@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
-import './index.scss'
+import './index.css'
 
 export default function GlobalFooter() {
   const loginUser = useLoginUserStore((s) => s.loginUser)

@@ -12,7 +12,7 @@ alwaysApply: false
 |------|------|------|
 | `common/` | 公开 | `home`、`auth` |
 | `user/` | 登录用户 | `center`、`create`、`history`、`article/detail` |
-| `admin/` | 管理员 | `users`、`data` |
+| `admin/` | 管理员 | `Users`、`StaticPage` |
 | `_shared/` | 共享样式/工具 | `pageShell.scss`、`userTableHelpers.ts` |
 
 勿在 `user/center` 做管理员 CRUD。勿把个人资料与用户列表混在同一页。

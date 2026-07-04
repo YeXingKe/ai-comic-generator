@@ -40,26 +40,21 @@
   cursor: default;
   transition: background 0.15s ease;
   border-bottom: 0.5px solid var(--color-border-light);
-
-  &--last {
-    border-bottom: none;
-  }
-
-  &[type='button'] {
-    cursor: pointer;
-
-    &:hover {
-      background: rgba(139, 92, 246, 0.08);
-    }
-
-    &:active {
-      background: rgba(139, 92, 246, 0.12);
-    }
-  }
-
-  &--danger .apple-card-list__title {
-    color: var(--color-error);
-  }
+}
+.apple-card-list__row--last {
+  border-bottom: none;
+}
+.apple-card-list__row[type=button] {
+  cursor: pointer;
+}
+.apple-card-list__row[type=button]:hover {
+  background: rgba(139, 92, 246, 0.08);
+}
+.apple-card-list__row[type=button]:active {
+  background: rgba(139, 92, 246, 0.12);
+}
+.apple-card-list__row--danger .apple-card-list__title {
+  color: var(--color-error);
 }
 
 .apple-card-list__icon {

@@ -4,7 +4,7 @@ import { deleteUser, listUserVoByPage } from '@/api/user'
 import type { QueryUserRequest, UserInfo } from '@/types/api'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
 import { buildUserTableColumns } from './userTableColumns'
-import './index.scss'
+import '@/styles/pageShell.css'
 
 export default function AdminUsersPage() {
   const { loginUser, fetchLoginUser } = useLoginUserStore()

@@ -1,6 +1,6 @@
 import type { ColumnsType } from 'antd/es/table'
 import type { UserInfo, UserRole } from '@/types/api'
-import { formatUserTime, roleColor, roleLabel } from '@/pages/_shared/userTableHelpers'
+import { formatUserTime, roleColor, roleLabel } from '@/utils/userTableHelpers'
 
 export function buildUserTableColumns(options: {
   onDelete: (id: number) => void

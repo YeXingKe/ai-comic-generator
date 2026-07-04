@@ -48,36 +48,32 @@
   white-space: nowrap;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   animation: home-mascot-bubble-in 0.45s ease both;
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    bottom: -6px;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: rgba(255, 255, 255, 0.1);
-    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.08));
-  }
+}
+.home-mascots__bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(255, 255, 255, 0.1);
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.08));
 }
 
 .home-mascots__avatar {
   width: 76px;
   filter: drop-shadow(0 10px 24px rgba(139, 92, 246, 0.35));
-
-  svg {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  &--nailong {
-    animation: home-mascot-float 4.2s ease-in-out infinite;
-  }
-
-  &--niuniu {
-    animation: home-mascot-float 4.2s ease-in-out infinite 0.35s;
-  }
+}
+.home-mascots__avatar svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.home-mascots__avatar--nailong {
+  animation: home-mascot-float 4.2s ease-in-out infinite;
+}
+.home-mascots__avatar--niuniu {
+  animation: home-mascot-float 4.2s ease-in-out infinite 0.35s;
 }
 
 .home-mascots__name {
@@ -127,15 +123,13 @@
 }
 
 @keyframes home-mascot-float {
-  0%,
-  100% {
+  0%, 100% {
     transform: translateY(0);
   }
   50% {
     transform: translateY(-6px);
   }
 }
-
 @keyframes home-mascot-bubble-in {
   from {
     opacity: 0;
@@ -146,10 +140,8 @@
     transform: translateY(0) scale(1);
   }
 }
-
 @keyframes home-mascot-pulse {
-  0%,
-  100% {
+  0%, 100% {
     transform: scale(1);
     box-shadow: 0 0 20px rgba(167, 139, 250, 0.25);
   }
@@ -158,22 +150,18 @@
     box-shadow: 0 0 28px rgba(167, 139, 250, 0.45);
   }
 }
-
 @media (max-width: 768px) {
   .home-mascots {
     max-width: 340px;
     margin-top: 16px;
   }
-
   .home-mascots__avatar {
     width: 64px;
   }
-
   .home-mascots__bubble {
     font-size: 10px;
     padding: 6px 10px;
   }
-
   .home-mascots__tag {
     display: none;
   }

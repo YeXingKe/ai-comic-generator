@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useThemeStore, type AppTheme } from '@/stores/theme'
-import './index.scss'
+import './index.css'
 
 const options: { value: AppTheme; label: string; icon: ReactNode; tip: string }[] = [
   {

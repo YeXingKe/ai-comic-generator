@@ -7,8 +7,8 @@ import UserCenterPage from '@/pages/user/center'
 import CreatePage from '@/pages/user/create'
 import HistoryPage from '@/pages/user/history'
 import ArticleDetailPage from '@/pages/user/article/detail'
-import AdminUsersPage from '@/pages/admin/users'
-import AdminDataPage from '@/pages/admin/data'
+import AdminUsersPage from '@/pages/admin/Users'
+import AdminDataPage from '@/pages/admin/StaticPage'
 
 export const router = createBrowserRouter([
   {

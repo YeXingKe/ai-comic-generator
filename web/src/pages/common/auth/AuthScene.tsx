@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import './AuthScene.scss'
+import './AuthScene.css'
 
 const STAR_COUNT = 140
 const DUST_GRADIENT_COUNT = 85

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useLoginUserStore } from '@/stores/loginUser'
 import { buildProfileTableColumns } from './profileTableColumns'
-import './index.scss'
+import '@/styles/pageShell.css'
 
 export default function UserCenterPage() {
   const { loginUser, fetchLoginUser } = useLoginUserStore()

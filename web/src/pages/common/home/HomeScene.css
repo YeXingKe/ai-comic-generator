@@ -1,3 +1,4 @@
+@charset "UTF-8";
 .home-scene {
   position: fixed;
   inset: 0;
@@ -9,15 +10,7 @@
 .home-scene__base {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    165deg,
-    #0a0618 0%,
-    #1e1033 18%,
-    #2e1065 42%,
-    #4c1d95 58%,
-    #312e81 78%,
-    #0f0a2e 100%
-  );
+  background: linear-gradient(165deg, #0a0618 0%, #1e1033 18%, #2e1065 42%, #4c1d95 58%, #312e81 78%, #0f0a2e 100%);
 }
 
 .home-scene__aurora {
@@ -66,9 +59,7 @@
   position: absolute;
   inset: 0;
   opacity: 0.07;
-  background-image:
-    linear-gradient(rgba(196, 181, 253, 0.5) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(196, 181, 253, 0.5) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(196, 181, 253, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(196, 181, 253, 0.5) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 20%, transparent 75%);
 }
@@ -76,8 +67,7 @@
 .home-scene__vignette {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 28%, transparent 0%, rgba(5, 3, 15, 0.35) 55%, rgba(5, 3, 15, 0.72) 100%);
+  background: radial-gradient(ellipse 70% 55% at 50% 28%, transparent 0%, rgba(5, 3, 15, 0.35) 55%, rgba(5, 3, 15, 0.72) 100%);
 }
 
 .home-scene__hero-glow {
@@ -106,8 +96,7 @@
 }
 
 @keyframes home-orb-drift {
-  0%,
-  100% {
+  0%, 100% {
     transform: translate(0, 0) scale(1);
     opacity: 0.75;
   }
@@ -116,7 +105,6 @@
     opacity: 1;
   }
 }
-
 /* 角色局部动画（Hero 区 mascots 使用） */
 .home-scene__nailong-body,
 .home-scene__niuniu-body {
@@ -164,78 +152,63 @@
 }
 
 @keyframes home-char-breathe {
-  0%,
-  100% {
+  0%, 100% {
     transform: scale(1);
   }
   50% {
     transform: scale(1.025);
   }
 }
-
 @keyframes home-tail-sway {
-  0%,
-  100% {
+  0%, 100% {
     transform: rotate(0deg);
   }
   50% {
     transform: rotate(5deg);
   }
 }
-
 @keyframes home-wing-flap {
-  0%,
-  100% {
+  0%, 100% {
     transform: rotate(0deg) scale(1);
   }
   50% {
     transform: rotate(-6deg) scale(1.05);
   }
 }
-
 @keyframes home-wave-right {
-  0%,
-  100% {
+  0%, 100% {
     transform: rotate(0deg);
   }
   50% {
     transform: rotate(12deg);
   }
 }
-
 @keyframes home-wave-left {
-  0%,
-  100% {
+  0%, 100% {
     transform: rotate(0deg);
   }
   50% {
     transform: rotate(-12deg);
   }
 }
-
 @keyframes home-face-bob {
-  0%,
-  100% {
+  0%, 100% {
     transform: translateY(0);
   }
   50% {
     transform: translateY(-2px);
   }
 }
-
 @keyframes home-aurora-drift {
-  0%,
-  100% {
+  0%, 100% {
     transform: translate(0, 0) scale(1);
   }
   50% {
     transform: translate(24px, -18px) scale(1.08);
   }
 }
-
 @keyframes home-star-pulse {
-  0%,
-  100% {
+  0%, 100% {
     opacity: 0.35;
     transform: scale(0.9);
   }
@@ -244,7 +217,6 @@
     transform: scale(1.1);
   }
 }
-
 .home-scene__stars {
   position: absolute;
   inset: 0;
@@ -256,15 +228,13 @@
   background: #fff;
   animation: home-star-pulse var(--star-dur, 3s) ease-in-out infinite;
   animation-delay: var(--star-delay, 0s);
-
-  &--bright {
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 14px rgba(196, 181, 253, 0.45);
-  }
-
-  &--purple {
-    background: #e9d5ff;
-    box-shadow: 0 0 6px rgba(196, 181, 253, 0.7);
-  }
+}
+.home-scene__star--bright {
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 14px rgba(196, 181, 253, 0.45);
+}
+.home-scene__star--purple {
+  background: #e9d5ff;
+  box-shadow: 0 0 6px rgba(196, 181, 253, 0.7);
 }
 
 @media (max-width: 992px) {

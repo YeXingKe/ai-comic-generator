@@ -2,7 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import GlobalHeader from '@/components/GlobalHeader'
 import GlobalFooter from '@/components/GlobalFooter'
 import { useThemeStore } from '@/stores/theme'
-import './BasicLayout.scss'
+import './BasicLayout.css'
 
 export default function BasicLayout() {
   const { pathname } = useLocation()

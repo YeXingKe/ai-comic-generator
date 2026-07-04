@@ -49,12 +49,10 @@
   margin-bottom: 24px;
 }
 
-.article-body {
-  h2 {
-    font-size: 18px;
-    margin: 0 0 16px;
-    color: var(--app-text);
-  }
+.article-body h2 {
+  font-size: 18px;
+  margin: 0 0 16px;
+  color: var(--app-text);
 }
 
 .content-text {

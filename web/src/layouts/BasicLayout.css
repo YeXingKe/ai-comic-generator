@@ -15,12 +15,10 @@
   background: var(--app-body-bg);
 }
 
-.basic-layout--home {
-  .main-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
+.basic-layout--home .main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .main-content {

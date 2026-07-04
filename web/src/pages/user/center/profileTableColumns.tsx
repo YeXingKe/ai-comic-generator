@@ -1,6 +1,6 @@
 import type { ColumnsType } from 'antd/es/table'
 import type { LoginUser } from '@/types/api'
-import { formatUserTime, roleColor, roleLabel } from '@/pages/_shared/userTableHelpers'
+import { formatUserTime, roleColor, roleLabel } from '@/utils/userTableHelpers'
 
 export function buildProfileTableColumns(): ColumnsType<LoginUser> {
   return [

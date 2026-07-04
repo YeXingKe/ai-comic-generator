@@ -5,7 +5,7 @@ import ThemeToggle from '@/components/ThemeToggle'
 import { getVisibleNavItems } from '@/router/nav'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
 import { useThemeStore } from '@/stores/theme'
-import './index.scss'
+import './index.css'
 
 const navIcons: Record<string, React.ReactNode> = {
   '/': <HomeOutlined />,

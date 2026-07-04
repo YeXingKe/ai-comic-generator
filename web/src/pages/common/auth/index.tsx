@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { userLogin, userRegister } from '@/api/user'
 import { useLoginUserStore } from '@/stores/loginUser'
 import AuthScene from './AuthScene'
-import './index.scss'
+import './index.css'
 
 type AuthMode = 'login' | 'register'
 

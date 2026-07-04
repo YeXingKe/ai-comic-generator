@@ -11,20 +11,18 @@
 
 .create-page__header {
   margin-bottom: 24px;
-
-  h1 {
-    margin: 0 0 8px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--app-text);
-  }
-
-  p {
-    margin: 0;
-    font-size: 15px;
-    color: var(--app-text-secondary);
-  }
+}
+.create-page__header h1 {
+  margin: 0 0 8px;
+  font-family: "Outfit", sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--app-text);
+}
+.create-page__header p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--app-text-secondary);
 }
 
 .create-page__composer {

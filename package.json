@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently -n web,server -c blue,magenta \"npm run dev:web\" \"npm run dev:server\"",
     "web": "npm run dev --prefix web",
-    "server": "go run -C server ./cmd/server/main.go",
+    "server": "cd server && go run ./cmd/server/main.go",
     "build:web": "npm run build --prefix web",
     "build:server": "go build -C server -o ../bin/server ./cmd/server/main.go",
     "install:web": "npm install --prefix web",

@@ -6,7 +6,7 @@ import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
 import { useThemeStore } from '@/stores/theme'
 import HomeScene from './HomeScene'
 import HomeMascots from './HomeMascots'
-import './index.scss'
+import './index.css'
 
 const features = [
   {

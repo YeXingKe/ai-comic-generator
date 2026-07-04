@@ -20,25 +20,20 @@
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   line-height: 1;
-
-  &:hover {
-    color: var(--theme-toggle-text-hover);
-  }
-
-  &--active {
-    background: var(--theme-toggle-active-bg);
-    color: var(--theme-toggle-active-text);
-    box-shadow: var(--theme-toggle-active-shadow);
-  }
+}
+.theme-toggle__btn:hover {
+  color: var(--theme-toggle-text-hover);
+}
+.theme-toggle__btn--active {
+  background: var(--theme-toggle-active-bg);
+  color: var(--theme-toggle-active-text);
+  box-shadow: var(--theme-toggle-active-shadow);
 }
 
-.theme-toggle__label {
-  @media (max-width: 900px) {
+@media (max-width: 900px) {
+  .theme-toggle__label {
     display: none;
   }
 }
