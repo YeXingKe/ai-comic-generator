@@ -10,7 +10,7 @@ import './index.css'
 const navIcons: Record<string, React.ReactNode> = {
   '/': <HomeOutlined />,
   '/create': <EditOutlined />,
-  '/user/center': <UserOutlined />,
+  '/admin/users': <UserOutlined />,
   '/history': <HistoryOutlined />,
   '/admin/data': <BarChartOutlined />,
 }
@@ -56,6 +56,34 @@ export default function GlobalHeader() {
     navigate('/user/login')
   }
 
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'profile',
+      label: '个人资料',
+      icon: <UserOutlined />,
+    },
+    { type: 'divider' },
+    {
+      key: 'logout',
+      label: '退出登录',
+      icon: <LogoutOutlined />,
+      danger: true,
+    },
+  ]
+
+  const handleUserMenuClick: MenuProps['onClick'] = ({ key }) => {
+    if (key === 'profile') {
+      navigate('/user/info')
+      return
+    }
+    if (key === 'logout') {
+      void handleLogout()
+    }
+  }
+
+  const avatarUrl = loginUser.userAvatar?.trim()
+  const displayName = loginUser.userName || loginUser.userAccount
+
   return (
     <header className={`global-header${isImmersive ? ' global-header--immersive' : ''}`}>
       <div className="header-inner">
@@ -75,9 +103,20 @@ export default function GlobalHeader() {
           <ThemeToggle />
           <div className="auth-buttons">
             {isLoggedIn ? (
-              <Button icon={<LogoutOutlined />} className="header-auth-btn" onClick={handleLogout}>
-                退出登录
-              </Button>
+              <Dropdown
+                menu={{ items: userMenuItems, onClick: handleUserMenuClick }}
+                placement="bottomRight"
+                trigger={['click']}
+              >
+                <div className="user-info">
+                  <Avatar
+                    size={36}
+                    src={avatarUrl || undefined}
+                    icon={!avatarUrl ? <UserOutlined /> : undefined}
+                  />
+                  <span className="user-name">{displayName}</span>
+                </div>
+              </Dropdown>
             ) : (
               <Button
                 type="primary"

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import './HomeScene.css'
+import './index.css'
 
 const STAR_COUNT = 100
 

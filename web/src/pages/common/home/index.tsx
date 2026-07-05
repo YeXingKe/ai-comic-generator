@@ -4,8 +4,8 @@ import dayjs from 'dayjs'
 import { mockArticles } from '@/constants/mockArticles'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
 import { useThemeStore } from '@/stores/theme'
-import HomeScene from './HomeScene'
-import HomeMascots from './HomeMascots'
+import HomeScene from './HomeScence/index'
+import HomeMascots from './HomeMascots/index'
 import './index.css'
 
 const features = [

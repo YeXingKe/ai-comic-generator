@@ -19,11 +19,14 @@ const emptyUser: LoginUser = {
   updateTime: '',
 }
 
-export const useLoginUserStore = create<LoginUserState>((set) => ({
+export const useLoginUserStore = create<LoginUserState>((set, get) => ({
   loginUser: emptyUser,
   loading: true,
   fetchLoginUser: async () => {
-    set({ loading: true })
+    const hasUser = get().loginUser.id > 0
+    if (!hasUser) {
+      set({ loading: true })
+    }
     try {
       const res = await getLoginUser()
       if (res.code === 0 && res.data) {
@@ -34,7 +37,9 @@ export const useLoginUserStore = create<LoginUserState>((set) => ({
     } catch {
       set({ loginUser: emptyUser })
     } finally {
-      set({ loading: false })
+      if (!hasUser) {
+        set({ loading: false })
+      }
     }
   },
   setLoginUser: (user) => set({ loginUser: user }),

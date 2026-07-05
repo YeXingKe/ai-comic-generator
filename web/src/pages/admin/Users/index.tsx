@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { TablePaginationConfig } from 'antd'
+import UserFormModal from '@/components/UserEdit'
 import { deleteUser, listUserVoByPage } from '@/api/user'
 import type { QueryUserRequest, UserInfo } from '@/types/api'
-import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
 import { buildUserTableColumns } from './userTableColumns'
 import '@/styles/pageShell.css'
 
 export default function AdminUsersPage() {
-  const { loginUser, fetchLoginUser } = useLoginUserStore()
   const [form] = Form.useForm<QueryUserRequest>()
   const [data, setData] = useState<UserInfo[]>([])
   const [total, setTotal] = useState(0)
@@ -16,13 +15,16 @@ export default function AdminUsersPage() {
     pageNum: 1,
     pageSize: 10,
   })
+  const [editingUser, setEditingUser] = useState<UserInfo | null>(null)
+  const [formMode, setFormMode] = useState<'add' | 'edit' | null>(null)
+  const requestSeq = useRef(0)
 
-  const isAdmin = loginUser.userRole === ADMIN_ROLE
-
-  const fetchData = async (params = searchParams) => {
+  const fetchData = useCallback(async (params: QueryUserRequest) => {
+    const seq = ++requestSeq.current
     setLoading(true)
     try {
       const res = await listUserVoByPage(params)
+      if (seq !== requestSeq.current) return
       if (res.code === 0 && res.data) {
         setData(res.data.records ?? [])
         setTotal(res.data.total ?? 0)
@@ -30,42 +32,43 @@ export default function AdminUsersPage() {
         message.error('获取数据失败，' + res.message)
       }
     } catch {
+      if (seq !== requestSeq.current) return
       message.error('获取数据失败')
     } finally {
-      setLoading(false)
+      if (seq === requestSeq.current) {
+        setLoading(false)
+      }
     }
-  }
+  }, [])
 
   useEffect(() => {
-    void fetchLoginUser()
-  }, [fetchLoginUser])
-
-  useEffect(() => {
-    if (isAdmin) {
-      void fetchData()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin])
+    void fetchData(searchParams)
+  }, [fetchData, searchParams])
 
   const doSearch = () => {
     const values = form.getFieldsValue()
-    const next = { ...searchParams, ...values, pageNum: 1 }
-    setSearchParams(next)
-    void fetchData(next)
+    setSearchParams({ ...searchParams, ...values, pageNum: 1 })
   }
 
   const doDelete = async (id: number) => {
     const res = await deleteUser({ id })
     if (res.code === 0) {
       message.success('删除成功')
-      void fetchData()
+      void fetchData(searchParams)
     } else {
       message.error(res.message || '删除失败')
     }
   }
 
   const columns = useMemo(
-    () => buildUserTableColumns({ onDelete: doDelete }),
+    () =>
+      buildUserTableColumns({
+        onEdit: (user) => {
+          setEditingUser(user)
+          setFormMode('edit')
+        },
+        onDelete: doDelete,
+      }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
@@ -77,9 +80,7 @@ export default function AdminUsersPage() {
     showSizeChanger: true,
     showTotal: (t) => `共 ${t} 条`,
     onChange: (page, pageSize) => {
-      const next = { ...searchParams, pageNum: page, pageSize }
-      setSearchParams(next)
-      void fetchData(next)
+      setSearchParams({ ...searchParams, pageNum: page, pageSize })
     },
   }
 
@@ -87,8 +88,22 @@ export default function AdminUsersPage() {
     <div className="page-shell">
       <div className="page-shell__inner">
         <header className="page-shell__header">
-          <h1>用户管理</h1>
-          <p>管理系统中的所有用户</p>
+          <div className="page-shell__header-main">
+            <h1>用户管理</h1>
+            <p>管理系统中的所有用户</p>
+          </div>
+          <div className="page-shell__header-actions">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setEditingUser(null)
+                setFormMode('add')
+              }}
+            >
+              新增用户
+            </Button>
+          </div>
         </header>
 
         <Form form={form} layout="inline" className="page-shell__search" onFinish={doSearch}>
@@ -118,9 +133,7 @@ export default function AdminUsersPage() {
               <Button
                 onClick={() => {
                   form.resetFields()
-                  const next = { pageNum: 1, pageSize: searchParams.pageSize }
-                  setSearchParams(next)
-                  void fetchData(next)
+                  setSearchParams({ pageNum: 1, pageSize: searchParams.pageSize })
                 }}
               >
                 重置
@@ -139,6 +152,17 @@ export default function AdminUsersPage() {
           className="page-shell__table"
         />
       </div>
+
+      <UserFormModal
+        open={formMode !== null}
+        mode={formMode ?? 'add'}
+        user={formMode === 'edit' ? editingUser : null}
+        onClose={() => {
+          setFormMode(null)
+          setEditingUser(null)
+        }}
+        onSuccess={() => void fetchData(searchParams)}
+      />
     </div>
   )
 }

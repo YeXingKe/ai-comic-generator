@@ -10,7 +10,19 @@
 }
 
 .page-shell__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 24px;
+}
+.page-shell__header-main {
+  flex: 1;
+  min-width: 0;
+}
+.page-shell__header-actions {
+  flex-shrink: 0;
+  padding-top: 4px;
 }
 .page-shell__header h1 {
   margin: 0 0 8px;

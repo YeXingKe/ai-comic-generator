@@ -34,6 +34,7 @@ export interface UserInfo {
   id: number
   userAccount: string
   userRole: UserRole
+  quota: number
   createTime: string
   updateTime: string
   userName?: string | null
@@ -76,6 +77,8 @@ export interface LoginRequest {
 export interface AddUserRequest {
   userAccount: string
   userRole?: UserRole
+  quota?: number | null
+  vipTime?: string | null
   userName?: string | null
   userAvatar?: string | null
   userProfile?: string | null
@@ -92,6 +95,8 @@ export interface UpdateUserRequest {
   userAvatar?: string | null
   userProfile?: string | null
   userRole?: UserRole | null
+  quota?: number | null
+  vipTime?: string | null
 }
 
 /**
@@ -112,6 +117,20 @@ export interface QueryUserRequest {
 /** 删除请求 — id 为 binding:"required" */
 export interface DeleteRequest {
   id: number
+}
+
+/** 更新个人资料（当前登录用户） */
+export interface UpdateProfileRequest {
+  userName?: string | null
+  userAvatar?: string | null
+  userProfile?: string | null
+}
+
+/** 修改密码（当前登录用户） */
+export interface UpdatePasswordRequest {
+  oldPassword: string
+  newPassword: string
+  checkPassword: string
 }
 
 /** @deprecated 请使用 RegisterRequest */

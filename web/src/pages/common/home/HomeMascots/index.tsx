@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { NailongCharacter, NiuniuCharacter } from './HomeSceneCharacters'
-import './HomeMascots.css'
-import './HomeScene.css'
+import { NailongCharacter, NiuniuCharacter } from '../HomeSceneCharacters'
+import './index.css'
+import '../HomeScence/index.css'
 
 const NAILONG_LINES = ['灵感来了！', '今天画紫色冒险~', '分镜交给我！', '冲冲冲！']
 const NIUNIU_LINES = ['脚本我来写~', '配色已就绪 ✦', '一起出爆款！', '等你开画啦']

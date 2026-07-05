@@ -1,0 +1,21 @@
+.user-info-page__card {
+  max-width: 560px;
+  margin-bottom: 24px;
+}
+
+.user-info-page__card .ant-card-head-title {
+  font-weight: 600;
+}
+
+.user-info-page__avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.user-info-page__avatar-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--app-text-secondary);
+}

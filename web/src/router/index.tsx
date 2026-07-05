@@ -3,12 +3,12 @@ import BasicLayout from '@/layouts/BasicLayout'
 import { RequireAdmin, RequireAuth, RequireGuest } from '@/router/guards'
 import HomePage from '@/pages/common/home'
 import AuthPage from '@/pages/common/auth'
-import UserCenterPage from '@/pages/user/center'
 import CreatePage from '@/pages/user/create'
 import HistoryPage from '@/pages/user/history'
 import ArticleDetailPage from '@/pages/user/article/detail'
 import AdminUsersPage from '@/pages/admin/Users'
 import AdminDataPage from '@/pages/admin/StaticPage'
+import UserInfoPage from '@/pages/user/info'
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +36,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/user/info',
+        element: (
+          <RequireAuth>
+            <UserInfoPage />
+          </RequireAuth>
+        ),
+      },
+      {
         path: '/history',
         element: (
           <RequireAdmin>
@@ -44,11 +52,11 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: '/user/center',
+        path: '/admin/users',
         element: (
-          <RequireAuth>
-            <UserCenterPage />
-          </RequireAuth>
+          <RequireAdmin>
+            <AdminUsersPage />
+          </RequireAdmin>
         ),
       },
       {
@@ -56,14 +64,6 @@ export const router = createBrowserRouter([
         element: (
           <RequireAdmin>
             <ArticleDetailPage />
-          </RequireAdmin>
-        ),
-      },
-      {
-        path: '/admin/users',
-        element: (
-          <RequireAdmin>
-            <AdminUsersPage />
           </RequireAdmin>
         ),
       },

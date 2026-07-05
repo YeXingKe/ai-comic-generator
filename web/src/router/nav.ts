@@ -15,9 +15,9 @@ export const NAV_ITEMS: NavItem[] = [
     visible: ({ isLoggedIn }) => isLoggedIn,
   },
   {
-    key: '/user/center',
+    key: '/admin/users',
     label: '用户',
-    path: '/user/center',
+    path: '/admin/users',
     visible: ({ isAdmin }) => isAdmin,
   },
   {
