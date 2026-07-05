@@ -39,7 +39,7 @@ type LoginUser struct {
 	EditTime    *time.Time `json:"editTime"`    // 资料最后编辑时间
 }
 
-// UserInfo 用户信息（响应，不含配额）
+// UserInfo 用户信息（响应）
 type UserInfo struct {
 	ID          int64      `json:"id"`          // 主键 ID
 	UserAccount string     `json:"userAccount"` // 登录账号
@@ -47,6 +47,7 @@ type UserInfo struct {
 	UserAvatar  *string    `json:"userAvatar"`  // 头像 URL
 	UserProfile *string    `json:"userProfile"` // 个人简介
 	UserRole    string     `json:"userRole" enums:"user,admin,vip" example:"user"` // 用户角色：user 普通用户 / admin 管理员 / vip 会员
+	Quota       int        `json:"quota"`       // 剩余配额
 	VipTime     *time.Time `json:"vipTime"`     // VIP 开通时间
 	CreateTime  time.Time  `json:"createTime"`  // 注册时间
 	UpdateTime  time.Time  `json:"updateTime"`  // 最后更新时间
@@ -85,6 +86,7 @@ func (u *User) ToUserInfo() *UserInfo {
 		UserAvatar:  u.UserAvatar,
 		UserProfile: u.UserProfile,
 		UserRole:    u.UserRole,
+		Quota:       u.Quota,
 		VipTime:     u.VipTime,
 		CreateTime:  u.CreateTime,
 		UpdateTime:  u.UpdateTime,

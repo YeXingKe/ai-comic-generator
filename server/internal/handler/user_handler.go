@@ -48,6 +48,32 @@ func (h *UserHandler) Register(c *gin.Context) {
 	c.JSON(http.StatusOK, common.Success(userID))
 }
 
+// EncryptPassword 根据密码与盐值生成加密密码
+// @Summary      生成加密密码
+// @Description  根据明文密码与盐值计算 MD5(密码+盐值)，用于生成可写入数据库 userPassword 字段的值；盐值不传时使用系统默认盐值 mason
+// @Tags         用户
+// @Accept       json
+// @Produce      json
+// @Param        body  body      model.EncryptPasswordRequest  true  "加密参数"
+// @Success      200   {object}  common.BaseResponse{data=model.EncryptPasswordResponse}
+// @Failure      200   {object}  common.BaseResponse  "参数错误"
+// @Router       /user/encrypt/password [post]
+func (h *UserHandler) EncryptPassword(c *gin.Context) {
+	var req model.EncryptPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, common.Error(common.ErrParams))
+		return
+	}
+
+	result, err := h.svc.EncryptPassword(req.Password, req.Salt)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, common.Success(result))
+}
+
 // Login 用户登录
 // @Summary      用户登录
 // @Description  登录成功后写入 Session Cookie（session），后续受保护接口需携带
@@ -107,6 +133,41 @@ func (h *UserHandler) GetLoginUser(c *gin.Context) {
 func (h *UserHandler) Logout(c *gin.Context) {
 	session := sessions.Default(c)
 	if err := h.svc.Logout(session); err != nil {
+		handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, common.Success(true))
+}
+
+// UpdateProfile 更新当前登录用户资料
+func (h *UserHandler) UpdateProfile(c *gin.Context) {
+	var req model.UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, common.Error(common.ErrParams))
+		return
+	}
+
+	session := sessions.Default(c)
+	loginUser, err := h.svc.UpdateProfile(session, &req)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, common.Success(loginUser))
+}
+
+// UpdatePassword 修改当前登录用户密码
+func (h *UserHandler) UpdatePassword(c *gin.Context) {
+	var req model.UpdatePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, common.Error(common.ErrParams))
+		return
+	}
+
+	session := sessions.Default(c)
+	if err := h.svc.UpdatePassword(session, &req); err != nil {
 		handleError(c, err)
 		return
 	}

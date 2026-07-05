@@ -36,12 +36,19 @@ func main() {
 		user := api.Group("/user")
 		{
 			user.POST("/register", application.UserHandler.Register)
+			user.POST("/encrypt/password", application.UserHandler.EncryptPassword)
 			user.POST("/login", application.UserHandler.Login)
-			user.GET("/getLoginUser", application.UserHandler.GetLoginUser)
+			user.GET("/info", application.UserHandler.GetLoginUser)
 			user.POST("/logout", application.UserHandler.Logout)
 
+			userAuth := middleware.AuthCheck(application.UserService, "")
+			user.POST("/profile/update", userAuth, application.UserHandler.UpdateProfile)
+			user.POST("/password/update", userAuth, application.UserHandler.UpdatePassword)
+
 			adminAuth := middleware.AuthCheck(application.UserService, common.AdminRole)
-			user.POST("/list/page/vo", adminAuth, application.UserHandler.ListPageVO)
+			user.POST("/page/vo", adminAuth, application.UserHandler.ListPageVO)
+			user.POST("/add", adminAuth, application.UserHandler.Add)
+			user.POST("/update", adminAuth, application.UserHandler.Update)
 			user.POST("/delete", adminAuth, application.UserHandler.Delete)
 		}
 	}

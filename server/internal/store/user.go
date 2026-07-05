@@ -61,9 +61,24 @@ func (s *UserStore) GetByAccountAndPassword(account, password string) (*model.Us
 	return &user, nil
 }
 
+// UpdateQuota 更新用户可用额度
+func (s *UserStore) UpdateQuota(id int64, quota int) error {
+	return s.db.Model(&model.User{}).Scopes(NotDeleted).Where("id = ?", id).Update("quota", quota).Error
+}
+
+// UpdateVipTime 更新 VIP 开通时间（传 nil 表示清空）
+func (s *UserStore) UpdateVipTime(id int64, vipTime *time.Time) error {
+	return s.db.Model(&model.User{}).Scopes(NotDeleted).Where("id = ?", id).Update("vipTime", vipTime).Error
+}
+
 // Update 更新用户
 func (s *UserStore) Update(user *model.User) error {
 	return s.db.Scopes(NotDeleted).Where("id = ?", user.ID).Updates(user).Error
+}
+
+// UpdatePassword 更新用户密码
+func (s *UserStore) UpdatePassword(id int64, password string) error {
+	return s.db.Model(&model.User{}).Scopes(NotDeleted).Where("id = ?", id).Update("userPassword", password).Error
 }
 
 // Delete 删除用户（逻辑删除）

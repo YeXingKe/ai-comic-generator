@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // RegisterRequest 用户注册请求
 type RegisterRequest struct {
 	UserAccount   string `json:"userAccount" binding:"required,min=4" example:"zhangsan"`   // 登录账号，至少 4 位
@@ -19,7 +21,9 @@ type AddUserRequest struct {
 	UserName    *string `json:"userName" example:"新用户"`                              // 用户昵称（可选）
 	UserAvatar  *string `json:"userAvatar" example:"https://example.com/avatar.png"` // 头像 URL（可选）
 	UserProfile *string `json:"userProfile" example:"个人简介"`                          // 个人简介（可选）
-	UserRole    string  `json:"userRole" example:"user" enums:"user,admin,vip"`      // 用户角色：user / admin / vip
+	UserRole    string     `json:"userRole" example:"user" enums:"user,admin,vip"`      // 用户角色：user / admin / vip
+	Quota       *int       `json:"quota" example:"5"`                                     // 可用额度（可选，不传则使用库表默认值）
+	VipTime     *time.Time `json:"vipTime" example:"2026-01-01T12:00:00+08:00"`         // VIP 开通时间（角色为 vip 时可选）
 }
 
 // UpdateUserRequest 更新用户请求（管理员）
@@ -28,7 +32,9 @@ type UpdateUserRequest struct {
 	UserName    *string `json:"userName" example:"新昵称"`                                // 用户昵称（可选，传 null 表示不更新）
 	UserAvatar  *string `json:"userAvatar" example:"https://example.com/avatar.png"`   // 头像 URL（可选）
 	UserProfile *string `json:"userProfile" example:"更新后的简介"`                          // 个人简介（可选）
-	UserRole    *string `json:"userRole" example:"vip" enums:"user,admin,vip"`         // 用户角色（可选）
+	UserRole    *string    `json:"userRole" example:"vip" enums:"user,admin,vip"`         // 用户角色（可选）
+	Quota       *int       `json:"quota" example:"10"`                                    // 可用额度（可选）
+	VipTime     *time.Time `json:"vipTime" example:"2026-01-01T12:00:00+08:00"`         // VIP 开通时间（可选，非 vip 传 null 可清空）
 }
 
 // QueryUserRequest 查询用户请求
@@ -44,9 +50,35 @@ type QueryUserRequest struct {
 	SortOrder   *string `json:"sortOrder" example:"desc"`          // 排序方向：asc / desc（可选）
 }
 
+// UpdatePasswordRequest 修改密码请求（当前登录用户）
+type UpdatePasswordRequest struct {
+	OldPassword   string `json:"oldPassword" binding:"required,min=8" example:"12345678"`   // 原密码
+	NewPassword   string `json:"newPassword" binding:"required,min=8" example:"87654321"`   // 新密码
+	CheckPassword string `json:"checkPassword" binding:"required,min=8" example:"87654321"` // 确认新密码
+}
+
+// UpdateProfileRequest 更新个人资料请求（当前登录用户）
+type UpdateProfileRequest struct {
+	UserName    *string `json:"userName" example:"新昵称"`                              // 用户昵称（可选）
+	UserAvatar  *string `json:"userAvatar" example:"https://example.com/avatar.png"` // 头像 URL（可选）
+	UserProfile *string `json:"userProfile" example:"个人简介"`                          // 个人简介（可选）
+}
+
 // DeleteRequest 删除请求
 type DeleteRequest struct {
 	ID int64 `json:"id" binding:"required,gt=0" example:"1"` // 要删除的记录主键 ID（用户或文章）
+}
+
+// EncryptPasswordRequest 密码加密请求（用于生成可写入数据库的密码哈希）
+type EncryptPasswordRequest struct {
+	Password string `json:"password" binding:"required" example:"12345678"` // 明文密码
+	Salt     string `json:"salt" example:"mason"`                           // 盐值，不传则使用系统默认盐值
+}
+
+// EncryptPasswordResponse 密码加密响应
+type EncryptPasswordResponse struct {
+	EncryptedPassword string `json:"encryptedPassword" example:"e10adc3949ba59abbe56e057f20f883e"` // MD5(密码+盐值)
+	Salt              string `json:"salt" example:"mason"`                                         // 实际使用的盐值
 }
 
 // PageResult 分页结果

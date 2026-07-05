@@ -49,7 +49,6 @@ server/internal/        → handler → service → store → model
 
 ### Cursor Hooks（`.cursor/hooks.json`）
 
-- **afterFileEdit**：Go 用 `gofmt`，web 用 `prettier`（npx）
 - **beforeShellExecution**（`git commit`）：web oxlint + `go vet` + 提交信息规范（含 `-m` 时）
 
 ## 提交信息格式
