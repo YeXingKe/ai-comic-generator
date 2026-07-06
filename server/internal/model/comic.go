@@ -41,6 +41,7 @@ const (
 	ComicStatusPending         = "PENDING"          // 等待开始
 	ComicStatusProcessing      = "PROCESSING"       // 生成进行中
 	ComicStatusAwaitingConfirm = "AWAITING_CONFIRM" // 等待用户确认（如标题选择）
+	ComicStatusTitleConfirmed  = "TITLE_CONFIRMED"  // 标题已确认，等待用户启动流水线
 	ComicStatusCompleted       = "COMPLETED"        // 全部步骤完成
 	ComicStatusFailed          = "FAILED"           // 某步骤失败，任务终止
 )

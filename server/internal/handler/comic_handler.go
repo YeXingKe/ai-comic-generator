@@ -42,7 +42,7 @@ func (h *ComicHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, common.Success(gin.H{"taskId": taskID}))
 }
 
-// ConfirmTitle 用户确认标题后继续流水线
+// ConfirmTitle 用户确认标题（不启动流水线）
 func (h *ComicHandler) ConfirmTitle(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -57,6 +57,27 @@ func (h *ComicHandler) ConfirmTitle(c *gin.Context) {
 	}
 
 	if err := h.svc.ConfirmTitle(loginUser.ID, &req, isAdminUser(loginUser)); err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, common.Success(true))
+}
+
+// Start 正式启动后续六步流水线
+func (h *ComicHandler) Start(c *gin.Context) {
+	loginUser, ok := middleware.GetLoginUserFromContext(c)
+	if !ok {
+		c.JSON(http.StatusOK, common.Error(common.ErrNotLogin))
+		return
+	}
+
+	var req model.StartComicRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, common.Error(common.ErrParams))
+		return
+	}
+
+	if err := h.svc.StartPipeline(loginUser.ID, &req, isAdminUser(loginUser)); err != nil {
 		handleError(c, err)
 		return
 	}

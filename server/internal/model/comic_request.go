@@ -10,16 +10,21 @@ type CreateComicRequest struct {
 // QueryComicRequest 查询漫画任务
 type QueryComicRequest struct {
 	UserID   *int64  `json:"userId"`
-	Status   *string `json:"status" enums:"PENDING,PROCESSING,COMPLETED,FAILED"`
+	Status   *string `json:"status" enums:"PENDING,PROCESSING,AWAITING_CONFIRM,TITLE_CONFIRMED,COMPLETED,FAILED"`
 	Phase    *string `json:"phase"`
 	PageNum  int64   `json:"pageNum" example:"1"`
 	PageSize int64   `json:"pageSize" example:"10"`
 }
 
-// ConfirmTitleRequest 确认/编辑标题后继续流水线
+// ConfirmTitleRequest 确认/编辑标题（不启动流水线）
 type ConfirmTitleRequest struct {
 	TaskID string `json:"taskId" binding:"required"`
 	Title  string `json:"title" binding:"required"`
+}
+
+// StartComicRequest 正式启动后续六步流水线
+type StartComicRequest struct {
+	TaskID string `json:"taskId" binding:"required"`
 }
 
 // ConfirmStoryboardRequest 确认/编辑分镜（可选 HITL）

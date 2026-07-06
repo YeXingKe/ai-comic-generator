@@ -94,6 +94,21 @@ func (s *ComicStore) MarkAwaitingTitleConfirm(state *model.ComicState) error {
 	return s.db.Model(&model.Comic{}).Where("taskId = ?", state.TaskID).Updates(updates).Error
 }
 
+// MarkTitleConfirmed 用户确认标题，等待正式启动流水线
+func (s *ComicStore) MarkTitleConfirmed(state *model.ComicState) error {
+	updates := map[string]interface{}{
+		"status": model.ComicStatusTitleConfirmed,
+		"phase":  model.ComicPhaseTitleSelecting,
+	}
+	if state.SelectedTitle != "" {
+		updates["title"] = state.SelectedTitle
+	}
+	if state.TitleOptions != nil {
+		updates["titleOptions"] = toJSON(state.TitleOptions)
+	}
+	return s.db.Model(&model.Comic{}).Where("taskId = ?", state.TaskID).Updates(updates).Error
+}
+
 // BuildStateFromComic 从数据库实体恢复流水线内存态
 func (s *ComicStore) BuildStateFromComic(c *model.Comic) *model.ComicState {
 	state := &model.ComicState{

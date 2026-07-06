@@ -38,6 +38,7 @@ func main() {
 			comicAuth := middleware.AuthCheck(application.UserService, "")
 			comic.POST("/create", comicAuth, application.ComicHandler.Create)
 			comic.POST("/confirm-title", comicAuth, application.ComicHandler.ConfirmTitle)
+			comic.POST("/start", comicAuth, application.ComicHandler.Start)
 			comic.GET("/get", comicAuth, application.ComicHandler.Get)
 			comic.POST("/page", comicAuth, application.ComicHandler.ListPage)
 		}

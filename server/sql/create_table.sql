@@ -51,7 +51,7 @@ create table if not exists comic
     panelImages     JSON                                  null comment '第4步：分镜格图片列表',
     composedLayout  JSON                                  null comment '第5步：排版合成结果',
     publishResult   JSON                                  null comment '第6步：公众号发布结果',
-    status          varchar(20)  default 'PENDING'        not null comment '任务状态：PENDING/PROCESSING/AWAITING_CONFIRM/COMPLETED/FAILED',
+    status          varchar(20)  default 'PENDING'        not null comment '任务状态：PENDING/PROCESSING/AWAITING_CONFIRM/TITLE_CONFIRMED/COMPLETED/FAILED',
     phase           varchar(50)  default 'PENDING'        not null comment '当前阶段：PENDING/TITLE_GENERATION/TITLE_SELECTING/STORY_IDEATION/...',
     errorMessage    TEXT                                  null comment '失败时的错误信息',
     createTime      datetime     default CURRENT_TIMESTAMP not null comment '创建时间',

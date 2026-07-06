@@ -65,7 +65,7 @@ func (s *ComicService) Create(userID int64, req *model.CreateComicRequest) (stri
 	return taskID, nil
 }
 
-// ConfirmTitle 用户确认/编辑标题后，继续执行后续六步流水线
+// ConfirmTitle 用户确认/编辑标题，不启动后续流水线
 func (s *ComicService) ConfirmTitle(userID int64, req *model.ConfirmTitleRequest, isAdmin bool) error {
 	title := strings.TrimSpace(req.Title)
 	if title == "" {
@@ -86,10 +86,30 @@ func (s *ComicService) ConfirmTitle(userID int64, req *model.ConfirmTitleRequest
 	state := s.comicStore.BuildStateFromComic(comic)
 	state.SelectedTitle = title
 
+	return s.comicStore.MarkTitleConfirmed(state)
+}
+
+// StartPipeline 正式启动故事构思起的六步流水线
+func (s *ComicService) StartPipeline(userID int64, req *model.StartComicRequest, isAdmin bool) error {
+	comic, err := s.comicStore.GetByTaskID(req.TaskID)
+	if err != nil {
+		return common.ErrNotFound
+	}
+	if !isAdmin && comic.UserID != userID {
+		return common.ErrNoAuth
+	}
+	if comic.Status != model.ComicStatusTitleConfirmed {
+		return common.ErrOperation.WithMessage("请先确认标题后再开始生成")
+	}
+	if comic.Title == nil || strings.TrimSpace(*comic.Title) == "" {
+		return common.ErrOperation.WithMessage("标题未设置，无法开始生成")
+	}
+
+	state := s.comicStore.BuildStateFromComic(comic)
+
 	if err := s.comicStore.UpdatePhase(req.TaskID, model.ComicStatusProcessing, model.ComicPhaseStoryIdeation); err != nil {
 		return common.ErrSystem
 	}
-	_ = s.comicStore.SyncState(state)
 
 	go func() {
 		ctx := context.Background()
