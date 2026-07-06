@@ -20,3 +20,8 @@ redis:
 session:
   secret: "mason" # 请生成随机密钥
   max_age: 2592000 # 30天（秒）
+ai:
+  dashscope:
+    api_key: "sk-xxx"
+    model: "qwen-plus"
+    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"

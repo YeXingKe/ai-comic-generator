@@ -94,3 +94,6 @@ npm run build:server
 | `npm run dev:server` | 仅启动后端 |
 | `npm run build:web` | 构建前端 |
 | `npm run build:server` | 构建后端 |
+
+<!-- go env -w GOPROXY=https://goproxy.cn,direct
+go get github.com/tmc/langchaingo@v0.1.14 -->
