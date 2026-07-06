@@ -152,6 +152,139 @@ export interface ArticleVO {
   createTime?: string
 }
 
+/** 漫画任务状态 */
+export type ComicStatus =
+  | 'PENDING'
+  | 'PROCESSING'
+  | 'AWAITING_CONFIRM'
+  | 'COMPLETED'
+  | 'FAILED'
+
+/** 漫画流水线阶段 */
+export type ComicPhase =
+  | 'PENDING'
+  | 'TITLE_GENERATION'
+  | 'TITLE_SELECTING'
+  | 'STORY_IDEATION'
+  | 'CHARACTER_DESIGN'
+  | 'STORYBOARD_SCRIPT'
+  | 'IMAGE_GENERATION'
+  | 'LAYOUT_COMPOSE'
+  | 'WECHAT_PUBLISH'
+
+export interface TitleOption {
+  title: string
+  subtitle?: string
+}
+
+export interface TitleOptionsResult {
+  options: TitleOption[]
+}
+
+export interface StoryIdeationResult {
+  synopsis: string
+  theme: string
+  tone: string
+  title: string
+  keyConflict: string
+  highlights: string[]
+}
+
+export interface ComicCharacter {
+  name: string
+  role: string
+  appearance: string
+  personality: string
+  avatarUrl?: string
+}
+
+export interface StoryboardPanel {
+  panelNo: number
+  scene: string
+  dialogue: string[]
+  narration: string
+  camera: string
+  imagePrompt: string
+}
+
+export interface StoryboardResult {
+  pageCount: number
+  panels: StoryboardPanel[]
+}
+
+export interface PanelImageResult {
+  panelNo: number
+  url: string
+  method: 'AI_GENERATE' | 'UPLOAD'
+  imagePrompt: string
+}
+
+export interface ComposedLayoutResult {
+  format: string
+  previewUrl: string
+  assetUrls: string[]
+  coverImage: string
+}
+
+export interface PublishResult {
+  platform: string
+  title: string
+  mediaId?: string
+  articleUrl?: string
+  publishedAt?: string | null
+  status: 'DRAFT' | 'PUBLISHED' | 'FAILED'
+}
+
+/** 漫画任务详情，对应后端 model.ComicInfo */
+export interface ComicInfo {
+  id: number
+  taskId: string
+  userId: number
+  topic: string
+  userDescription?: string | null
+  title?: string | null
+  coverImage?: string | null
+  style: string
+  titleOptions?: TitleOptionsResult | null
+  storyIdeation?: StoryIdeationResult | null
+  characters?: ComicCharacter[]
+  storyboard?: StoryboardResult | null
+  panelImages?: PanelImageResult[]
+  composedLayout?: ComposedLayoutResult | null
+  publishResult?: PublishResult | null
+  status: ComicStatus
+  phase: ComicPhase
+  errorMessage?: string | null
+  createTime: string
+  completedTime?: string | null
+}
+
+export interface CreateComicRequest {
+  topic: string
+  userDescription?: string
+  style?: string
+}
+
+export interface ConfirmTitleRequest {
+  taskId: string
+  title: string
+}
+
+export interface QueryComicRequest {
+  userId?: number
+  status?: ComicStatus
+  phase?: ComicPhase
+  pageNum?: number
+  pageSize?: number
+}
+
+export interface ComicPageResult {
+  total: number
+  records: ComicInfo[]
+  pageNum: number
+  pageSize: number
+}
+
 export const USER_ROLE = {
   USER: 'user',
   ADMIN: 'admin',

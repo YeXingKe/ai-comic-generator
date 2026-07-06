@@ -12,7 +12,7 @@ export const NAV_ITEMS: NavItem[] = [
     key: '/create',
     label: '创作',
     path: '/create',
-    visible: ({ isLoggedIn }) => isLoggedIn,
+    visible: ({ isLoggedIn }) => true,
   },
   {
     key: '/admin/users',

@@ -3,9 +3,8 @@ import BasicLayout from '@/layouts/BasicLayout'
 import { RequireAdmin, RequireAuth, RequireGuest } from '@/router/guards'
 import HomePage from '@/pages/common/home'
 import AuthPage from '@/pages/common/auth'
-import CreatePage from '@/pages/user/create'
 import HistoryPage from '@/pages/user/history'
-import ArticleDetailPage from '@/pages/user/article/detail'
+import ComicCreatePage from '@/pages/user/create'
 import AdminUsersPage from '@/pages/admin/Users'
 import AdminDataPage from '@/pages/admin/StaticPage'
 import UserInfoPage from '@/pages/user/info'
@@ -30,9 +29,10 @@ export const router = createBrowserRouter([
       {
         path: '/create',
         element: (
-          <RequireAuth>
-            <CreatePage />
-          </RequireAuth>
+          // <RequireAuth>
+          //   <ComicCreatePage />
+          // </RequireAuth>
+          <ComicCreatePage />
         ),
       },
       {
@@ -59,14 +59,14 @@ export const router = createBrowserRouter([
           </RequireAdmin>
         ),
       },
-      {
-        path: '/article/:taskId',
-        element: (
-          <RequireAdmin>
-            <ArticleDetailPage />
-          </RequireAdmin>
-        ),
-      },
+      // {
+      //   path: '/comic/:taskId',
+      //   element: (
+      //     // <RequireAdmin>
+      //     <ComicCreatePage />
+      //     // </RequireAdmin>
+      //   ),
+      // },
       {
         path: '/admin/data',
         element: (

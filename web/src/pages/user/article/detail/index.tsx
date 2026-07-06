@@ -1,41 +1,62 @@
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
+import { COMIC_PHASE_LABEL, getComic } from '@/api/comic'
+import type { ComicInfo } from '@/types/api'
 import './index.css'
 
-const mockDetail: Record<
-  string,
-  { topic: string; mainTitle: string; status: string; createTime: string; content: string }
-> = {
-  'demo-001': {
-    topic: 'AI 漫画创作入门',
-    mainTitle: '如何用 AI 快速生成精美漫画',
-    status: 'COMPLETED',
-    createTime: dayjs().subtract(1, 'day').toISOString(),
-    content:
-      '这是一篇示例文章详情页。创作编辑功能开发完成后，此处将展示 AI 生成的完整漫画脚本与分镜内容。',
-  },
-  'demo-002': {
-    topic: '职场效率提升',
-    mainTitle: '10 个提升工作效率的实用技巧',
-    status: 'PROCESSING',
-    createTime: dayjs().subtract(2, 'hour').toISOString(),
-    content: '文章正在生成中，请稍后刷新查看...',
-  },
-  'demo-003': {
-    topic: '产品思维',
-    mainTitle: '从 0 到 1 打造爆款产品的方法论',
-    status: 'PENDING',
-    createTime: dayjs().subtract(3, 'day').toISOString(),
-    content: '任务等待处理中...',
-  },
+function statusTag(status?: string) {
+  if (status === 'COMPLETED') return <Tag color="purple">已完成</Tag>
+  if (status === 'PROCESSING') return <Tag color="blue">生成中</Tag>
+  if (status === 'FAILED') return <Tag color="red">失败</Tag>
+  return <Tag>等待中</Tag>
 }
 
 export default function ArticleDetailPage() {
   const { taskId } = useParams<{ taskId: string }>()
   const navigate = useNavigate()
-  const detail = taskId ? mockDetail[taskId] : undefined
+  const [detail, setDetail] = useState<ComicInfo | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
 
-  if (!detail) {
+  const fetchDetail = useCallback(async () => {
+    if (!taskId) return
+    try {
+      const res = await getComic(taskId)
+      if (res.code === 0 && res.data) {
+        setDetail(res.data)
+        setNotFound(false)
+      } else {
+        setNotFound(true)
+      }
+    } catch {
+      setNotFound(true)
+    } finally {
+      setLoading(false)
+    }
+  }, [taskId])
+
+  useEffect(() => {
+    void fetchDetail()
+  }, [fetchDetail])
+
+  useEffect(() => {
+    if (!detail || (detail.status !== 'PROCESSING' && detail.status !== 'PENDING')) return
+    const timer = window.setInterval(() => void fetchDetail(), 3000)
+    return () => window.clearInterval(timer)
+  }, [detail, fetchDetail])
+
+  if (loading) {
+    return (
+      <div className="article-detail-page">
+        <div className="container" style={{ padding: 48, textAlign: 'center' }}>
+          <Spin size="large" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!detail || notFound) {
     return (
       <div className="article-detail-page">
         <div className="container">
@@ -50,14 +71,8 @@ export default function ArticleDetailPage() {
     )
   }
 
-  const statusTag =
-    detail.status === 'COMPLETED' ? (
-      <Tag color="purple">已完成</Tag>
-    ) : detail.status === 'PROCESSING' ? (
-      <Tag color="blue">生成中</Tag>
-    ) : (
-      <Tag>等待中</Tag>
-    )
+  const title = detail.title || detail.storyIdeation?.title || detail.topic
+  const previewUrl = detail.composedLayout?.previewUrl || detail.coverImage
 
   return (
     <div className="article-detail-page">
@@ -71,7 +86,7 @@ export default function ArticleDetailPage() {
           >
             返回列表
           </Button>
-          <h1 className="page-title">{detail.mainTitle}</h1>
+          <h1 className="page-title">{title}</h1>
           <p className="page-subtitle">{detail.topic}</p>
         </div>
       </div>
@@ -79,18 +94,89 @@ export default function ArticleDetailPage() {
         <Card className="detail-card" bordered={false}>
           <Descriptions column={2} bordered size="small" className="detail-meta">
             <Descriptions.Item label="任务 ID">{taskId}</Descriptions.Item>
-            <Descriptions.Item label="状态">{statusTag}</Descriptions.Item>
+            <Descriptions.Item label="状态">{statusTag(detail.status)}</Descriptions.Item>
+            <Descriptions.Item label="当前阶段">
+              {COMIC_PHASE_LABEL[detail.phase] ?? detail.phase}
+            </Descriptions.Item>
             <Descriptions.Item label="创建时间">
               {dayjs(detail.createTime).format('YYYY-MM-DD HH:mm:ss')}
             </Descriptions.Item>
-            <Descriptions.Item label="类型">
-              <FileTextOutlined /> 漫画脚本
-            </Descriptions.Item>
           </Descriptions>
-          <div className="article-body">
-            <h2>正文内容</h2>
-            <div className="content-text">{detail.content}</div>
-          </div>
+
+          {detail.errorMessage && (
+            <Alert type="error" message={detail.errorMessage} showIcon style={{ marginBottom: 16 }} />
+          )}
+
+          {previewUrl && (
+            <div className="article-body">
+              <h2>漫画预览</h2>
+              <img src={previewUrl} alt="漫画预览" style={{ maxWidth: '100%', borderRadius: 8 }} />
+            </div>
+          )}
+
+          {detail.storyIdeation && (
+            <div className="article-body">
+              <h2>故事构思</h2>
+              <div className="content-text">
+                <p>
+                  <strong>梗概：</strong>
+                  {detail.storyIdeation.synopsis}
+                </p>
+                <p>
+                  <strong>主题：</strong>
+                  {detail.storyIdeation.theme}
+                </p>
+                <p>
+                  <strong>基调：</strong>
+                  {detail.storyIdeation.tone}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {detail.characters && detail.characters.length > 0 && (
+            <div className="article-body">
+              <h2>角色设定</h2>
+              <ul className="content-text">
+                {detail.characters.map((c) => (
+                  <li key={c.name}>
+                    <strong>{c.name}</strong>（{c.role}）：{c.appearance}，{c.personality}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {detail.storyboard?.panels && detail.storyboard.panels.length > 0 && (
+            <div className="article-body">
+              <h2>分镜脚本</h2>
+              {detail.storyboard.panels.map((panel) => (
+                <div key={panel.panelNo} className="content-text" style={{ marginBottom: 12 }}>
+                  <p>
+                    <strong>第 {panel.panelNo} 格</strong> — {panel.scene}
+                  </p>
+                  {panel.dialogue?.length > 0 && <p>台词：{panel.dialogue.join(' / ')}</p>}
+                  {panel.narration && <p>旁白：{panel.narration}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {detail.panelImages && detail.panelImages.length > 0 && (
+            <div className="article-body">
+              <h2>分镜画面</h2>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                {detail.panelImages.map((img) => (
+                  <img
+                    key={img.panelNo}
+                    src={img.url}
+                    alt={`分镜 ${img.panelNo}`}
+                    style={{ width: 160, borderRadius: 6 }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </div>
