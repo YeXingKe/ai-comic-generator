@@ -29,10 +29,9 @@ export const router = createBrowserRouter([
       {
         path: '/create',
         element: (
-          // <RequireAuth>
-          //   <ComicCreatePage />
-          // </RequireAuth>
-          <ComicCreatePage />
+          <RequireAuth>
+            <ComicCreatePage />
+          </RequireAuth>
         ),
       },
       {
