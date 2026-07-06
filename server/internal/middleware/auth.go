@@ -25,7 +25,7 @@ func AuthCheck(userSvc *service.UserService, mustRole string) gin.HandlerFunc {
 
 		// 不需要权限，直接放行
 		if mustRole == "" {
-			c.Set("loginUser", loginUser)
+			c.Set(common.LoginUserContextKey, loginUser)
 			c.Next()
 			return
 		}
@@ -33,7 +33,7 @@ func AuthCheck(userSvc *service.UserService, mustRole string) gin.HandlerFunc {
 		// 检查角色权限
 		mustRoleEnum := model.UserRole(mustRole)
 		if !mustRoleEnum.IsValid() {
-			c.Set("loginUser", loginUser)
+			c.Set(common.LoginUserContextKey, loginUser)
 			c.Next()
 			return
 		}
@@ -54,7 +54,7 @@ func AuthCheck(userSvc *service.UserService, mustRole string) gin.HandlerFunc {
 
 		// 通过权限校验
 		// Gin 框架里 *gin.Context 的方法，用来在同一次 HTTP 请求的生命周期内存键值对，供后面的中间件或 handler 读取。
-		c.Set("loginUser", loginUser)
+		c.Set(common.LoginUserContextKey, loginUser)
 		c.Next()
 	}
 }

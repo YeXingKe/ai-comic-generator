@@ -326,3 +326,13 @@ func BuildStoryboardScriptPrompt(storyIdeationJSON, charactersJSON, style, userD
 	prompt = strings.ReplaceAll(prompt, "{stylePrompt}", GetComicStylePrompt(style))
 	return prompt
 }
+
+// BuildPanelImageEnhancePrompt 组装混元生图 Prompt
+func BuildPanelImageEnhancePrompt(style, scene, characters, imagePrompt string) string {
+	prompt := strings.ReplaceAll(PanelImageEnhancePrompt, "{style}", style)
+	prompt = strings.ReplaceAll(prompt, "{scene}", scene)
+	prompt = strings.ReplaceAll(prompt, "{characters}", characters)
+	prompt = strings.ReplaceAll(prompt, "{imagePrompt}", imagePrompt)
+	prompt = strings.ReplaceAll(prompt, "{stylePrompt}", GetComicStylePrompt(style))
+	return prompt
+}

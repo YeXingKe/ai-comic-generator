@@ -2,8 +2,9 @@ package common
 
 // Session 相关常量
 const (
-	UserLoginState = "userLoginState"
-	AdminRole      = "admin"
+	UserLoginState      = "userLoginState" // Session 中存储用户 ID 的键
+	LoginUserContextKey = "loginUser"      // AuthCheck 中间件写入 gin.Context 的键
+	AdminRole           = "admin"
 	UserRole       = "user"
 	VIPRole        = "vip"
 )

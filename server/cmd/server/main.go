@@ -33,6 +33,16 @@ func main() {
 	{
 		api.GET("/health", application.HealthHandler.Check)
 
+		if application.ComicHandler != nil {
+			comic := api.Group("/comic")
+			comicAuth := middleware.AuthCheck(application.UserService, "")
+			comic.POST("/create", comicAuth, application.ComicHandler.Create)
+			comic.GET("/get", comicAuth, application.ComicHandler.Get)
+			comic.POST("/page", comicAuth, application.ComicHandler.ListPage)
+		}
+
+		r.Static(application.Config.Storage.PublicURL, application.Config.Storage.BasePath)
+
 		user := api.Group("/user")
 		{
 			user.POST("/register", application.UserHandler.Register)
