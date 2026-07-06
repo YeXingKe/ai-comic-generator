@@ -157,6 +157,7 @@ export type ComicStatus =
   | 'PENDING'
   | 'PROCESSING'
   | 'AWAITING_CONFIRM'
+  | 'TITLE_CONFIRMED'
   | 'COMPLETED'
   | 'FAILED'
 
@@ -268,6 +269,10 @@ export interface CreateComicRequest {
 export interface ConfirmTitleRequest {
   taskId: string
   title: string
+}
+
+export interface StartComicRequest {
+  taskId: string
 }
 
 export interface QueryComicRequest {

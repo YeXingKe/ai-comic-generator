@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { UploadProps } from 'antd'
 import { Image } from 'antd'
-import { COMIC_PHASE_LABEL, confirmComicTitle, createComic, getComic } from '@/api/comic'
+import { COMIC_PHASE_LABEL, confirmComicTitle, createComic, getComic, startComicPipeline } from '@/api/comic'
 import type { ComicInfo, ComicPhase } from '@/types/api'
 import './index.css'
 
@@ -70,6 +70,10 @@ function getStepStatus(index: number, comic: ComicInfo | null, creating: boolean
     if (index === 0) return 'active'
     return 'pending'
   }
+  if (comic.status === 'TITLE_CONFIRMED') {
+    if (index === 0) return 'completed'
+    return 'pending'
+  }
   const current = phaseToStepIndex(comic.phase)
   if (current < 0) return creating && index === 0 ? 'active' : 'pending'
   if (index < current) return 'completed'
@@ -101,6 +105,7 @@ function getActiveStepIndex(comic: ComicInfo | null, creating: boolean): number 
   if (!comic && !creating) return null
   if (!comic) return 0
   if (comic.status === 'AWAITING_CONFIRM') return 0
+  if (comic.status === 'TITLE_CONFIRMED') return 0
   if (comic.status === 'COMPLETED') return AGENT_STEPS.length - 1
   const idx = phaseToStepIndex(comic.phase)
   return idx >= 0 ? idx : 0
@@ -113,6 +118,7 @@ function renderStepDetailContent(
   isRunning: boolean,
   isGeneratingTitles: boolean,
   isAwaitingTitle: boolean,
+  isTitleConfirmed: boolean,
 ) {
   const step = AGENT_STEPS[stepIndex]
   const status = getStepStatus(stepIndex, comic, creating)
@@ -189,7 +195,10 @@ function renderStepDetailContent(
         )
       }
       if (isAwaitingTitle) {
-        return <p className="step-detail__empty">请先确认标题，故事构思将在下一步自动开始。</p>
+        return <p className="step-detail__empty">请先确认标题，再点击「开始生成漫画」启动后续流程。</p>
+      }
+      if (isTitleConfirmed) {
+        return <p className="step-detail__empty">标题已确认，点击预览区「开始生成漫画」启动故事构思。</p>
       }
       return <p className="step-detail__empty">该步骤尚未完成，完成后将展示故事梗概与情节要点。</p>
     case 'CHARACTER_DESIGN':
@@ -323,6 +332,7 @@ export default function CreatePage() {
 
   const [creating, setCreating] = useState(false)
   const [confirmingTitle, setConfirmingTitle] = useState(false)
+  const [startingPipeline, setStartingPipeline] = useState(false)
   const [taskId, setTaskId] = useState('')
   const [comic, setComic] = useState<ComicInfo | null>(null)
   const [selectedStep, setSelectedStep] = useState<number | null>(null)
@@ -331,14 +341,16 @@ export default function CreatePage() {
   const titleInitRef = useRef(false)
 
   const isAwaitingTitle = comic?.status === 'AWAITING_CONFIRM'
+  const isTitleConfirmed = comic?.status === 'TITLE_CONFIRMED'
   const isGeneratingTitles =
     !!taskId &&
     !isAwaitingTitle &&
+    !isTitleConfirmed &&
     (!comic ||
       comic.status === 'PENDING' ||
       (comic.status === 'PROCESSING' && comic.phase === 'TITLE_GENERATION'))
   const isPipelineRunning = comic?.status === 'PROCESSING' && !isGeneratingTitles
-  const isBusy = creating || isAwaitingTitle || isGeneratingTitles || isPipelineRunning
+  const isBusy = creating || isAwaitingTitle || isTitleConfirmed || isGeneratingTitles || isPipelineRunning
   const isRunning = isGeneratingTitles || isPipelineRunning
 
   const fetchComic = useCallback(async (id: string) => {
@@ -363,14 +375,15 @@ export default function CreatePage() {
   useEffect(() => {
     if (!taskId) return
     const terminal = comic?.status === 'COMPLETED' || comic?.status === 'FAILED'
-    if (terminal || isAwaitingTitle) return
+    const paused = isAwaitingTitle || isTitleConfirmed
+    if (terminal || paused) return
     const poll = () => void fetchComic(taskId)
     poll()
     pollRef.current = setInterval(poll, 3000)
     return () => {
       if (pollRef.current) clearInterval(pollRef.current)
     }
-  }, [taskId, comic?.status, isAwaitingTitle, fetchComic])
+  }, [taskId, comic?.status, isAwaitingTitle, isTitleConfirmed, fetchComic])
 
   useEffect(() => {
     if (comic?.status === 'COMPLETED' || comic?.status === 'FAILED') {
@@ -439,13 +452,32 @@ export default function CreatePage() {
         message.error(res.message || '确认标题失败')
         return
       }
-      message.success('标题已确认，开始后续创作…')
+      message.success('标题已确认，可开始生成漫画')
       setSelectedTitleIdx(null)
       await fetchComic(taskId)
     } catch {
       message.error('确认标题失败，请稍后重试')
     } finally {
       setConfirmingTitle(false)
+    }
+  }
+
+  const handleStartPipeline = async () => {
+    if (!taskId) return
+
+    setStartingPipeline(true)
+    try {
+      const res = await startComicPipeline({ taskId })
+      if (res.code !== 0) {
+        message.error(res.message || '启动失败')
+        return
+      }
+      message.success('已开始生成，请查看流程进度…')
+      await fetchComic(taskId)
+    } catch {
+      message.error('启动失败，请稍后重试')
+    } finally {
+      setStartingPipeline(false)
     }
   }
 
@@ -466,6 +498,7 @@ export default function CreatePage() {
       isRunning,
       isGeneratingTitles,
       isAwaitingTitle,
+      isTitleConfirmed,
     )
     : null
 
@@ -670,7 +703,7 @@ export default function CreatePage() {
               </div>
             )}
 
-            {!isAwaitingTitle && (
+            {!isAwaitingTitle && !isTitleConfirmed && (
               <Button
                 type="primary"
                 size="large"
@@ -690,7 +723,17 @@ export default function CreatePage() {
                 type="info"
                 showIcon
                 message="标题推荐已生成"
-                description="请在下方预览区选择或编辑标题，确认后继续后续创作。"
+                description="请在下方预览区选择或编辑标题并确认。"
+                className="config-alert"
+              />
+            )}
+
+            {isTitleConfirmed && (
+              <Alert
+                type="success"
+                showIcon
+                message="标题已确认"
+                description={`《${pendingTitle || comic?.title}》已锁定，请在预览区点击「开始生成漫画」。`}
                 className="config-alert"
               />
             )}
@@ -758,6 +801,7 @@ export default function CreatePage() {
             <span>
               {comic.status === 'PROCESSING' && `${COMIC_PHASE_LABEL[comic.phase] ?? comic.phase}…`}
               {comic.status === 'AWAITING_CONFIRM' && '等待确认标题'}
+              {comic.status === 'TITLE_CONFIRMED' && '标题已确认，待开始生成'}
               {comic.status === 'COMPLETED' && '创作完成'}
               {taskId && <code className="preview-task-id">{taskId.slice(0, 8)}…</code>}
             </span>
@@ -809,7 +853,23 @@ export default function CreatePage() {
                   onClick={handleConfirmTitle}
                   className="title-select-panel__confirm"
                 >
-                  确认标题，继续创作
+                  确认标题
+                </Button>
+              </div>
+            ) : isTitleConfirmed ? (
+              <div className="title-select-panel title-select-panel--confirmed">
+                <h3 className="title-select-panel__head">标题已确认</h3>
+                <p className="title-select-panel__confirmed-title">{pendingTitle || comic?.title}</p>
+                <p className="title-select-panel__hint">确认无误后，点击下方按钮正式启动 AI 漫画生成流水线。</p>
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<RocketOutlined />}
+                  loading={startingPipeline}
+                  onClick={handleStartPipeline}
+                  className="title-select-panel__confirm"
+                >
+                  开始生成漫画
                 </Button>
               </div>
             ) : isRunning && !previewPanels.length && !previewComposed ? (

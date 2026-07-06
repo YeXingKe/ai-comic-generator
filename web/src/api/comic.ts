@@ -6,6 +6,7 @@ import type {
   ConfirmTitleRequest,
   CreateComicRequest,
   QueryComicRequest,
+  StartComicRequest,
 } from '@/types/api'
 
 export async function createComic(body: CreateComicRequest) {
@@ -14,6 +15,10 @@ export async function createComic(body: CreateComicRequest) {
 
 export async function confirmComicTitle(body: ConfirmTitleRequest) {
   return unwrap(await request.post<BaseResponse<null>>('/comic/confirm-title', body))
+}
+
+export async function startComicPipeline(body: StartComicRequest) {
+  return unwrap(await request.post<BaseResponse<null>>('/comic/start', body))
 }
 
 export async function getComic(taskId: string) {

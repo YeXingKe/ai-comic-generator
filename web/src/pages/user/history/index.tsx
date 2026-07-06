@@ -15,6 +15,8 @@ function formatTime(time?: string) {
 function statusTag(status?: string) {
   if (status === 'COMPLETED') return <Tag color="purple">已完成</Tag>
   if (status === 'PROCESSING') return <Tag color="blue">生成中</Tag>
+  if (status === 'AWAITING_CONFIRM') return <Tag color="gold">待确认标题</Tag>
+  if (status === 'TITLE_CONFIRMED') return <Tag color="cyan">待开始</Tag>
   if (status === 'FAILED') return <Tag color="red">失败</Tag>
   return <Tag>等待中</Tag>
 }
