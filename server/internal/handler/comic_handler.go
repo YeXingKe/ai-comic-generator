@@ -39,7 +39,28 @@ func (h *ComicHandler) Create(c *gin.Context) {
 		handleError(c, err) // 将业务错误映射为统一 JSON 响应
 		return // 终止处理
 	}
-	c.JSON(http.StatusOK, common.Success(gin.H{"taskId": taskID})) // 返回新任务的 UUID 供前端轮询
+	c.JSON(http.StatusOK, common.Success(gin.H{"taskId": taskID}))
+}
+
+// ConfirmTitle 用户确认标题后继续流水线
+func (h *ComicHandler) ConfirmTitle(c *gin.Context) {
+	loginUser, ok := middleware.GetLoginUserFromContext(c)
+	if !ok {
+		c.JSON(http.StatusOK, common.Error(common.ErrNotLogin))
+		return
+	}
+
+	var req model.ConfirmTitleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, common.Error(common.ErrParams))
+		return
+	}
+
+	if err := h.svc.ConfirmTitle(loginUser.ID, &req, isAdminUser(loginUser)); err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, common.Success(true))
 }
 
 // Get 查询任务详情

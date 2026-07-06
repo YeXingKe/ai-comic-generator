@@ -22,19 +22,22 @@ func NewStoryAgent(llm llms.Model) *StoryAgent {
 
 // Execute 根据用户主题生成故事构思，写入 state.StoryIdeation
 func (a *StoryAgent) Execute(ctx context.Context, state *model.ComicState) error {
-	prompt := common.BuildStoryIdeationPrompt(state.Topic, state.Style, state.UserDescription) // 组装故事构思 Prompt
+	prompt := common.BuildStoryIdeationPrompt(state.Topic, state.Style, state.UserDescription, state.SelectedTitle)
 
 	content, err := llms.GenerateFromSinglePrompt(ctx, a.llm, prompt) // 调用 qwen-plus 生成故事 JSON
 	if err != nil { // LLM 调用失败
 		return fmt.Errorf("story llm: %w", err) // 包装 LLM 错误
 	}
 
-	var result model.StoryIdeationResult                         // 声明故事构思结果接收变量
-	if err := llmjson.Unmarshal(content, &result); err != nil { // 从 LLM 输出中解析 JSON 对象
-		return fmt.Errorf("parse story: %w", err) // 解析失败则终止
+	var result model.StoryIdeationResult
+	if err := llmjson.Unmarshal(content, &result); err != nil {
+		return fmt.Errorf("parse story: %w", err)
+	}
+	if state.SelectedTitle != "" {
+		result.Title = state.SelectedTitle
 	}
 
-	state.StoryIdeation = &result                    // 将故事构思写入流水线内存态
+	state.StoryIdeation = &result
 	state.Phase = model.ComicPhaseStoryIdeation      // 更新当前阶段为「故事构思」
 	return nil                                       // 本步骤成功完成
 }

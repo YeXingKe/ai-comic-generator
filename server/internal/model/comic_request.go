@@ -16,6 +16,12 @@ type QueryComicRequest struct {
 	PageSize int64   `json:"pageSize" example:"10"`
 }
 
+// ConfirmTitleRequest 确认/编辑标题后继续流水线
+type ConfirmTitleRequest struct {
+	TaskID string `json:"taskId" binding:"required"`
+	Title  string `json:"title" binding:"required"`
+}
+
 // ConfirmStoryboardRequest 确认/编辑分镜（可选 HITL）
 type ConfirmStoryboardRequest struct {
 	TaskID     string            `json:"taskId" binding:"required"`

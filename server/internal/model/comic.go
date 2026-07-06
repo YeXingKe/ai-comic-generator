@@ -14,6 +14,7 @@ type Comic struct {
 	Style           string     `gorm:"column:style;default:cartoon" json:"style"`                                 // 漫画风格：cartoon / realistic / chibi 等，默认 cartoon
 
 	// 六步产物：数据库以 JSON 字符串存储，返回 API 时由 ToComicInfo 解析为结构体
+	TitleOptions   *string `gorm:"column:titleOptions;type:json" json:"titleOptions"`     // 0. 标题推荐列表（JSON）
 	StoryIdeation  *string `gorm:"column:storyIdeation;type:json" json:"storyIdeation"`   // 1. 故事构思结果（JSON）
 	Characters     *string `gorm:"column:characters;type:json" json:"characters"`         // 2. 角色设定列表（JSON 数组）
 	Storyboard     *string `gorm:"column:storyboard;type:json" json:"storyboard"`         // 3. 分镜脚本（JSON）
@@ -37,15 +38,18 @@ func (Comic) TableName() string {
 
 // ComicStatus 漫画任务总状态常量
 const (
-	ComicStatusPending    = "PENDING"    // 等待开始
-	ComicStatusProcessing = "PROCESSING" // 生成进行中
-	ComicStatusCompleted  = "COMPLETED"  // 全部步骤完成
-	ComicStatusFailed     = "FAILED"     // 某步骤失败，任务终止
+	ComicStatusPending         = "PENDING"          // 等待开始
+	ComicStatusProcessing      = "PROCESSING"       // 生成进行中
+	ComicStatusAwaitingConfirm = "AWAITING_CONFIRM" // 等待用户确认（如标题选择）
+	ComicStatusCompleted       = "COMPLETED"        // 全部步骤完成
+	ComicStatusFailed          = "FAILED"           // 某步骤失败，任务终止
 )
 
-// ComicPhase 漫画生成流水线阶段（六步 + 初始态）
+// ComicPhase 漫画生成流水线阶段（标题推荐 + 六步 + 初始态）
 const (
 	ComicPhasePending          = "PENDING"           // 初始：任务已创建，尚未进入第一步
+	ComicPhaseTitleGeneration  = "TITLE_GENERATION"  // 第 0 步：AI 生成标题推荐
+	ComicPhaseTitleSelecting   = "TITLE_SELECTING"   // 第 0 步：等待用户选择/编辑标题
 	ComicPhaseStoryIdeation    = "STORY_IDEATION"    // 第 1 步：故事构思
 	ComicPhaseCharacterDesign  = "CHARACTER_DESIGN"  // 第 2 步：角色设定
 	ComicPhaseStoryboardScript = "STORYBOARD_SCRIPT" // 第 3 步：分镜脚本
@@ -55,6 +59,17 @@ const (
 )
 
 // ---------- 分步 JSON 结构（序列化后存入 Comic 对应 JSON 列） ----------
+
+// TitleOption 单个标题推荐方案
+type TitleOption struct {
+	Title    string `json:"title"`              // 漫画标题，不超过 20 字
+	Subtitle string `json:"subtitle,omitempty"` // 副标题/卖点，可选
+}
+
+// TitleOptionsResult 标题推荐阶段输出
+type TitleOptionsResult struct {
+	Options []TitleOption `json:"options"` // 3-5 个标题方案
+}
 
 // StoryIdeationResult 故事构思阶段的结构化输出
 type StoryIdeationResult struct {
@@ -129,6 +144,7 @@ type ComicInfo struct {
 	Title           *string               `json:"title"`           // 漫画标题
 	CoverImage      *string               `json:"coverImage"`      // 封面图 URL
 	Style           string                `json:"style"`           // 漫画风格
+	TitleOptions    *TitleOptionsResult   `json:"titleOptions"`    // 标题推荐列表（已解析）
 	StoryIdeation   *StoryIdeationResult  `json:"storyIdeation"`   // 故事构思（已解析）
 	Characters      []ComicCharacter      `json:"characters"`      // 角色列表（已解析）
 	Storyboard      *StoryboardResult     `json:"storyboard"`      // 分镜脚本（已解析）
@@ -164,6 +180,11 @@ func (c *Comic) ToComicInfo() *ComicInfo {
 		CompletedTime:   c.CompletedTime,
 	}
 	// 以下将 *string JSON 列反序列化为对应结构体/切片
+	if c.TitleOptions != nil {
+		var v TitleOptionsResult
+		parseJSON(*c.TitleOptions, &v)
+		info.TitleOptions = &v
+	}
 	if c.StoryIdeation != nil { // 有故事构思 JSON 时才解析
 		var v StoryIdeationResult
 		parseJSON(*c.StoryIdeation, &v) // 调用 util.go 中的 JSON 解析
@@ -201,6 +222,8 @@ type ComicState struct {
 	UserDescription string                `json:"userDescription"` // 用户描述（编排时用 string，空则为 ""）
 	Style           string                `json:"style"`           // 漫画风格
 	Phase           string                `json:"phase"`           // 当前执行到的阶段
+	SelectedTitle   string                `json:"selectedTitle"`   // 用户确认的标题
+	TitleOptions    *TitleOptionsResult   `json:"titleOptions"`    // 标题推荐（内存态）
 	StoryIdeation   *StoryIdeationResult  `json:"storyIdeation"`   // 故事构思（内存态）
 	Characters      []ComicCharacter      `json:"characters"`      // 角色列表（内存态）
 	Storyboard      *StoryboardResult     `json:"storyboard"`      // 分镜脚本（内存态）

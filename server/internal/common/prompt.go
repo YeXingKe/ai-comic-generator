@@ -15,6 +15,41 @@ const (
 	ComicStyleChibi     = "chibi"     // Q 版
 )
 
+// ---------- 步骤 0：标题推荐 ----------
+
+// TitleIdeationPrompt 标题推荐 Agent
+// 占位符：{topic} {style} {descriptionSection} {stylePrompt}
+const TitleIdeationPrompt = `你是一位擅长公众号传播的漫画标题策划，擅长根据选题生成多个吸引眼球的漫画标题方案。
+
+根据以下选题，生成多个漫画标题推荐：
+选题：{topic}
+漫画风格：{style}
+{descriptionSection}
+{stylePrompt}
+
+要求：
+1. 生成 4 个风格各异但都与选题紧密相关的标题方案
+2. 每个 title 不超过 20 字，适合四格/六格漫画，朗朗上口
+3. subtitle 为 10-25 字的卖点或副标题，说明该标题的吸引力（可幽默、悬念、温情等）
+4. 标题避免血腥、低俗、敏感政治内容
+5. 四个标题角度要有差异（如：搞笑向、温情向、悬念向、热血向）
+
+请直接返回 JSON 格式，不要有 markdown 代码块或其他说明文字：
+{
+  "options": [
+    { "title": "标题1", "subtitle": "卖点说明1" },
+    { "title": "标题2", "subtitle": "卖点说明2" },
+    { "title": "标题3", "subtitle": "卖点说明3" },
+    { "title": "标题4", "subtitle": "卖点说明4" }
+  ]
+}`
+
+// ConfirmedTitleSection 用户已确认标题时插入故事构思 Prompt
+const ConfirmedTitleSection = `
+
+用户已确认的漫画标题：{confirmedTitle}
+故事构思 JSON 中的 title 字段必须使用该标题，不得修改。`
+
 // ---------- 步骤 1：故事构思 ----------
 
 // StoryIdeationPrompt 故事构思 Agent（Agent1）
@@ -295,11 +330,24 @@ func BuildDescriptionSection(userDescription string) string {
 	return strings.ReplaceAll(StoryDescriptionSection, "{userDescription}", userDescription)
 }
 
-// BuildStoryIdeationPrompt 组装故事构思完整 Prompt
-func BuildStoryIdeationPrompt(topic, style, userDescription string) string {
-	prompt := strings.ReplaceAll(StoryIdeationPrompt, "{topic}", topic)
+// BuildTitleIdeationPrompt 组装标题推荐完整 Prompt
+func BuildTitleIdeationPrompt(topic, style, userDescription string) string {
+	prompt := strings.ReplaceAll(TitleIdeationPrompt, "{topic}", topic)
 	prompt = strings.ReplaceAll(prompt, "{style}", style)
 	prompt = strings.ReplaceAll(prompt, "{descriptionSection}", BuildDescriptionSection(userDescription))
+	prompt = strings.ReplaceAll(prompt, "{stylePrompt}", GetComicStylePrompt(style))
+	return prompt
+}
+
+// BuildStoryIdeationPrompt 组装故事构思完整 Prompt
+func BuildStoryIdeationPrompt(topic, style, userDescription, confirmedTitle string) string {
+	prompt := strings.ReplaceAll(StoryIdeationPrompt, "{topic}", topic)
+	prompt = strings.ReplaceAll(prompt, "{style}", style)
+	descSection := BuildDescriptionSection(userDescription)
+	if confirmedTitle != "" {
+		descSection += strings.ReplaceAll(ConfirmedTitleSection, "{confirmedTitle}", confirmedTitle)
+	}
+	prompt = strings.ReplaceAll(prompt, "{descriptionSection}", descSection)
 	prompt = strings.ReplaceAll(prompt, "{stylePrompt}", GetComicStylePrompt(style))
 	return prompt
 }

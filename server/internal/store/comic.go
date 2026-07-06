@@ -48,6 +48,12 @@ func (s *ComicStore) SyncState(state *model.ComicState) error {
 	updates := map[string]interface{}{ // 待更新字段集合
 		"phase": state.Phase, // 始终同步当前阶段
 	}
+	if state.TitleOptions != nil {
+		updates["titleOptions"] = toJSON(state.TitleOptions)
+	}
+	if state.SelectedTitle != "" {
+		updates["title"] = state.SelectedTitle
+	}
 	if state.StoryIdeation != nil { // 故事构思步骤已完成
 		j := toJSON(state.StoryIdeation) // 序列化为 JSON 字符串
 		updates["storyIdeation"] = j     // 写入 storyIdeation 列
@@ -73,10 +79,74 @@ func (s *ComicStore) SyncState(state *model.ComicState) error {
 	if state.PublishResult != nil { // 公众号发布步骤已完成
 		updates["publishResult"] = toJSON(state.PublishResult) // 写入 publishResult JSON 列
 	}
-	return s.db.Model(&model.Comic{}).Where("taskId = ?", state.TaskID).Updates(updates).Error // 按 taskId 批量更新
+	return s.db.Model(&model.Comic{}).Where("taskId = ?", state.TaskID).Updates(updates).Error
 }
 
-// MarkFailed 标记任务失败并记录错误信息
+// MarkAwaitingTitleConfirm 标题推荐完成，等待用户选择
+func (s *ComicStore) MarkAwaitingTitleConfirm(state *model.ComicState) error {
+	updates := map[string]interface{}{
+		"status": model.ComicStatusAwaitingConfirm,
+		"phase":  model.ComicPhaseTitleSelecting,
+	}
+	if state.TitleOptions != nil {
+		updates["titleOptions"] = toJSON(state.TitleOptions)
+	}
+	return s.db.Model(&model.Comic{}).Where("taskId = ?", state.TaskID).Updates(updates).Error
+}
+
+// BuildStateFromComic 从数据库实体恢复流水线内存态
+func (s *ComicStore) BuildStateFromComic(c *model.Comic) *model.ComicState {
+	state := &model.ComicState{
+		TaskID: c.TaskID,
+		UserID: c.UserID,
+		Topic:  c.Topic,
+		Style:  c.Style,
+		Phase:  c.Phase,
+	}
+	if c.UserDescription != nil {
+		state.UserDescription = *c.UserDescription
+	}
+	if c.Title != nil {
+		state.SelectedTitle = *c.Title
+	}
+	if c.TitleOptions != nil {
+		var v model.TitleOptionsResult
+		parseJSONInto(*c.TitleOptions, &v)
+		state.TitleOptions = &v
+	}
+	if c.StoryIdeation != nil {
+		var v model.StoryIdeationResult
+		parseJSONInto(*c.StoryIdeation, &v)
+		state.StoryIdeation = &v
+	}
+	if c.Characters != nil {
+		parseJSONInto(*c.Characters, &state.Characters)
+	}
+	if c.Storyboard != nil {
+		var v model.StoryboardResult
+		parseJSONInto(*c.Storyboard, &v)
+		state.Storyboard = &v
+	}
+	if c.PanelImages != nil {
+		parseJSONInto(*c.PanelImages, &state.PanelImages)
+	}
+	if c.ComposedLayout != nil {
+		var v model.ComposedLayoutResult
+		parseJSONInto(*c.ComposedLayout, &v)
+		state.ComposedLayout = &v
+	}
+	if c.PublishResult != nil {
+		var v model.PublishResult
+		parseJSONInto(*c.PublishResult, &v)
+		state.PublishResult = &v
+	}
+	return state
+}
+
+func parseJSONInto(raw string, target interface{}) {
+	_ = json.Unmarshal([]byte(raw), target)
+}
+
 func (s *ComicStore) MarkFailed(taskID, phase, errMsg string) error {
 	return s.db.Model(&model.Comic{}). // 指定更新 comic 表
 						Where("taskId = ? AND isDelete = 0", taskID). // 限定目标任务

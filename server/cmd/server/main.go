@@ -37,6 +37,7 @@ func main() {
 			comic := api.Group("/comic")
 			comicAuth := middleware.AuthCheck(application.UserService, "")
 			comic.POST("/create", comicAuth, application.ComicHandler.Create)
+			comic.POST("/confirm-title", comicAuth, application.ComicHandler.ConfirmTitle)
 			comic.GET("/get", comicAuth, application.ComicHandler.Get)
 			comic.POST("/page", comicAuth, application.ComicHandler.ListPage)
 		}
