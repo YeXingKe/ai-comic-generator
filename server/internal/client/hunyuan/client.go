@@ -51,8 +51,9 @@ func (c *Client) Generate(ctx context.Context, prompt, destPath string) error {
 	}
 	req := hunyuan.NewTextToImageLiteRequest()       // 创建文生图精简版请求对象
 	req.Prompt = common.StringPtr(prompt)            // 设置生图 Prompt（转为 SDK 字符串指针）
-	req.Resolution = common.StringPtr("768:1024")    // 设置输出分辨率（竖版漫画比例）
-	req.RspImgType = common.StringPtr("base64")      // 要求 API 以 base64 编码返回图片
+	req.Resolution = common.StringPtr("1920:1080")    // 16:9设置输出分辨率（竖版漫画比例）
+	req.RspImgType = common.StringPtr("base64") 
+	req.LogoAdd = 0    // 去掉AI生成水印
 	
 	// response, err := client.TextToImageLite(request)
 	resp, err := c.api.TextToImageLiteWithContext(ctx, req) // 带上下文调用混元文生图 API
