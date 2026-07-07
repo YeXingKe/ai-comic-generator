@@ -45,7 +45,7 @@ const AGENT_STEPS = [
   { phase: 'CHARACTER_DESIGN' as ComicPhase, title: '角色设定', desc: '设计角色外貌、性格与关系', icon: <TeamOutlined />, idleHint: '生成主角与配角的外貌、性格及角色关系。' },
   { phase: 'STORYBOARD_SCRIPT' as ComicPhase, title: '分镜脚本', desc: '规划分镜格、台词与画面描述', icon: <OrderedListOutlined />, idleHint: '按格数规划场景、台词、旁白与镜头描述。' },
   { phase: 'IMAGE_GENERATION' as ComicPhase, title: '画面生成', desc: '混元生图逐格绘制漫画画面', icon: <PictureOutlined />, idleHint: '逐格调用混元生图，生成漫画分镜画面。' },
-  { phase: 'LAYOUT_COMPOSE' as ComicPhase, title: '排版合成', desc: '宫格拼接、气泡文字与封面', icon: <LayoutOutlined />, idleHint: '宫格拼接、添加气泡文字并合成封面预览。' },
+  { phase: 'LAYOUT_COMPOSE' as ComicPhase, title: '排版合成', desc: '16:9 分镜竖向拼接成长图', icon: <LayoutOutlined />, idleHint: '将各格 16:9 分镜按顺序竖向拼接，合成封面预览。' },
   { phase: 'WECHAT_PUBLISH' as ComicPhase, title: '发布', desc: '上传素材至微信公众号', icon: <SendOutlined />, idleHint: '上传素材至公众号草稿箱或标记发布状态。' },
 ]
 
@@ -301,7 +301,7 @@ function renderStepDetailContent(
         return (
           <div className="step-detail step-detail--waiting">
             <Spin size="small" />
-            <p>正在拼接宫格、添加气泡并合成封面…</p>
+            <p>正在竖向拼接分镜并合成封面…</p>
           </div>
         )
       }

@@ -60,15 +60,17 @@ func New(cfg *config.Config) (*App, error) {
 	}
 	wechatClient := wechat.NewMPClient(&cfg.WeChat)
 
-	imageSvc := service.NewImageService(cfg, localStore, hyClient)
+	llm, llmErr := service.NewLLM(cfg)
+	if llmErr != nil {
+		log.Printf("warn: dashscope llm not ready (%v), comic create disabled", llmErr)
+	}
+
+	imageSvc := service.NewImageService(cfg, localStore, hyClient, llm)
 	composeSvc := service.NewComposeService(localStore)
 	publishSvc := service.NewPublishService(localStore, wechatClient)
 
 	var comicHandler *handler.ComicHandler
-	llm, llmErr := service.NewLLM(cfg)
-	if llmErr != nil {
-		log.Printf("warn: dashscope llm not ready (%v), comic create disabled", llmErr)
-	} else {
+	if llmErr == nil {
 		orchestrator := service.NewComicOrchestrator(
 			llm, comicStore, imageSvc, composeSvc, publishSvc,
 		)
