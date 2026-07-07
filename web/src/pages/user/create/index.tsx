@@ -4,7 +4,24 @@ import type { UploadProps } from 'antd'
 import { Image } from 'antd'
 import { COMIC_PHASE_LABEL, confirmComicTitle, createComic, getComic, startComicPipeline } from '@/api/comic'
 import type { ComicInfo, ComicPhase } from '@/types/api'
+import { resolveServerAssetUrl } from '@/utils/assetUrl'
 import './index.css'
+
+function withResolvedAssetUrls(data: ComicInfo): ComicInfo {
+  return {
+    ...data,
+    panelImages: data.panelImages?.map((img) => ({
+      ...img,
+      url: resolveServerAssetUrl(img.url),
+    })),
+    composedLayout: data.composedLayout
+      ? {
+          ...data.composedLayout,
+          previewUrl: resolveServerAssetUrl(data.composedLayout.previewUrl),
+        }
+      : data.composedLayout,
+  }
+}
 
 /** 流水线六步（故事构思起，不含标题阶段） */
 const MAIN_PIPELINE_PHASES: ComicPhase[] = [
@@ -356,18 +373,19 @@ export default function CreatePage() {
   const fetchComic = useCallback(async (id: string) => {
     const res = await getComic(id)
     if (res.code === 0 && res.data) {
-      setComic(res.data)
-      if (res.data.status === 'AWAITING_CONFIRM' && res.data.titleOptions?.options?.length) {
+      const data = withResolvedAssetUrls(res.data)
+      setComic(data)
+      if (data.status === 'AWAITING_CONFIRM' && data.titleOptions?.options?.length) {
         if (!titleInitRef.current) {
           titleInitRef.current = true
           setSelectedTitleIdx(0)
-          setPendingTitle(res.data.titleOptions.options[0].title)
+          setPendingTitle(data.titleOptions.options[0].title)
         }
       }
-      if (res.data.title && res.data.status !== 'AWAITING_CONFIRM') {
-        setPendingTitle(res.data.title)
+      if (data.title && data.status !== 'AWAITING_CONFIRM') {
+        setPendingTitle(data.title)
       }
-      return res.data
+      return data
     }
     return null
   }, [])
