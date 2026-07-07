@@ -10,8 +10,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/redis/go-redis/v9 v9.21.0
 	github.com/spf13/viper v1.19.0
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/aiart v1.3.83
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.3.128
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/hunyuan v1.3.57
 	github.com/tmc/langchaingo v0.1.14
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.12

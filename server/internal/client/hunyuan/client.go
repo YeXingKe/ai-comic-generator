@@ -8,9 +8,10 @@ import (
 	"path/filepath"   // 解析目标路径的目录部分
 
 	"github.com/ai-comic-generator/server/internal/config"                              // 读取混元相关配置（密钥、区域等）
-	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"                     // 腾讯云 SDK 公共类型（凭证、字符串指针）
-	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"             // 客户端连接配置（Endpoint 等）
-	hunyuan "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/hunyuan/v20230901" // 混元生图 API SDK（v20230901 版本）
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
+	// "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
+	hunyuan "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/aiart/v20221229"
 )
 
 // Client 腾讯混元生图客户端
@@ -26,7 +27,7 @@ func NewClient(cfg *config.HunyuanConfig) (*Client, error) {
 	}
 	credential := common.NewCredential(cfg.SecretID, cfg.SecretKey) // 构造腾讯云 API 鉴权凭证
 	cpf := profile.NewClientProfile()                                // 创建客户端配置对象
-	cpf.HttpProfile.Endpoint = "hunyuan.tencentcloudapi.com"         // 指定混元 API 域名
+	cpf.HttpProfile.Endpoint = "aiart.tencentcloudapi.com"         // 指定混元 API 域名
 	region := cfg.Region                                             // 读取配置中的地域
 	if region == "" {                                                // 未配置地域时使用默认值
 		region = "ap-guangzhou" // 默认广州地域
@@ -52,7 +53,8 @@ func (c *Client) Generate(ctx context.Context, prompt, destPath string) error {
 	req.Prompt = common.StringPtr(prompt)            // 设置生图 Prompt（转为 SDK 字符串指针）
 	req.Resolution = common.StringPtr("768:1024")    // 设置输出分辨率（竖版漫画比例）
 	req.RspImgType = common.StringPtr("base64")      // 要求 API 以 base64 编码返回图片
-
+	
+	// response, err := client.TextToImageLite(request)
 	resp, err := c.api.TextToImageLiteWithContext(ctx, req) // 带上下文调用混元文生图 API
 	if err != nil {                                         // 网络或 API 层错误
 		return fmt.Errorf("hunyuan text to image: %w", err) // 包装 API 错误
