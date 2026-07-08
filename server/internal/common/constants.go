@@ -23,3 +23,14 @@ const (
 	DefaultPageSize = 10
 	MaxPageSize     = 100
 )
+
+// 智能体日志标识
+const (
+	Agent1TitleAgent  = "agent1_title_agent"
+	Agent2StoryAgent  = "agent2_story_agent"
+	Agent3CharacterAgent  = "agent3_character_agent"
+	Agent4ScriptAgent  = "agent4_script_agent"
+	Agent5ImageGeneration  = "agent5_image_generation"
+	Agent6LayoutCompose  = "agent6_layout_compose"
+	Agent7WechatPublish  = "agent7_wechat_publish"
+)
