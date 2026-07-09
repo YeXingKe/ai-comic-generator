@@ -40,6 +40,7 @@ cd server && go vet ./...
 3. [ ] 页面放在正确目录：
    - 用户功能 → `pages/user/...`
    - 管理功能 → `pages/admin/...`
+   - `pages/` 只放页面层（壳 + 布局 + 取数编排）；可复用 UI 组件 → `src/components/<组件族>/`（用 `index.ts` 导出，自带样式）；mock/静态数据 → `src/constants/`。勿在页面目录建 `components/`、`charts/` 子目录（详见 `pages.mdc`「组件放置边界」）
 4. [ ] UI：Ant Design `Table` / `Form`；需登录/管理员时加路由守卫
 5. [ ] `res.code !== 0` 时用 `message.error(res.message)`
 

@@ -295,3 +295,74 @@ export const USER_ROLE = {
   ADMIN: 'admin',
   VIP: 'vip',
 } as const satisfies Record<string, UserRole>
+
+/* ── 数据统计（管理端 Dashboard） ── */
+
+/** 统计时间范围 */
+export type StatRange = '7d' | '30d' | '90d'
+
+/** 通用「名称 + 数值」聚合项，用于饼图 / 漏斗 / 柱状 */
+export interface StatBucket {
+  /** 维度键，如状态码、角色、风格；用于映射标签与配色 */
+  key: string
+  /** 展示标签 */
+  label: string
+  value: number
+}
+
+/** 按天的时间序列点 */
+export interface StatTrendPoint {
+  /** 日期，YYYY-MM-DD */
+  date: string
+  /** 当日创作数 */
+  count: number
+  /** 当日完成数 */
+  completed: number
+  /** 当日平均耗时（分钟），无完成则为 0 */
+  avgDurationMin: number
+}
+
+/** KPI 概览卡片 */
+export interface StatOverview {
+  /** 总创作数 */
+  totalComics: number
+  /** 完成数 */
+  completedComics: number
+  /** 完成率 0-1 */
+  completionRate: number
+  /** 总用户数 */
+  totalUsers: number
+  /** 本周新增创作 */
+  weeklyNewComics: number
+  /** 平均耗时（分钟） */
+  avgDurationMin: number
+  /** 各 KPI 环比（%），正负均可 */
+  deltas: {
+    totalComics: number
+    completionRate: number
+    totalUsers: number
+    weeklyNewComics: number
+  }
+}
+
+/** 统计页聚合响应 */
+export interface StatDashboard {
+  overview: StatOverview
+  /** 创作趋势（按天） */
+  trend: StatTrendPoint[]
+  /** 任务状态分布，key 为 ComicStatus */
+  statusDistribution: StatBucket[]
+  /** 流水线阶段漏斗，key 为 ComicPhase，按阶段顺序 */
+  phaseFunnel: StatBucket[]
+  /** 漫画风格占比 */
+  styleDistribution: StatBucket[]
+  /** 用户角色分布，key 为 UserRole */
+  roleDistribution: StatBucket[]
+  /** 发布状态分布，key 为 PublishResult.status */
+  publishDistribution: StatBucket[]
+}
+
+/** 统计查询请求 */
+export interface StatQueryRequest {
+  range?: StatRange
+}

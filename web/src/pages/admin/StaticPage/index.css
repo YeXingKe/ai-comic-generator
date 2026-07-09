@@ -1,68 +1,73 @@
-.static-page {
+/* 页面布局层：仅负责整体骨架与栅格；卡片/图表样式在 @/components/StatCharts */
+
+.stat-page {
   min-height: calc(100vh - 64px);
   background: var(--app-page-bg);
   padding: 32px 20px 48px;
 }
 
-.static-page__inner {
-  max-width: 640px;
+.stat-page__inner {
+  max-width: 1200px;
   margin: 0 auto;
 }
 
-.static-page__header {
+.stat-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 24px;
 }
-.static-page__header h1 {
+.stat-page__header-main {
+  flex: 1;
+  min-width: 0;
+}
+.stat-page__header-actions {
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+.stat-page__header h1 {
   margin: 0 0 8px;
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--app-text);
 }
-.static-page__header p {
+.stat-page__header p {
   margin: 0;
   font-size: 15px;
   color: var(--app-text-secondary);
 }
 
-.static-page__stats {
+/* KPI 行栅格（卡片本体样式在 StatCharts） */
+.stat-page__kpis {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 28px;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
-.static-page__stat-card {
-  padding: 16px;
-  background: var(--app-surface);
-  border-radius: 14px;
-  box-shadow: var(--app-surface-shadow);
-  border: 1px solid var(--app-surface-border);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+/* 图表栅格（卡片本体样式在 StatCharts） */
+.stat-page__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
-.static-page__stat-label {
+.stat-page__card-metric {
   font-size: 13px;
-  color: var(--app-text-muted);
+  color: var(--app-text-secondary);
+  white-space: nowrap;
 }
 
-.static-page__stat-value {
-  font-family: "Outfit", sans-serif;
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--app-text);
-}
-
-.static-page__stat-trend {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-success);
-}
-
-@media (min-width: 640px) {
-  .static-page__stats {
+@media (min-width: 768px) {
+  .stat-page__kpis {
     grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .stat-page__grid {
+    grid-template-columns: 1fr;
   }
 }

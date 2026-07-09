@@ -1,0 +1,95 @@
+/* ── 数据统计封装组件样式（KPI 卡 + 图表卡） ── */
+
+.stat-charts__kpi {
+  padding: 18px;
+  background: var(--app-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--app-surface-shadow);
+  border: 1px solid var(--app-surface-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.stat-charts__kpi-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.stat-charts__kpi-label {
+  font-size: 13px;
+  color: var(--app-text-muted);
+}
+.stat-charts__kpi-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+}
+.stat-charts__kpi-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--app-text);
+  line-height: 1.1;
+}
+.stat-charts__kpi-delta {
+  font-size: 12px;
+  font-weight: 600;
+}
+.stat-charts__kpi-delta--up {
+  color: var(--color-success);
+}
+.stat-charts__kpi-delta--down {
+  color: var(--color-error);
+}
+
+.stat-charts__card {
+  background: var(--app-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--app-surface-shadow);
+  border: 1px solid var(--app-surface-border);
+  padding: 18px 18px 8px;
+  display: flex;
+  flex-direction: column;
+}
+.stat-charts__card--span2 {
+  grid-column: 1 / -1;
+}
+.stat-charts__card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.stat-charts__card-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--app-text);
+}
+.stat-charts__card-subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--app-text-muted);
+}
+.stat-charts__card-extra {
+  font-size: 13px;
+  color: var(--app-text-secondary);
+  white-space: nowrap;
+}
+.stat-charts__card-body {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 窄屏下取消跨列，卡片单列排布 */
+@media (max-width: 767px) {
+  .stat-charts__card--span2 {
+    grid-column: auto;
+  }
+}

@@ -69,9 +69,10 @@ export const router = createBrowserRouter([
       {
         path: '/admin/data',
         element: (
-          <RequireAdmin>
+          // <RequireAdmin>
+          //   <AdminDataPage />
+          // </RequireAdmin>
             <AdminDataPage />
-          </RequireAdmin>
         ),
       },
       // 兼容旧路由

@@ -29,6 +29,14 @@ React 19、React Router 7、Zustand、Axios、Ant Design 6、Sass，路径别名
 - 管理端 UI → `pages/admin/`；用户端 → `pages/user/`
 - 列表页用 Ant Design `Table`，不用卡片列表
 
+## 组件放置边界
+
+- `pages/` 只放页面层：页面壳、布局、取数/状态编排、页面级样式
+- 可复用 / 可封装的 UI 组件放 `src/components/<组件族>/`，勿在页面目录建 `components/`、`charts/` 子目录
+- 组件族用 `index.ts` 统一导出（如 `@/components/StatCharts`），自带样式写在组件族目录内
+- mock / 静态数据放 `src/constants/`（如 `statMock.ts`），勿散落到页面目录
+- 详见 `pages.mdc`「组件放置边界」
+
 ## API 层
 
 - 类型：`src/types/api.ts`（与 Go `model` 对齐）

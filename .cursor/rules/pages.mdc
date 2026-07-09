@@ -23,6 +23,24 @@ alwaysApply: false
 - 引入共享布局：`@import '@/pages/_shared/pageShell.scss';`
 - 类名：`page-shell`、`page-shell__header`、`page-shell__table`
 
+## 组件放置边界（重要）
+
+`pages/` 只放**页面层**代码：页面壳、布局、数据编排（取数 / 状态 / 把数据分发给子组件）、页面级样式。
+
+**可复用 / 可封装的 UI 组件一律放 `web/src/components/<组件族>/`**，不要在页面目录下建 `components/`、`charts/` 等子目录。
+
+| 该放哪 | 内容 |
+|--------|------|
+| `pages/xxx/index.tsx` | 页面壳、栅格布局、`useState/useEffect` 取数、组装子组件 |
+| `pages/xxx/index.scss` | 仅页面骨架与栅格样式 |
+| `components/StatCharts/` | 图表族、KPI/图表卡等封装组件 + 自带样式 `index.css` |
+| `constants/` | mock / 静态数据（如 `statMock.ts`、`mockArticles.ts`） |
+| `api/` + `types/api.ts` | 请求与类型 |
+
+- 组件族用 `index.ts` 统一 re-export，页面按 `import { A, B } from '@/components/StatCharts'` 引入。
+- 封装组件自带样式写在组件族目录内（如 `components/StatCharts/index.css`），由 `index.ts` 引入，勿把组件样式散落到页面 `index.scss`。
+- 判断标准：组件是否只服务于这一个页面且不含复用意图？是 → 可留页面内单文件；只要有第二处复用可能、或属于「图表 / 表单 / 卡片」这类通用族 → 移到 `components/`。
+
 ## UI 模式
 
 - 列表 → Ant Design `Table` + 分页（不用 `AppleCardList`）

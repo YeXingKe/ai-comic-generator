@@ -66,6 +66,8 @@ React 19 + React Router 7 + Zustand + Axios + Sass，路径别名 `@/` → `src/
 
 页面按受众分目录（勿混用）：`pages/common/`（公开：home、auth）、`pages/user/`（登录用户：create、history、info、article/detail）、`pages/admin/`（管理员：Users、StaticPage）。路由守卫 `router/guards.tsx`（`RequireAuth` / `RequireAdmin`）。个人资料归 `user/`，用户 CRUD 归 `admin/`。
 
+**组件放置边界**：`pages/` 只放页面层（页面壳、布局、取数/状态编排、页面级样式）。可复用/可封装的 UI 组件一律放 `src/components/<组件族>/`，用 `index.ts` 统一导出、样式自带（如 `components/StatCharts/`：图表族 + KPI/图表卡 + `index.css`），页面按 `import { X } from '@/components/StatCharts'` 引入。**勿在页面目录下建 `components/`、`charts/` 子目录**。mock/静态数据放 `src/constants/`（如 `statMock.ts`、`mockArticles.ts`）。详见 `.cursor/rules/pages.mdc`「组件放置边界」。
+
 - API 层：`api/*.ts` 用 `request` + `unwrap()`（`utils/request.ts`，`withCredentials: true`）；类型 `types/api.ts` 与 Go `model` 对齐。
 - 主题：`stores/theme.ts`（`classic` | `immersive`），SCSS 用 CSS 变量（`--app-page-bg` 等）；共享布局 `@import '@/pages/_shared/pageShell.scss'`。
 - 列表页用 Ant Design `Table`，管理端列抽到同目录 `*TableColumns.tsx`。
