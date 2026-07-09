@@ -4,24 +4,8 @@ import type { UploadProps } from 'antd'
 import { Image } from 'antd'
 import { COMIC_PHASE_LABEL, confirmComicTitle, createComic, getComic, startComicPipeline } from '@/api/comic'
 import type { ComicInfo, ComicPhase } from '@/types/api'
-import { resolveServerAssetUrl } from '@/utils/assetUrl'
+import { resolveComicAssetUrls } from '@/utils/assetUrl'
 import './index.css'
-
-function withResolvedAssetUrls(data: ComicInfo): ComicInfo {
-  return {
-    ...data,
-    panelImages: data.panelImages?.map((img) => ({
-      ...img,
-      url: resolveServerAssetUrl(img.url),
-    })),
-    composedLayout: data.composedLayout
-      ? {
-          ...data.composedLayout,
-          previewUrl: resolveServerAssetUrl(data.composedLayout.previewUrl),
-        }
-      : data.composedLayout,
-  }
-}
 
 /** 流水线六步（故事构思起，不含标题阶段） */
 const MAIN_PIPELINE_PHASES: ComicPhase[] = [
@@ -373,7 +357,7 @@ export default function CreatePage() {
   const fetchComic = useCallback(async (id: string) => {
     const res = await getComic(id)
     if (res.code === 0 && res.data) {
-      const data = withResolvedAssetUrls(res.data)
+      const data = resolveComicAssetUrls(res.data)
       setComic(data)
       if (data.status === 'AWAITING_CONFIRM' && data.titleOptions?.options?.length) {
         if (!titleInitRef.current) {
@@ -929,7 +913,7 @@ export default function CreatePage() {
                 <Button
                   type="primary"
                   icon={<EyeOutlined />}
-                  onClick={() => navigate(`/article/${taskId}`)}
+                  onClick={() => navigate(`/comic/${taskId}`)}
                 >
                   查看详情
                 </Button>

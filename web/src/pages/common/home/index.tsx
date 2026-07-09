@@ -215,12 +215,12 @@ export default function HomePage() {
               <article
                 key={article.taskId}
                 className="home-works__card glass-panel"
-                onClick={() => isAdmin && navigate(`/article/${article.taskId}`)}
+                onClick={() => isAdmin && navigate(`/comic/${article.taskId}`)}
                 role={isAdmin ? 'button' : undefined}
                 tabIndex={isAdmin ? 0 : undefined}
                 onKeyDown={
                   isAdmin
-                    ? (e) => e.key === 'Enter' && navigate(`/article/${article.taskId}`)
+                    ? (e) => e.key === 'Enter' && navigate(`/comic/${article.taskId}`)
                     : undefined
                 }
               >

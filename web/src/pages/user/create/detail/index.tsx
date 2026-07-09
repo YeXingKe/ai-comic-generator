@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Image } from 'antd'
 import dayjs from 'dayjs'
 import { COMIC_PHASE_LABEL, getComic } from '@/api/comic'
 import type { ComicInfo } from '@/types/api'
-import './index.css'
+import { resolveComicAssetUrls } from '@/utils/assetUrl'
+import '@/styles/pageShell.css'
 
 function statusTag(status?: string) {
   if (status === 'COMPLETED') return <Tag color="purple">已完成</Tag>
   if (status === 'PROCESSING') return <Tag color="blue">生成中</Tag>
+  if (status === 'AWAITING_CONFIRM') return <Tag color="gold">待确认标题</Tag>
+  if (status === 'TITLE_CONFIRMED') return <Tag color="cyan">待开始</Tag>
   if (status === 'FAILED') return <Tag color="red">失败</Tag>
   return <Tag>等待中</Tag>
 }
 
-export default function ArticleDetailPage() {
+export default function ComicDetailPage() {
   const { taskId } = useParams<{ taskId: string }>()
   const navigate = useNavigate()
   const [detail, setDetail] = useState<ComicInfo | null>(null)
@@ -24,7 +28,7 @@ export default function ArticleDetailPage() {
     try {
       const res = await getComic(taskId)
       if (res.code === 0 && res.data) {
-        setDetail(res.data)
+        setDetail(resolveComicAssetUrls(res.data))
         setNotFound(false)
       } else {
         setNotFound(true)
@@ -48,8 +52,8 @@ export default function ArticleDetailPage() {
 
   if (loading) {
     return (
-      <div className="article-detail-page">
-        <div className="container" style={{ padding: 48, textAlign: 'center' }}>
+      <div className="page-shell">
+        <div className="page-shell__inner" style={{ padding: 48, textAlign: 'center' }}>
           <Spin size="large" />
         </div>
       </div>
@@ -58,12 +62,12 @@ export default function ArticleDetailPage() {
 
   if (!detail || notFound) {
     return (
-      <div className="article-detail-page">
-        <div className="container">
+      <div className="page-shell">
+        <div className="page-shell__inner">
           <Card>
-            <p>文章不存在或已被删除</p>
+            <p>作品不存在或已被删除</p>
             <Button type="primary" onClick={() => navigate('/history')}>
-              返回列表
+              返回历史
             </Button>
           </Card>
         </div>
@@ -71,28 +75,29 @@ export default function ArticleDetailPage() {
     )
   }
 
-  const title = detail.title || detail.storyIdeation?.title || detail.topic
+  const title = detail.title || detail.storyIdeation?.title || detail.topic || '未命名作品'
   const previewUrl = detail.composedLayout?.previewUrl || detail.coverImage
 
   return (
-    <div className="article-detail-page">
-      <div className="page-header">
-        <div className="header-container">
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate('/history')}
-            className="back-btn"
-          >
-            返回列表
-          </Button>
-          <h1 className="page-title">{title}</h1>
-          <p className="page-subtitle">{detail.topic}</p>
-        </div>
-      </div>
-      <div className="container">
-        <Card className="detail-card" bordered={false}>
-          <Descriptions column={2} bordered size="small" className="detail-meta">
+    <div className="page-shell">
+      <div className="page-shell__inner">
+        <header className="page-shell__header">
+          <div className="page-shell__header-main">
+            <Button
+              type="link"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate('/history')}
+              style={{ paddingLeft: 0, marginBottom: 8 }}
+            >
+              返回历史
+            </Button>
+            <h1>{title}</h1>
+            <p>{detail.topic}</p>
+          </div>
+        </header>
+
+        <Card bordered={false}>
+          <Descriptions column={2} bordered size="small" style={{ marginBottom: 16 }}>
             <Descriptions.Item label="任务 ID">{taskId}</Descriptions.Item>
             <Descriptions.Item label="状态">{statusTag(detail.status)}</Descriptions.Item>
             <Descriptions.Item label="当前阶段">
@@ -108,50 +113,48 @@ export default function ArticleDetailPage() {
           )}
 
           {previewUrl && (
-            <div className="article-body">
-              <h2>漫画预览</h2>
-              <img src={previewUrl} alt="漫画预览" style={{ maxWidth: '100%', borderRadius: 8 }} />
-            </div>
+            <section style={{ marginBottom: 24 }}>
+              <h3 style={{ marginBottom: 12 }}>漫画预览</h3>
+              <Image src={previewUrl} alt="漫画预览" style={{ maxWidth: '100%', borderRadius: 8 }} />
+            </section>
           )}
 
           {detail.storyIdeation && (
-            <div className="article-body">
-              <h2>故事构思</h2>
-              <div className="content-text">
-                <p>
-                  <strong>梗概：</strong>
-                  {detail.storyIdeation.synopsis}
-                </p>
-                <p>
-                  <strong>主题：</strong>
-                  {detail.storyIdeation.theme}
-                </p>
-                <p>
-                  <strong>基调：</strong>
-                  {detail.storyIdeation.tone}
-                </p>
-              </div>
-            </div>
+            <section style={{ marginBottom: 24 }}>
+              <h3 style={{ marginBottom: 12 }}>故事构思</h3>
+              <p>
+                <strong>梗概：</strong>
+                {detail.storyIdeation.synopsis}
+              </p>
+              <p>
+                <strong>主题：</strong>
+                {detail.storyIdeation.theme}
+              </p>
+              <p>
+                <strong>基调：</strong>
+                {detail.storyIdeation.tone}
+              </p>
+            </section>
           )}
 
           {detail.characters && detail.characters.length > 0 && (
-            <div className="article-body">
-              <h2>角色设定</h2>
-              <ul className="content-text">
+            <section style={{ marginBottom: 24 }}>
+              <h3 style={{ marginBottom: 12 }}>角色设定</h3>
+              <ul>
                 {detail.characters.map((c) => (
                   <li key={c.name}>
                     <strong>{c.name}</strong>（{c.role}）：{c.appearance}，{c.personality}
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
           )}
 
           {detail.storyboard?.panels && detail.storyboard.panels.length > 0 && (
-            <div className="article-body">
-              <h2>分镜脚本</h2>
+            <section style={{ marginBottom: 24 }}>
+              <h3 style={{ marginBottom: 12 }}>分镜脚本</h3>
               {detail.storyboard.panels.map((panel) => (
-                <div key={panel.panelNo} className="content-text" style={{ marginBottom: 12 }}>
+                <div key={panel.panelNo} style={{ marginBottom: 12 }}>
                   <p>
                     <strong>第 {panel.panelNo} 格</strong> — {panel.scene}
                   </p>
@@ -159,23 +162,24 @@ export default function ArticleDetailPage() {
                   {panel.narration && <p>旁白：{panel.narration}</p>}
                 </div>
               ))}
-            </div>
+            </section>
           )}
 
           {detail.panelImages && detail.panelImages.length > 0 && (
-            <div className="article-body">
-              <h2>分镜画面</h2>
+            <section style={{ marginBottom: 24 }}>
+              <h3 style={{ marginBottom: 12 }}>分镜画面</h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
                 {detail.panelImages.map((img) => (
-                  <img
-                    key={img.panelNo}
-                    src={img.url}
-                    alt={`分镜 ${img.panelNo}`}
-                    style={{ width: 160, borderRadius: 6 }}
-                  />
+                  <Image key={img.panelNo} src={img.url} alt={`分镜 ${img.panelNo}`} width={160} />
                 ))}
               </div>
-            </div>
+            </section>
+          )}
+
+          {previewUrl && (
+            <Button icon={<DownloadOutlined />} onClick={() => window.open(previewUrl, '_blank')}>
+              下载成品
+            </Button>
           )}
         </Card>
       </div>

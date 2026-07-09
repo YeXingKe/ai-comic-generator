@@ -81,7 +81,7 @@ export default function HistoryPage() {
         width: 88,
         fixed: 'right',
         render: (_: unknown, record) => (
-          <Button type="link" size="small" onClick={() => navigate(`/article/${record.taskId}`)}>
+          <Button type="link" size="small" onClick={() => navigate(`/comic/${record.taskId}`)}>
             查看
           </Button>
         ),
