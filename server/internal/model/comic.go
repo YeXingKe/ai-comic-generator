@@ -11,7 +11,7 @@ type Comic struct {
 	UserDescription *string    `gorm:"column:userDescription;type:text" json:"userDescription"`                   // 用户补充描述（可选，*string 表示可为 NULL）
 	Title           *string    `gorm:"column:title" json:"title"`                                                 // 漫画标题（故事构思阶段确定后写入）
 	CoverImage      *string    `gorm:"column:coverImage" json:"coverImage"`                                       // 封面图 URL（排版合成后写入）
-	Style           string     `gorm:"column:style;default:cartoon" json:"style"`                                 // 漫画风格：cartoon / realistic / chibi 等，默认 cartoon
+	Style           string     `gorm:"column:style;default:cartoon" json:"style"`                                 // 漫画风格：cartoon / realistic / chibi / animal，默认 cartoon
 
 	// 六步产物：数据库以 JSON 字符串存储，返回 API 时由 ToComicInfo 解析为结构体
 	TitleOptions   *string `gorm:"column:titleOptions;type:json" json:"titleOptions"`     // 0. 标题推荐列表（JSON）

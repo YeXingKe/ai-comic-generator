@@ -48,12 +48,13 @@ const PANEL_OPTIONS = [
 ]
 
 const ART_STYLE_OPTIONS = [
+  { value: 'animal', label: '动物漫', ui: 'animal' },
   { value: 'cartoon', label: '日漫', ui: 'anime' },
   { value: 'chibi', label: '扁平', ui: 'flat' },
   { value: 'realistic', label: '像素', ui: 'pixel' },
 ]
 
-const HOT_TOPICS = ['程序员加班夜', '哪吒闹海四格漫画', '赛博朋克都市传说', '猫咪侦探事务所']
+const HOT_TOPICS = ['青蛙爸爸的睡前故事', '程序员加班夜', '哪吒闹海四格漫画', '猫咪侦探事务所']
 
 type StepStatus = 'pending' | 'active' | 'completed' | 'failed'
 
@@ -324,7 +325,7 @@ export default function CreatePage() {
   const [selectedTitleIdx, setSelectedTitleIdx] = useState<number | null>(null)
   const [tone, setTone] = useState('幽默')
   const [panelCount, setPanelCount] = useState(4)
-  const [artStyle, setArtStyle] = useState('cartoon')
+  const [artStyle, setArtStyle] = useState('animal')
   const [colorMode, setColorMode] = useState<'color' | 'bw'>('color')
   const [engine, setEngine] = useState('hunyuan')
   const [keepConsistency, setKeepConsistency] = useState(true)

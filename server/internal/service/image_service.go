@@ -43,15 +43,21 @@ func (s *ImageService) GeneratePanels(ctx context.Context, state *model.ComicSta
 
 	for _, panel := range state.Storyboard.Panels {
 		dest := s.store.PanelPath(state.TaskID, panel.PanelNo)
-		dialogue := strings.Join(panel.Dialogue, " / ")
-		hyPrompt := s.buildPanelPrompt(ctx, state.Style, panel.Scene, charRef, panel.ImagePrompt, dialogue, panel.Narration)
+		dialogue := common.FormatPanelDialogue(panel.Dialogue)
+		narration := strings.TrimSpace(panel.Narration)
+		hyPrompt := s.buildPanelPrompt(ctx, state.Style, panel.Scene, charRef, panel.ImagePrompt, dialogue, narration)
 
 		var genErr error
 		if s.hunyuan.Enabled() {
 			genErr = s.hunyuan.Generate(ctx, hyPrompt, dest)
+			if genErr == nil {
+				if err := overlayPanelCaption(dest, dialogue, narration); err != nil {
+					log.Printf("overlay panel caption failed taskId=%s panel=%d: %v", state.TaskID, panel.PanelNo, err)
+				}
+			}
 		} else {
 			log.Printf("hunyuan disabled, use placeholder panel: taskId=%s panel=%d", state.TaskID, panel.PanelNo)
-			genErr = renderPlaceholderPanel(dest, panel.PanelNo, panel.Scene, dialogue)
+			genErr = renderPlaceholderPanel(dest, panel.PanelNo, panel.Scene, dialogue, narration)
 		}
 		if genErr != nil {
 			return fmt.Errorf("panel %d: %w", panel.PanelNo, genErr)
@@ -71,7 +77,7 @@ func (s *ImageService) GeneratePanels(ctx context.Context, state *model.ComicSta
 	return nil
 }
 
-// buildPanelPrompt 优先经 LLM 增强（含对白气泡），失败则直接拼装英文 Prompt
+// buildPanelPrompt 优先经 LLM 增强（画面不含文字，台词由程序叠加顶栏字幕），失败则直接拼装英文 Prompt
 func (s *ImageService) buildPanelPrompt(ctx context.Context, style, scene, charRef, imagePrompt, dialogue, narration string) string {
 	base := imagePrompt
 	if base == "" {
@@ -83,10 +89,10 @@ func (s *ImageService) buildPanelPrompt(ctx context.Context, style, scene, charR
 		if err != nil {
 			log.Printf("panel prompt llm enhance failed, use direct prompt: %v", err)
 		} else if trimmed := strings.TrimSpace(content); trimmed != "" {
-			return trimmed
+			return common.TruncateHunyuanPrompt(common.SanitizeHunyuanImagePrompt(trimmed))
 		}
 	}
-	return common.BuildDirectPanelImagePrompt(style, scene, charRef, base, dialogue, narration)
+	return common.TruncateHunyuanPrompt(common.BuildDirectPanelImagePrompt(style, scene, charRef, base, dialogue, narration))
 }
 
 func panelImageMethod(hunyuanOn bool) string {
@@ -107,7 +113,7 @@ func buildCharacterRef(chars []model.ComicCharacter) (string, error) {
 	return strings.Join(parts, "; "), nil
 }
 
-func renderPlaceholderPanel(path string, panelNo int, scene, dialogue string) error {
+func renderPlaceholderPanel(path string, _ int, scene, dialogue, narration string) error {
 	const w, h = 960, 540 // 16:9 电影比例
 	dc := gg.NewContext(w, h)
 	dc.SetColor(color.RGBA{240, 240, 250, 255})
@@ -120,32 +126,25 @@ func renderPlaceholderPanel(path string, panelNo int, scene, dialogue string) er
 	if err := dc.LoadFontFace("C:/Windows/Fonts/msyh.ttc", 22); err != nil {
 		_ = dc.LoadFontFace("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
 	}
-	dc.DrawStringAnchored(fmt.Sprintf("Panel %d", panelNo), float64(w/2), 60, 0.5, 0.5)
-	if dialogue != "" {
-		drawPlaceholderBubble(dc, dialogue, float64(w/2)-80, 90)
+	captionText := dialogue
+	if captionText == "" {
+		captionText = narration
+	}
+	if captionText != "" {
+		_ = dc.LoadFontFace("C:/Windows/Fonts/msyhbd.ttc", 28)
+		lines := wrapCaptionLines(common.TruncateRunes(captionText, panelCaptionMaxRunes), panelCaptionLineWidth)
+		y := 36.0
+		for i, line := range lines {
+			dc.DrawStringAnchored(line, float64(w/2), y+float64(i)*34, 0.5, 0.5)
+		}
 	}
 	wrap := wordWrap(scene, 18)
-	y := 180.0
+	y := 120.0
 	for _, line := range wrap {
 		dc.DrawStringAnchored(line, float64(w/2), y, 0.5, 0)
 		y += 28
 	}
 	return dc.SavePNG(path)
-}
-
-func drawPlaceholderBubble(dc *gg.Context, text string, x, y float64) {
-	_ = dc.LoadFontFace("C:/Windows/Fonts/msyh.ttc", 16)
-	w, h := dc.MeasureString(text)
-	pad := 10.0
-	bw, bh := w+pad*2, h+pad*2
-	dc.SetColor(color.RGBA{255, 255, 255, 240})
-	dc.DrawRoundedRectangle(x, y, bw, bh, 8)
-	dc.Fill()
-	dc.SetColor(color.Black)
-	dc.SetLineWidth(2)
-	dc.DrawRoundedRectangle(x, y, bw, bh, 8)
-	dc.Stroke()
-	dc.DrawStringAnchored(text, x+bw/2, y+bh/2, 0.5, 0.5)
 }
 
 func wordWrap(text string, width int) []string {

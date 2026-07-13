@@ -8,7 +8,8 @@ import (
 	"path/filepath"   // 解析目标路径的目录部分
 
 	"github.com/ai-comic-generator/server/internal/config"                              // 读取混元相关配置（密钥、区域等）
-	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
+	appcommon "github.com/ai-comic-generator/server/internal/common" // Prompt 截断
+	tccommon "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	// "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	hunyuan "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/aiart/v20221229"
@@ -25,7 +26,7 @@ func NewClient(cfg *config.HunyuanConfig) (*Client, error) {
 	if !cfg.Enabled || cfg.SecretID == "" || cfg.SecretKey == "" { // 未开启或密钥未填写
 		return &Client{enabled: false}, nil // 返回禁用状态的客户端，不报错
 	}
-	credential := common.NewCredential(cfg.SecretID, cfg.SecretKey) // 构造腾讯云 API 鉴权凭证
+	credential := tccommon.NewCredential(cfg.SecretID, cfg.SecretKey) // 构造腾讯云 API 鉴权凭证
 	cpf := profile.NewClientProfile()                                // 创建客户端配置对象
 	cpf.HttpProfile.Endpoint = "aiart.tencentcloudapi.com"         // 指定混元 API 域名
 	region := cfg.Region                                             // 读取配置中的地域
@@ -50,10 +51,11 @@ func (c *Client) Generate(ctx context.Context, prompt, destPath string) error {
 		return fmt.Errorf("hunyuan disabled") // 返回禁用错误
 	}
 	req := hunyuan.NewTextToImageLiteRequest()       // 创建文生图精简版请求对象
-	req.Prompt = common.StringPtr(prompt)            // 设置生图 Prompt（转为 SDK 字符串指针）
-	req.Resolution = common.StringPtr("1920:1080") // 16:9 电影宽银幕比例
-	req.RspImgType = common.StringPtr("base64") 
-	req.LogoAdd = common.Int64Ptr(0) // 去掉 AI 生成水印
+	prompt = appcommon.TruncateHunyuanPrompt(prompt) // 混元 TextToImageLite 有长度上限
+	req.Prompt = tccommon.StringPtr(prompt)          // 设置生图 Prompt（转为 SDK 字符串指针）
+	req.Resolution = tccommon.StringPtr("1920:1080") // 16:9 电影宽银幕比例
+	req.RspImgType = tccommon.StringPtr("base64")
+	req.LogoAdd = tccommon.Int64Ptr(0) // 去掉 AI 生成水印
 	
 	// response, err := client.TextToImageLite(request)
 	resp, err := c.api.TextToImageLiteWithContext(ctx, req) // 带上下文调用混元文生图 API

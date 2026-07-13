@@ -75,11 +75,6 @@ func (s *ComposeService) Compose(ctx context.Context, state *model.ComicState) e
 			dc.DrawLine(float64(composePadding), float64(sepY), float64(canvasW-composePadding), float64(sepY))
 			dc.Stroke()
 		}
-
-		if !hasAIGeneratedPanels(state.PanelImages) {
-			drawBubble(dc, panel, float64(composePadding)+20,
-				float64(y+resized.Bounds().Dy())-60)
-		}
 	}
 
 	out := s.store.ComposedPath(state.TaskID)
@@ -106,39 +101,6 @@ func loadImage(path string) (image.Image, error) {
 	defer f.Close()
 	img, _, err := image.Decode(f)
 	return img, err
-}
-
-func drawBubble(dc *gg.Context, panel model.StoryboardPanel, x, y float64) {
-	text := ""
-	if len(panel.Dialogue) > 0 {
-		text = panel.Dialogue[0]
-	} else if panel.Narration != "" {
-		text = panel.Narration
-	}
-	if text == "" {
-		return
-	}
-	_ = dc.LoadFontFace("C:/Windows/Fonts/msyh.ttc", 18)
-	w, h := dc.MeasureString(text)
-	pad := 12.0
-	bw, bh := w+pad*2, h+pad*2
-	dc.SetColor(color.RGBA{255, 255, 255, 230})
-	dc.DrawRoundedRectangle(x, y, bw, bh, 8)
-	dc.Fill()
-	dc.SetColor(color.Black)
-	dc.SetLineWidth(2)
-	dc.DrawRoundedRectangle(x, y, bw, bh, 8)
-	dc.Stroke()
-	dc.DrawStringAnchored(text, x+bw/2, y+bh/2, 0.5, 0.5)
-}
-
-func hasAIGeneratedPanels(images []model.PanelImageResult) bool {
-	for _, img := range images {
-		if img.Method == "AI_GENERATE" {
-			return true
-		}
-	}
-	return false
 }
 
 func collectPanelURLs(images []model.PanelImageResult) []string {
