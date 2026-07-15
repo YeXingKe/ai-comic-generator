@@ -19,9 +19,10 @@ npm run build:server     # 产物 bin/server
 
 npm run lint --prefix web   # oxlint（前端唯一 lint）
 cd server && go vet ./...   # 后端静态检查（无 golangci-lint）
+cd server && go test ./...  # 后端测试（仅 common/ 与 service/ 下有零星单测，无框架）
 ```
 
-后端无测试文件；前端无测试框架。改动后至少跑 `go vet ./...` / `go build` 与 `npm run build --prefix web`（build 内含 `tsc -b` 类型检查）。
+后端仅 `common/`（bubble_text、hunyuan_prompt、prompt_style）与 `service/`（panel_caption）下有零星 `*_test.go`，无统一测试框架；前端无测试框架。跑单个：`go test ./internal/common/ -run TestXxx -v`。改动后至少跑 `go vet ./...` / `go build` 与 `npm run build --prefix web`（build 内含 `tsc -b` 类型检查）。
 
 首次搭建：`cp server/config.yaml.example server/config.yaml`，建 MySQL 库 `ai_comic_generator`，起 Redis。默认管理员 `admin` / `admin123456`（`UserService.EnsureAdmin` 自动创建）。
 

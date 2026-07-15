@@ -1,0 +1,53 @@
+# ai-comic-generator Nginx 站点配置示例
+#
+# 用法：在宝塔【网站】新建站点（绑定你的域名）后，把下面 location 段
+# 合并进宝塔生成的 server{} 里（宝塔【网站 → 设置 → 配置文件】直接编辑），
+# 或整体替换。宝塔会自动管理 SSL（Let's Encrypt）与 listen 443 段。
+#
+# 关键点：
+#   root 指向前端构建产物 web/dist/
+#   /api        → 反代到 Go 后端 127.0.0.1:8080
+#   /static/comics → 反代到后端（漫画图片由 Go 的 r.Static 提供）
+#   其余路径 → SPA 单页回退到 index.html
+
+server {
+    listen 80;
+    server_name your-domain.com;   # 改成你的域名
+
+    # 前端静态产物目录
+    root /www/wwwroot/ai-comic-generator/web/dist;
+    index index.html;
+
+    # 上传/生成的漫画图片较大，放宽 body 限制
+    client_max_body_size 20m;
+
+    # 后端 API 反向代理
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;      # 漫画流水线较慢，放宽超时
+    }
+
+    # 漫画静态资源（Go 后端 r.Static 提供，路径见 storage.public_url）
+    location /static/comics/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_cache_valid 200 7d;
+        expires 7d;
+    }
+
+    # 前端静态资源缓存
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # SPA 单页路由回退
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

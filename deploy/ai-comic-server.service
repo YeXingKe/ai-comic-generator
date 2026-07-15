@@ -1,0 +1,37 @@
+[Unit]
+Description=AI Comic Generator Backend (Go/Gin)
+After=network.target mysqld.service redis.service
+Wants=mysqld.service redis.service
+
+[Service]
+Type=simple
+# 运行用户：宝塔默认可用 www，也可用 root；确保对项目目录有读写权限
+User=www
+Group=www
+
+# WorkingDirectory 必须是 server/ —— 二进制用相对路径读 config.yaml、写 ./data/comics
+WorkingDirectory=/www/wwwroot/ai-comic-generator/server
+ExecStart=/www/wwwroot/ai-comic-generator/server/bin/server
+
+# 敏感配置也可用环境变量覆盖 config.yaml（见 config.go 的 applyEnvOverrides）
+# 推荐把密钥放到独立 EnvironmentFile，权限 600，不入库
+# EnvironmentFile=-/www/wwwroot/ai-comic-generator/server/.env
+# Environment=DB_PASSWORD=xxx
+# Environment=DASHSCOPE_API_KEY=sk-xxx
+
+Restart=always
+RestartSec=3
+# 崩溃循环保护：10s 内最多重启 5 次，超过则停下等人工介入
+StartLimitIntervalSec=10
+StartLimitBurst=5
+
+# 日志走 journald，用 journalctl -u ai-comic-server 查看
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ai-comic-server
+
+# 基础加固
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
