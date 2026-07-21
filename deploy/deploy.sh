@@ -74,7 +74,8 @@ if [ "$SKIP_SERVER" -eq 0 ]; then
   go mod download
   # 输出到 server/bin/server，systemd 的 WorkingDirectory 指向 server/，
   # 保证运行时能读到同目录的 config.yaml 与写入 ./data/comics
-  CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o bin/server ./cmd/server/main.go
+  # 服务器内存紧张，限制编译并行度以降低构建期内存峰值，避免被 OOM killer 杀掉
+  CGO_ENABLED=0 GOFLAGS="-p=1" go build -trimpath -ldflags "-s -w" -o bin/server ./cmd/server/main.go
   cd "${ROOT_DIR}"
   log "后端产物已更新：server/bin/server"
 fi
