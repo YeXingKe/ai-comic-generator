@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Image } from 'antd'
+import { Image, Spin, Button, Card, Descriptions, Alert, Tag } from 'antd'
 import dayjs from 'dayjs'
 import { COMIC_PHASE_LABEL, getComic } from '@/api/comic'
 import type { ComicInfo } from '@/types/api'

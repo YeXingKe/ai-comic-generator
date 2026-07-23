@@ -1,4 +1,5 @@
 import zhCN from 'antd/locale/zh_CN'
+import { ConfigProvider } from 'antd'
 import { RouterProvider } from 'react-router-dom'
 import AuthInit from '@/components/AuthInit'
 import { useThemeStore } from '@/stores/theme'

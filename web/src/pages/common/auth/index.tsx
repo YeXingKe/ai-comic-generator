@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Form, Button, Input } from 'antd'
+import { ArrowLeftOutlined, UserOutlined, LockOutlined } from '@ant-design/icons'
 import { userLogin, userRegister } from '@/api/user'
 import { useLoginUserStore } from '@/stores/loginUser'
 import AuthScene from './AuthScene'

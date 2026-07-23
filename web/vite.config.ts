@@ -8,6 +8,7 @@ import { createResolver } from 'unplugin-react-components'
 export default defineConfig({
   plugins: [
     react(),
+    // 只自动导入静态 API，不支持组件自动导入（与 Ant Design v6 兼容性问题）
     AutoImport({
       imports: [
         {

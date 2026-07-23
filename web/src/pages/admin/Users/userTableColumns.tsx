@@ -1,5 +1,7 @@
 import type { ColumnsType } from 'antd/es/table'
 import type { UserInfo, UserRole } from '@/types/api'
+import { Avatar, Button, Space, Popconfirm, Tag } from 'antd'
+import { UserOutlined } from '@ant-design/icons'
 import { formatUserTime, roleColor, roleLabel } from '@/utils/userTableHelpers'
 
 export function buildUserTableColumns(options: {

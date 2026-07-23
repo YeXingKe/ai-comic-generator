@@ -1,7 +1,16 @@
 import { useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { MenuProps } from 'antd'
-import ThemeToggle from '@/components/ThemeToggle'
+import { Menu, Avatar, Button, Dropdown } from 'antd'
+import {
+  HomeOutlined,
+  EditOutlined,
+  UserOutlined,
+  HistoryOutlined,
+  BarChartOutlined,
+  LogoutOutlined,
+} from '@ant-design/icons'
+import ThemeToggle from '../ThemeToggle'
 import { getVisibleNavItems } from '@/router/nav'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
 import { useThemeStore } from '@/stores/theme'

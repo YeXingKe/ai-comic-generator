@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { RightOutlined } from '@ant-design/icons'
 import './index.css'
 
 export interface AppleCardItem {
