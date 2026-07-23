@@ -23,18 +23,18 @@ export default defineConfig({
       resolvers: [
         createResolver({
           module: 'antd',
-          prefix: 'Ant',
+          prefix: '',  // 去掉前缀，直接使用组件名（Button 而非 AntButton）
           style: false,
           // 避免与 src/App.tsx 根组件命名冲突
-          exclude: (name) => name !== 'App',
+          exclude: (name) => name === 'App',
         })(),
         createResolver({
           module: '@ant-design/icons',
-          prefix: 'Icons',
+          prefix: '',  // 去掉前缀，直接使用图标名
           style: false,
         })(),
       ],
-      dts: { filename: 'src/components' },
+      dts: true,  // 启用类型声明文件生成
     }),
   ],
   resolve: {
