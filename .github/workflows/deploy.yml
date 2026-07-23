@@ -53,24 +53,24 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H "${{ secrets.DEPLOY_SERVER_HOST }}" >> ~/.ssh/known_hosts
+        ssh-keyscan -H "${{ vars.DEPLOY_SERVER_HOST }}" >> ~/.ssh/known_hosts
 
     # 7. 上传前端产物
     - name: Upload web artifacts
       run: |
-        rsync -avz --delete web/dist/ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }}:/opt/ai-comic/web/dist/
+        rsync -avz --delete web/dist/ ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_SERVER_HOST }}:/opt/ai-comic/web/dist/
 
     # 8. 上传后端二进制
     - name: Upload server binary
       run: |
-        rsync -avz server/bin/server ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }}:/opt/ai-comic/bin/server
+        rsync -avz server/bin/server ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_SERVER_HOST }}:/opt/ai-comic/bin/server
 
     # 9. 重启服务
     - name: Restart service
       run: |
-        ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }} "sudo systemctl restart ai-comic-server"
+        ssh ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_SERVER_HOST }} "sudo systemctl restart ai-comic-server"
 
     # 10. 健康检查
     - name: Health check
       run: |
-        ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }} "curl -fsS http://127.0.0.1:8080/api/health || exit 1"
+        ssh ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_SERVER_HOST }} "curl -fsS http://127.0.0.1:8080/api/health || exit 1"
