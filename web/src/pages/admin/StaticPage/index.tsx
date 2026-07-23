@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Segmented } from 'antd'
 import { useThemeStore } from '@/stores/theme'
 import { getStatDashboard } from '@/api/stat'
 import type { StatDashboard, StatRange } from '@/types/api'
