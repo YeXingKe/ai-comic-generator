@@ -3,69 +3,70 @@ name: Build & Deploy
 on:
   push:
     branches:
-      - main
+    - main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 检出代码
-      - name: Checkout code
-        uses: actions/checkout@v4
+    # 1. 检出代码
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      # 2. 设置 Node.js 环境
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
+    # 2. 设置 Node.js 环境
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
 
-      # 3. 设置 Go 环境
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.24'
+    # 3. 设置 Go 环境
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: "1.24"
 
-      # 4. 前端依赖安装 & 构建
-      - name: Build web
-        run: |
-          cd web
-          npm ci
-          npm run build
-          cd ..
+    # 4. 前端依赖安装 & 构建
+    - name: Build web
+      run: |
+        cd web
+        npm ci
+        npm run build
+        cd ..
 
-      # 5. 后端构建
-      - name: Build server
-        run: |
-          cd server
-          go mod download
-          CGO_ENABLED=0 GOFLAGS="-p=1" go build -trimpath -ldflags "-s -w" -o bin/server ./cmd/server/main.go
-          cd ..
+    # 5. 后端构建
+    - name: Build server
+      run: |
+        cd server
+        go mod download
+        CGO_ENABLED=0 GOFLAGS="-p=1" go build -trimpath -ldflags "-s -w" -o bin/server ./cmd/server/main.go
+        cd ..
 
-      # 6. 配置 SSH
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${{ secrets.DEPLOY_SERVER_HOST }}" >> ~/.ssh/known_hosts
+    # 6. 配置 SSH : 把你存在GitHub Secrets 里的私钥写入虚拟机的 id_rsa 文件 ,
+    # 这样 Actions 虚拟机就持有了私钥，能以deploy 用户身份登录服务器
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H "${{ secrets.DEPLOY_SERVER_HOST }}" >> ~/.ssh/known_hosts
 
-      # 7. 上传前端产物
-      - name: Upload web artifacts
-        run: |
-          rsync -avz --delete web/dist/ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }}:/www/wwwroot/ai-comic-generator/web/dist/
+    # 7. 上传前端产物
+    - name: Upload web artifacts
+      run: |
+        rsync -avz --delete web/dist/ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }}:/opt/ai-comic/web/dist/
 
-      # 8. 上传后端二进制
-      - name: Upload server binary
-        run: |
-          rsync -avz server/bin/server ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }}:/www/wwwroot/ai-comic-generator/server/bin/server
+    # 8. 上传后端二进制
+    - name: Upload server binary
+      run: |
+        rsync -avz server/bin/server ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }}:/opt/ai-comic/bin/server
 
-      # 9. 重启服务
-      - name: Restart service
-        run: |
-          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }} "cd /www/wwwroot/ai-comic-generator && systemctl restart ai-comic-server"
+    # 9. 重启服务
+    - name: Restart service
+      run: |
+        ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }} "sudo systemctl restart ai-comic-server"
 
-      # 10. 健康检查
-      - name: Health check
-        run: |
-          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }} "curl -fsS http://127.0.0.1:8080/api/health || exit 1"
+    # 10. 健康检查
+    - name: Health check
+      run: |
+        ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER_HOST }} "curl -fsS http://127.0.0.1:8080/api/health || exit 1"

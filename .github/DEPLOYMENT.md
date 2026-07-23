@@ -39,13 +39,14 @@ GitHub Actions 触发
 ```bash
 # 生成一对 RSA 密钥，用于 GitHub Actions 认证服务器
 # -f 指定保存路径，建议单独给部署流程用一个密钥，与个人密钥分开
-ssh-keygen -t rsa -b 4096 -f ~/.ssh/ai-comic-deploy
+ssh-keygen -t ed25519 -C "deploy@comic.wszhu.top" -f C:\Users\Administrator\.ssh\ai-comic
 
 # 提示 "Enter passphrase" 时，直接按 Enter（不输入密码）
 # 因为 GitHub Actions 需要无密码的密钥才能自动认证
 ```
 
 执行后会生成两个文件：
+
 - `~/.ssh/ai-comic-deploy` — **私钥**（放到 GitHub Secrets，严格保密）
 - `~/.ssh/ai-comic-deploy.pub` — **公钥**（放到服务器，可公开）
 
@@ -75,7 +76,7 @@ sudo ls -la /home/www/.ssh/authorized_keys
 **验证 SSH 连接**（在本地执行，确保能免密登录）：
 
 ```bash
-ssh -i ~/.ssh/ai-comic-deploy www@your-server-ip "echo 'SSH 连接成功'"
+ssh -i C:\Users\Administrator\.ssh\ai-comic deploy@comic.wszhu.top "echo 'SSH 连接成功'"
 # 如果输出 "SSH 连接成功"，说明配置正确
 ```
 
@@ -85,10 +86,10 @@ ssh -i ~/.ssh/ai-comic-deploy www@your-server-ip "echo 'SSH 连接成功'"
 
 #### Secret 1: `DEPLOY_SSH_KEY`
 
-- **值**：`~/.ssh/ai-comic-deploy` 文件的完整内容
+- **值**：`~/.ssh/ai-comic` 文件的完整内容
 - **获取方式**：
   ```bash
-  cat ~/.ssh/ai-comic-deploy
+  cat ~/.ssh/ai-comic
   # 复制整个输出，包括 "-----BEGIN OPENSSH PRIVATE KEY-----" 和 "-----END OPENSSH PRIVATE KEY-----"
   ```
 
@@ -111,18 +112,18 @@ ssh -i ~/.ssh/ai-comic-deploy www@your-server-ip "echo 'SSH 连接成功'"
 
 ### 各步骤说明
 
-| 步骤 | 作用 | 失败原因 |
-|------|------|--------|
-| **Checkout code** | 拉取 GitHub 上的最新代码 | 网络问题 |
-| **Setup Node.js** | 安装 Node 18 环境 | 官方源问题 |
-| **Setup Go** | 安装 Go 1.24 环境 | 官方源问题 |
-| **Build web** | 前端编译：`npm ci && npm run build` | TypeScript 类型检查失败、npm 依赖下载失败 |
-| **Build server** | 后端编译：`go build` | Go 编译失败、依赖下载失败 |
-| **Setup SSH** | 配置 SSH 密钥和已知主机 | 密钥不匹配 |
-| **Upload web artifacts** | rsync 上传前端产物 | 目标路径权限不足、网络连接问题 |
-| **Upload server binary** | rsync 上传后端二进制 | 同上 |
-| **Restart service** | SSH 重启 systemd 服务 | 服务不存在、权限不足、systemd 异常 |
-| **Health check** | curl `/api/health` 验证后端 | 后端启动失败、配置错误 |
+| 步骤                     | 作用                                | 失败原因                                  |
+| ------------------------ | ----------------------------------- | ----------------------------------------- |
+| **Checkout code**        | 拉取 GitHub 上的最新代码            | 网络问题                                  |
+| **Setup Node.js**        | 安装 Node 18 环境                   | 官方源问题                                |
+| **Setup Go**             | 安装 Go 1.24 环境                   | 官方源问题                                |
+| **Build web**            | 前端编译：`npm ci && npm run build` | TypeScript 类型检查失败、npm 依赖下载失败 |
+| **Build server**         | 后端编译：`go build`                | Go 编译失败、依赖下载失败                 |
+| **Setup SSH**            | 配置 SSH 密钥和已知主机             | 密钥不匹配                                |
+| **Upload web artifacts** | rsync 上传前端产物                  | 目标路径权限不足、网络连接问题            |
+| **Upload server binary** | rsync 上传后端二进制                | 同上                                      |
+| **Restart service**      | SSH 重启 systemd 服务               | 服务不存在、权限不足、systemd 异常        |
+| **Health check**         | curl `/api/health` 验证后端         | 后端启动失败、配置错误                    |
 
 ### 构建环境
 
@@ -195,6 +196,7 @@ sudo systemctl restart ai-comic-server
 ### 必需
 
 - [ ] 已安装 systemd 服务文件 `deploy/ai-comic-server.service`
+
   ```bash
   sudo cp deploy/ai-comic-server.service /etc/systemd/system/
   sudo systemctl daemon-reload
@@ -202,12 +204,14 @@ sudo systemctl restart ai-comic-server
   ```
 
 - [ ] 已配置 `server/config.yaml`
+
   ```bash
   cp server/config.yaml.example server/config.yaml
   # 填写数据库、Redis、API 密钥等配置
   ```
 
 - [ ] `www` 用户能写入这些目录（部署时需要覆盖文件）：
+
   ```bash
   ls -la /www/wwwroot/ai-comic-generator/web/
   ls -la /www/wwwroot/ai-comic-generator/server/bin/
@@ -232,6 +236,7 @@ sudo systemctl restart ai-comic-server
 **原因**：服务器上 `/www/wwwroot/ai-comic-generator/web/dist/` 目录所有者不是 `www`
 
 **解决**：
+
 ```bash
 sudo chown -R www:www /www/wwwroot/ai-comic-generator/web/
 ```
@@ -257,6 +262,7 @@ www ALL=(ALL) NOPASSWD: /bin/systemctl
 **原因**：服务器上的公钥没有正确授权
 
 **解决**：
+
 ```bash
 # 服务器上重新授权
 sudo -u www mkdir -p /home/www/.ssh
@@ -267,6 +273,7 @@ sudo chmod 600 /home/www/.ssh/authorized_keys
 ```
 
 然后在本地重新验证：
+
 ```bash
 ssh -i ~/.ssh/ai-comic-deploy www@your-server-ip "echo test"
 ```
@@ -278,6 +285,7 @@ ssh -i ~/.ssh/ai-comic-deploy www@your-server-ip "echo test"
 **原因**：多数是 `config.yaml` 配置错误或数据库连不上
 
 **解决**：登录服务器看日志
+
 ```bash
 ssh www@your-server-ip
 sudo journalctl -u ai-comic-server -n 100 --no-pager
@@ -289,12 +297,14 @@ sudo journalctl -u ai-comic-server -n 100 --no-pager
 #### Q: 怎么回滚到上个版本？
 
 **选项 1**：本地 git 回滚后再 push
+
 ```bash
 git revert HEAD           # 创建一个新的回滚 commit
 git push origin main      # GitHub Actions 自动部署回滚版本
 ```
 
 **选项 2**：手动在服务器上回滚（不推荐，容易出问题）
+
 ```bash
 ssh www@your-server-ip
 cd /www/wwwroot/ai-comic-generator
@@ -353,7 +363,7 @@ sudo systemctl restart ai-comic-server
 ```yaml
 # Build server 步骤改成
 - name: Build server
-  if: false  # 暂时禁用
+  if: false # 暂时禁用
   run: ...
 ```
 
@@ -366,7 +376,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:  # 添加这一行，允许在 GitHub UI 里手动触发
+  workflow_dispatch: # 添加这一行，允许在 GitHub UI 里手动触发
 ```
 
 然后在 **Actions** 标签里可以手动点「Run workflow」。
@@ -376,7 +386,7 @@ on:
 ```yaml
 on:
   schedule:
-    - cron: '0 2 * * *'  # 每天凌晨 2 点自动部署
+    - cron: "0 2 * * *" # 每天凌晨 2 点自动部署
 ```
 
 ---
