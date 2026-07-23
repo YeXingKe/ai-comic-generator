@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { TablePaginationConfig, ColumnsType } from 'antd/es/table'
-import { Table, Tag, Button } from 'antd'
+import { Table, Tag, Button, message } from 'antd'
 import dayjs from 'dayjs'
 import { listComicPage } from '@/api/comic'
 import type { ComicInfo } from '@/types/api'

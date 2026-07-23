@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ThunderboltOutlined } from '@ant-design/icons'
 import { NailongCharacter, NiuniuCharacter } from '../HomeSceneCharacters'
 import './index.css'
 import '../HomeScence/index.css'

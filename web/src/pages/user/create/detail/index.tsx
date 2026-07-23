@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { ArrowLeftOutlined, DownloadOutlined } from '@ant-design/icons'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Image, Spin, Button, Card, Descriptions, Alert, Tag } from 'antd'
 import dayjs from 'dayjs'

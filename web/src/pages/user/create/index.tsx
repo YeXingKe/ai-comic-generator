@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { UploadProps } from 'antd'
 import {
-  Image, Spin, Input, Button, Select, Radio, Checkbox, Upload, Alert,
+  Image, Spin, Input, Button, Select, Radio, Checkbox, Upload, Alert, message,
 } from 'antd'
 import {
   CheckOutlined, FontSizeOutlined, EditOutlined, TeamOutlined,

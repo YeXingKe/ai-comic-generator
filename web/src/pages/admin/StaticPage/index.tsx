@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Segmented } from 'antd'
+import { FileDoneOutlined, RiseOutlined, TeamOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { Segmented, message } from 'antd'
 import { useThemeStore } from '@/stores/theme'
 import { getStatDashboard } from '@/api/stat'
 import type { StatDashboard, StatRange } from '@/types/api'
