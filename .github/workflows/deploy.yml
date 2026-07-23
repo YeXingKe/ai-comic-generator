@@ -20,6 +20,12 @@ jobs:
       with:
         node-version: "18"
 
+    # 2.1 设置 pnpm
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: latest
+
     # 3. 设置 Go 环境
     - name: Setup Go
       uses: actions/setup-go@v4
@@ -30,8 +36,8 @@ jobs:
     - name: Build web
       run: |
         cd web
-        npm ci
-        npm run build
+        pnpm install --frozen-lockfile
+        pnpm run build
         cd ..
 
     # 5. 后端构建
