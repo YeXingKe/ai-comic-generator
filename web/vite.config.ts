@@ -11,7 +11,7 @@ export default defineConfig({
     AutoImport({
       imports: [
         {
-          antd: ['message', 'notification', 'Modal', 'Form'],
+          antd: ['message', 'notification', 'Modal', 'Form', 'ConfigProvider'],
         },
       ],
       dts: 'src/auto-imports.d.ts',
