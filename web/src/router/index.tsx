@@ -75,10 +75,9 @@ export const router = createBrowserRouter([
       {
         path: '/admin/data',
         element: (
-          // <RequireAdmin>
-          //   <AdminDataPage />
-          // </RequireAdmin>
+          <RequireAdmin>
             <AdminDataPage />
+          </RequireAdmin>
         ),
       },
       // 兼容旧路由      { path: '/admin/userManage', element: <Navigate to="/admin/users" replace /> },

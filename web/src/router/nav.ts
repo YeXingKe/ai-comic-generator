@@ -30,7 +30,7 @@ export const NAV_ITEMS: NavItem[] = [
     key: '/admin/data',
     label: '数据',
     path: '/admin/data',
-    visible: () => true,
+    visible: ({ isAdmin }) => isAdmin,
   },
 ]
 
