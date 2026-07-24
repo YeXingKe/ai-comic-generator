@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Form, Button, Input, message } from 'antd'
+import { Form, Button, Input, message,Alert } from 'antd'
 import { ArrowLeftOutlined, UserOutlined, LockOutlined } from '@ant-design/icons'
 import { userLogin, userRegister } from '@/api/user'
 import { useLoginUserStore } from '@/stores/loginUser'
@@ -90,7 +90,7 @@ export default function AuthPage() {
           <span className="auth-panel__logo">✦</span>
           <span>AI 漫画生成器</span>
         </div>
-
+        <Alert title="暂时不开放注册页面，后续请关注" type="warning" showIcon closable style={{marginBottom:'10px'}}/>
         <div className="auth-panel__tabs">
           <button
             type="button"
@@ -103,6 +103,7 @@ export default function AuthPage() {
             type="button"
             className={`auth-panel__tab ${!isLogin ? 'auth-panel__tab--active' : ''}`}
             onClick={() => switchMode('register')}
+            disabled
           >
             注册
           </button>
@@ -111,7 +112,6 @@ export default function AuthPage() {
             style={{ transform: isLogin ? 'translateX(0)' : 'translateX(100%)' }}
           />
         </div>
-
         <div className="auth-panel__header">
           <h1>{isLogin ? '踏浪登录' : '加入创作'}</h1>
           <p>{isLogin ? '登录账号，继续你的漫画创作' : '注册即可体验 AI 漫画生成'}</p>
@@ -185,7 +185,7 @@ export default function AuthPage() {
           </Form>
         )}
 
-        <p className="auth-panel__hint">
+        {/* <p className="auth-panel__hint" >
           {isLogin ? (
             <>
               还没有账号？
@@ -201,7 +201,7 @@ export default function AuthPage() {
               </button>
             </>
           )}
-        </p>
+        </p> */}
       </div>
     </div>
   )
