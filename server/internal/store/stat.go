@@ -53,16 +53,20 @@ func (s *StatStore) CountCompletedComics(startTime time.Time) (int64, error) {
 
 // AvgDurationMin 统计指定时间范围内完成任务的平均耗时（分钟），无数据返回 0
 func (s *StatStore) AvgDurationMin(startTime time.Time) (float64, error) {
-	var avg *float64 // 指针类型：AVG 在无数据时返回 NULL，*float64 能区分 0 和 NULL
-	err := s.db.Model(&model.Comic{}).
-		Scopes(NotDeleted).
-		Where("status = ? AND createTime >= ?", model.ComicStatusCompleted, startTime). // 只计算已完成任务
-		Select("AVG(TIMESTAMPDIFF(MINUTE, createTime, completedTime))").                // 用 TIMESTAMPDIFF 算分钟差后取平均
-		Scan(&avg).Error                                                                // Scan 扫描单值，不用 Find
+	var avg *float64
+	err := s.db.Raw(
+		`SELECT AVG(TIMESTAMPDIFF(SECOND, createTime, completedTime) / 60.0)
+		 FROM comic
+		 WHERE isDelete = 0
+		   AND status = ?
+		   AND createTime >= ?
+		   AND completedTime IS NOT NULL`,
+		model.ComicStatusCompleted, startTime,
+	).Scan(&avg).Error
 	if err != nil {
 		return 0, err
 	}
-	if avg == nil { // NULL 说明范围内没有已完成任务
+	if avg == nil {
 		return 0, nil
 	}
 	return *avg, nil
@@ -96,8 +100,8 @@ func (s *StatStore) GetTrend(startTime time.Time) ([]model.StatTrendPoint, error
 		Select(`DATE(createTime) as date,
 			COUNT(*) as count,
 			COUNT(CASE WHEN status = 'COMPLETED' THEN 1 END) as completed,
-			AVG(CASE WHEN status = 'COMPLETED'
-				THEN TIMESTAMPDIFF(MINUTE, createTime, completedTime) END) as avg_duration_min`). // 条件聚合：只对已完成记录算耗时
+			AVG(CASE WHEN status = 'COMPLETED' AND completedTime IS NOT NULL
+				THEN TIMESTAMPDIFF(SECOND, createTime, completedTime) / 60.0 END) as avg_duration_min`). // 条件聚合：只对已完成记录算耗时
 		Group("DATE(createTime)"). // 按天分组，DATE() 截断时分秒
 		Order("date ASC").         // 升序排列，前端折线图从左到右
 		Scan(&rows).Error          // Scan 接收多行自定义结构
