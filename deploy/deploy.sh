@@ -12,6 +12,9 @@
 #   bash deploy/deploy.sh --skip-server      # 只重建前端
 #   bash deploy/deploy.sh --no-pull          # 跳过 git pull（用本地已有代码）
 
+
+# ⭐⭐⭐ 暂不使用当前脚本部署 ⭐⭐⭐
+
 set -euo pipefail
 
 # ---- 可按需覆盖的变量（也可通过环境变量传入） ----

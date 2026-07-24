@@ -65,7 +65,7 @@ type：`feat` `fix` `docs` `style` `refactor` `perf` `test` `chore` `ci` `build`
 
 - 改动尽量小，遵循现有模式
 - 勿提交密钥或生成的 `components.d.ts` / `auto-imports.d.ts`
-- antd 组件/图标自动引入，TSX 中勿手写 `import from 'antd'`
+- antd 组件/图标手动引入，TSX 中手写 `import from 'antd'`
 - 用户中心与用户管理分离，勿合并
 - `pages/` 只放页面层（壳 + 布局 + 取数编排）；可复用 UI 组件放 `web/src/components/<组件族>/`（`index.ts` 导出、样式自带），mock/静态数据放 `web/src/constants/`。勿在页面目录建 `components/`、`charts/` 子目录（详见 `.cursor/rules/pages.mdc`）
 
