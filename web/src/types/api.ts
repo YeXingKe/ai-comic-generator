@@ -35,6 +35,7 @@ export interface UserInfo {
   userAccount: string
   userRole: UserRole
   quota: number
+  status: number
   createTime: string
   updateTime: string
   userName?: string | null
@@ -78,6 +79,7 @@ export interface AddUserRequest {
   userAccount: string
   userRole?: UserRole
   quota?: number | null
+  status: number
   vipTime?: string | null
   userName?: string | null
   userAvatar?: string | null
@@ -95,6 +97,7 @@ export interface UpdateUserRequest {
   userAvatar?: string | null
   userProfile?: string | null
   userRole?: UserRole | null
+  status: number
   quota?: number | null
   vipTime?: string | null
 }
@@ -108,6 +111,7 @@ export interface QueryUserRequest {
   userName?: string
   userProfile?: string
   userRole?: UserRole
+  status?: number
   pageNum?: number
   pageSize?: number
   sortField?: string

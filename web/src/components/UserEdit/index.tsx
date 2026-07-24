@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import dayjs, { type Dayjs } from 'dayjs'
-import { Form, Button, Input, Modal, Select, DatePicker, InputNumber, Space, message } from 'antd'
+import { Form, Button, Input, Modal, Select, DatePicker, InputNumber, Space, message,Switch } from 'antd'
 import { addUser, updateUser } from '@/api/user'
 import type { UserInfo, UserRole } from '@/types/api'
 
@@ -21,6 +21,7 @@ type UserFormValues = {
   userProfile?: string
   userRole: UserRole
   quota: number
+  status: number
   vipTime?: Dayjs | null
 }
 
@@ -66,6 +67,7 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
         userProfile: user.userProfile ?? undefined,
         userRole: user.userRole,
         quota: user.quota,
+        status: user.status,
         vipTime: user.vipTime ? dayjs(user.vipTime) : user.userRole === 'vip' ? dayjs() : undefined,
       })
       return
@@ -85,6 +87,7 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
         if (!user) return
         const res = await updateUser({
           id: user.id,
+          status:user.status?1:0,
           userName: values.userName?.trim() || null,
           userAvatar: values.userAvatar?.trim() || null,
           userProfile: values.userProfile?.trim() || null,
@@ -103,6 +106,7 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
       }
 
       const res = await addUser({
+        status: values.status?1:0,
         userAccount: values.userAccount!.trim(),
         userName: values.userName?.trim() || null,
         userAvatar: values.userAvatar?.trim() || null,
@@ -161,7 +165,9 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
         <Form.Item name="userName" label="用户名">
           <Input placeholder="请输入用户名" allowClear maxLength={32} />
         </Form.Item>
-
+        <Form.Item name="status" label="账号状态">
+          <Switch defaultChecked />
+        </Form.Item>
         <Form.Item name="userAvatar" label="头像 URL" rules={[avatarUrlRule()]}>
           <Input placeholder="https://example.com/avatar.png" allowClear />
         </Form.Item>

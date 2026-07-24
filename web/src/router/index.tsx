@@ -9,6 +9,7 @@ import ComicDetailPage from '@/pages/user/create/detail'
 import AdminUsersPage from '@/pages/admin/Users'
 import AdminDataPage from '@/pages/admin/StaticPage'
 import UserInfoPage from '@/pages/user/info'
+import PWDPage from '@/pages/user/pwd'
 
 function LegacyArticleRedirect() {
   const { taskId } = useParams<{ taskId: string }>()
@@ -45,6 +46,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <UserInfoPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: '/user/pwd',
+        element: (
+          <RequireAuth>
+            <PWDPage />
           </RequireAuth>
         ),
       },

@@ -73,6 +73,12 @@ export default function GlobalHeader() {
     },
     { type: 'divider' },
     {
+      key: 'updatePwd',
+      label: '修改密码',
+      icon: <LockOutlined />,
+    },
+    { type: 'divider' },
+    {
       key: 'logout',
       label: '退出登录',
       icon: <LogoutOutlined />,
@@ -83,6 +89,10 @@ export default function GlobalHeader() {
   const handleUserMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (key === 'profile') {
       navigate('/user/info')
+      return
+    }
+    if (key === 'updatePwd') {
+      navigate('/user/pwd')
       return
     }
     if (key === 'logout') {

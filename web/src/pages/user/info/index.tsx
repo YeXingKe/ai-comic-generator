@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Form, Button, Input, Avatar, Card, message } from 'antd'
 import { UserOutlined } from '@ant-design/icons'
-import { updatePassword, updateProfile } from '@/api/user'
+import { updateProfile } from '@/api/user'
 import { useLoginUserStore } from '@/stores/loginUser'
 import { formatUserTime, roleLabel } from '@/utils/userTableHelpers'
 import '@/styles/pageShell.css'
@@ -13,11 +13,6 @@ type ProfileFormValues = {
   userProfile?: string
 }
 
-type PasswordFormValues = {
-  oldPassword: string
-  newPassword: string
-  checkPassword: string
-}
 
 function avatarUrlRule() {
   return {
@@ -37,9 +32,7 @@ function avatarUrlRule() {
 export default function UserInfoPage() {
   const { loginUser, setLoginUser, fetchLoginUser } = useLoginUserStore()
   const [profileForm] = Form.useForm<ProfileFormValues>()
-  const [passwordForm] = Form.useForm<PasswordFormValues>()
   const [profileSubmitting, setProfileSubmitting] = useState(false)
-  const [passwordSubmitting, setPasswordSubmitting] = useState(false)
 
   useEffect(() => {
     void fetchLoginUser()
@@ -77,27 +70,6 @@ export default function UserInfoPage() {
     }
   }
 
-  const handlePasswordSubmit = async (values: PasswordFormValues) => {
-    setPasswordSubmitting(true)
-    try {
-      const res = await updatePassword({
-        oldPassword: values.oldPassword,
-        newPassword: values.newPassword,
-        checkPassword: values.checkPassword,
-      })
-      if (res.code === 0) {
-        message.success('密码已修改')
-        passwordForm.resetFields()
-      } else {
-        message.error(res.message || '修改失败')
-      }
-    } catch {
-      message.error('修改失败，请稍后重试')
-    } finally {
-      setPasswordSubmitting(false)
-    }
-  }
-
   return (
     <div className="page-shell">
       <div className="page-shell__inner">
@@ -106,8 +78,16 @@ export default function UserInfoPage() {
             <h1>个人资料</h1>
             <p>更新头像、昵称与简介，或修改登录密码</p>
           </div>
+          <div className="page-shell__header-actions">
+            <Button
+              type="primary"
+              loading={profileSubmitting}
+              onClick={() => profileForm.submit()}
+            >
+              保存资料
+            </Button>
+          </div>
         </header>
-
         <Card title="基本信息" className="user-info-page__card">
           <div className="user-info-page__avatar-row">
             <Avatar
@@ -156,70 +136,8 @@ export default function UserInfoPage() {
             <Form.Item name="userProfile" label="个人简介">
               <Input.TextArea placeholder="请输入个人简介" rows={3} maxLength={200} showCount />
             </Form.Item>
-
-            <Form.Item style={{ marginBottom: 0 }}>
-              <Button type="primary" htmlType="submit" loading={profileSubmitting}>
-                保存资料
-              </Button>
-            </Form.Item>
           </Form>
-        </Card>
-
-        <Card title="修改密码" className="user-info-page__card">
-          <Form
-            form={passwordForm}
-            layout="vertical"
-            onFinish={handlePasswordSubmit}
-            requiredMark={false}
-          >
-            <Form.Item
-              name="oldPassword"
-              label="原密码"
-              rules={[
-                { required: true, message: '请输入原密码' },
-                { min: 8, message: '密码至少 8 位' },
-              ]}
-            >
-              <Input.Password placeholder="请输入原密码" autoComplete="current-password" />
-            </Form.Item>
-
-            <Form.Item
-              name="newPassword"
-              label="新密码"
-              rules={[
-                { required: true, message: '请输入新密码' },
-                { min: 8, message: '密码至少 8 位' },
-              ]}
-            >
-              <Input.Password placeholder="请输入新密码" autoComplete="new-password" />
-            </Form.Item>
-
-            <Form.Item
-              name="checkPassword"
-              label="确认新密码"
-              dependencies={['newPassword']}
-              rules={[
-                { required: true, message: '请再次输入新密码' },
-                ({ getFieldValue }) => ({
-                  validator(_, value) {
-                    if (!value || getFieldValue('newPassword') === value) {
-                      return Promise.resolve()
-                    }
-                    return Promise.reject(new Error('两次输入的密码不一致'))
-                  },
-                }),
-              ]}
-            >
-              <Input.Password placeholder="请再次输入新密码" autoComplete="new-password" />
-            </Form.Item>
-
-            <Form.Item style={{ marginBottom: 0 }}>
-              <Button type="primary" htmlType="submit" loading={passwordSubmitting}>
-                修改密码
-              </Button>
-            </Form.Item>
-          </Form>
-        </Card>
+        </Card>     
       </div>
     </div>
   )
