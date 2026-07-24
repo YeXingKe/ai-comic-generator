@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Form, Button, Input, message,Alert } from 'antd'
+import { Form, Button, Input, message, Alert } from 'antd'
 import { ArrowLeftOutlined, UserOutlined, LockOutlined } from '@ant-design/icons'
 import { userLogin, userRegister } from '@/api/user'
 import { useLoginUserStore } from '@/stores/loginUser'
@@ -52,11 +52,7 @@ export default function AuthPage() {
     }
   }
 
-  const onRegister = async (values: {
-    userAccount: string
-    userPassword: string
-    checkPassword: string
-  }) => {
+  const onRegister = async (values: { userAccount: string; userPassword: string; checkPassword: string }) => {
     if (values.userPassword !== values.checkPassword) {
       message.error('两次输入的密码不一致')
       return
@@ -90,26 +86,19 @@ export default function AuthPage() {
           <span className="auth-panel__logo">✦</span>
           <span>AI 漫画生成器</span>
         </div>
-        <Alert title="暂时不开放注册页面，后续请关注" type="warning" showIcon closable style={{marginBottom:'10px'}}/>
+        <Alert title="暂时不开放注册页面，后续请关注" type="warning" showIcon closable style={{ marginBottom: '10px', color: '#000' }} />
         <div className="auth-panel__tabs">
-          <button
-            type="button"
-            className={`auth-panel__tab ${isLogin ? 'auth-panel__tab--active' : ''}`}
-            onClick={() => switchMode('login')}
-          >
+          <button type="button" className={`auth-panel__tab ${isLogin ? 'auth-panel__tab--active' : ''}`} onClick={() => switchMode('login')}>
             登录
           </button>
-          <button
-            type="button"
-            className={`auth-panel__tab ${!isLogin ? 'auth-panel__tab--active' : ''}`}
-            onClick={() => switchMode('register')}
-            disabled
-          >
+          <button type="button" className={`auth-panel__tab ${!isLogin ? 'auth-panel__tab--active' : ''}`} onClick={() => switchMode('register')} disabled>
             注册
           </button>
           <div
             className="auth-panel__tab-indicator"
-            style={{ transform: isLogin ? 'translateX(0)' : 'translateX(100%)' }}
+            style={{
+              transform: isLogin ? 'translateX(0)' : 'translateX(100%)',
+            }}
           />
         </div>
         <div className="auth-panel__header">
@@ -118,24 +107,11 @@ export default function AuthPage() {
         </div>
 
         {isLogin ? (
-          <Form
-            key="login"
-            form={form}
-            layout="vertical"
-            size="large"
-            className="auth-panel__form"
-            onFinish={onLogin}
-          >
-            <Form.Item
-              name="userAccount"
-              rules={[{ required: true, message: '请输入账号' }]}
-            >
+          <Form key="login" form={form} layout="vertical" size="large" className="auth-panel__form" onFinish={onLogin}>
+            <Form.Item name="userAccount" rules={[{ required: true, message: '请输入账号' }]}>
               <Input prefix={<UserOutlined />} placeholder="账号" />
             </Form.Item>
-            <Form.Item
-              name="userPassword"
-              rules={[{ required: true, message: '请输入密码' }]}
-            >
+            <Form.Item name="userPassword" rules={[{ required: true, message: '请输入密码' }]}>
               <Input.Password prefix={<LockOutlined />} placeholder="密码" />
             </Form.Item>
             <Form.Item>
@@ -145,14 +121,7 @@ export default function AuthPage() {
             </Form.Item>
           </Form>
         ) : (
-          <Form
-            key="register"
-            form={form}
-            layout="vertical"
-            size="large"
-            className="auth-panel__form"
-            onFinish={onRegister}
-          >
+          <Form key="register" form={form} layout="vertical" size="large" className="auth-panel__form" onFinish={onRegister}>
             <Form.Item
               name="userAccount"
               rules={[
@@ -171,10 +140,7 @@ export default function AuthPage() {
             >
               <Input.Password prefix={<LockOutlined />} placeholder="密码（至少 8 位）" />
             </Form.Item>
-            <Form.Item
-              name="checkPassword"
-              rules={[{ required: true, message: '请再次输入密码' }]}
-            >
+            <Form.Item name="checkPassword" rules={[{ required: true, message: '请再次输入密码' }]}>
               <Input.Password prefix={<LockOutlined />} placeholder="确认密码" />
             </Form.Item>
             <Form.Item>
