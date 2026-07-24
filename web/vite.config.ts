@@ -47,7 +47,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:2026',
+        target: 'https://comic.wszhu.top',
         changeOrigin: true,
       },
     },
