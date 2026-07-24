@@ -83,6 +83,11 @@ func (s *UserService) Login(req *model.LoginRequest, session sessions.Session) (
 		return nil, common.ErrSystem // 其他数据库错误
 	}
 
+	// 检查用户状态
+	if user.Status == 0 {
+		return nil, common.ErrParams.WithMessage("账号已被禁用，请联系管理员")
+	}
+
 	session.Set(common.UserLoginState, user.ID) // 将用户 ID 写入 Session
 	if err := session.Save(); err != nil { // 持久化 Session 到 Redis/Cookie
 		return nil, common.ErrSystem // 保存失败
