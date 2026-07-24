@@ -1,68 +1,71 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Button, Input } from 'antd'
+import type { ComicInfo } from '@/types/api'
+import { listComicPage } from '@/api/comic'
 import {
   FileTextOutlined,
   OrderedListOutlined,
   EditOutlined,
   PictureOutlined,
-  ThunderboltOutlined,
   ClockCircleOutlined,
   StarOutlined,
   RightOutlined,
   RocketOutlined,
   FireOutlined,
+  BulbOutlined,
+  TeamOutlined,
+  SendOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { mockArticles } from '@/constants/mockArticles'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
 import { useThemeStore } from '@/stores/theme'
 import HomeScene from './HomeScence/index'
 import HomeMascots from './HomeMascots/index'
 import './index.css'
 
-const features = [
+const pipelineSteps = [
   {
+    step: 1,
     icon: <FileTextOutlined />,
-    title: '智能生成标题',
-    description: 'AI 分析选题，生成吸睛爆款标题',
+    title: '标题推荐',
+    description: 'AI 分析主题，生成多组爆款候选标题',
     color: '#a78bfa',
-    span: 'wide',
   },
   {
-    icon: <OrderedListOutlined />,
-    title: '自动大纲',
-    description: '结构清晰，逻辑完整',
+    step: 2,
+    icon: <BulbOutlined />,
+    title: '故事构思',
+    description: '构建故事骨架、情节转折与核心冲突',
     color: '#818cf8',
-    span: 'normal',
   },
   {
-    icon: <EditOutlined />,
-    title: '流式正文',
-    description: '实时打字机输出体验',
+    step: 3,
+    icon: <TeamOutlined />,
+    title: '角色设定',
+    description: '生成角色造型、性格标签与关系网络',
     color: '#f472b6',
-    span: 'normal',
   },
   {
-    icon: <PictureOutlined />,
-    title: '智能配图',
-    description: '高质量无版权图匹配内容',
+    step: 4,
+    icon: <OrderedListOutlined />,
+    title: '分镜脚本',
+    description: '逐格生成画面描述、台词与镜头语言',
     color: '#fbbf24',
-    span: 'normal',
   },
   {
-    icon: <ThunderboltOutlined />,
-    title: '极速出稿',
-    description: '5 分钟完成分镜脚本',
+    step: 5,
+    icon: <PictureOutlined />,
+    title: '图片生成',
+    description: '混元 AI 绘制每格漫画画面，风格统一',
+    color: '#34d399',
+  },
+  {
+    step: 6,
+    icon: <SendOutlined />,
+    title: '排版发布',
+    description: '自动合成漫画页面，一键推送公众号',
     color: '#fb7185',
-    span: 'normal',
-  },
-  {
-    icon: <ClockCircleOutlined />,
-    title: '历史管理',
-    description: '随时回溯、导出创作记录',
-    color: '#22d3ee',
-    span: 'wide',
   },
 ]
 
@@ -88,10 +91,18 @@ function statusClass(status?: string) {
 export default function HomePage() {
   const navigate = useNavigate()
   const [topic, setTopic] = useState('')
+  const [recentComics, setRecentComics] = useState<ComicInfo[]>([])
   const appTheme = useThemeStore((s) => s.theme)
   const loginUser = useLoginUserStore((s) => s.loginUser)
   const isLoggedIn = loginUser.id > 0
   const isAdmin = loginUser.userRole === ADMIN_ROLE
+
+  useEffect(() => {
+    if (!isLoggedIn) return
+    listComicPage({ pageNum: 1, pageSize: 4 })
+      .then((res) => setRecentComics(res.data?.records ?? []))
+      .catch(() => {})
+  }, [isLoggedIn])
 
   const goToCreate = (value?: string) => {
     if (!isLoggedIn) {
@@ -178,26 +189,28 @@ export default function HomePage() {
           <span>创作流水线</span>
         </div>
 
-        <section className="home-bento">
-          <div className="home-bento__header">
-            <h2>一站式漫画生产力</h2>
-            <p>脚本 · 分镜 · 配图 · 管理，全部在玻璃工作台中完成</p>
+        <section className="home-pipeline">
+          <div className="home-pipeline__header">
+            <h2>六步全自动流水线</h2>
+            <p>从主题到成品，每个环节都由 AI 接管</p>
           </div>
-          <div className="home-bento__grid">
-            {features.map((feature) => (
-              <article key={feature.title} className={`home-bento__card glass-panel ${feature.span === 'wide' ? 'home-bento__card--wide' : ''}`}>
+          <div className="home-pipeline__grid">
+            {pipelineSteps.map((item) => (
+              <article key={item.step} className="home-pipeline__step glass-panel">
                 <div
-                  className="home-bento__icon"
-                  style={{
-                    background: `${feature.color}22`,
-                    color: feature.color,
-                    boxShadow: `0 0 24px ${feature.color}33`,
-                  }}
+                  className="home-pipeline__step-num"
+                  style={{ color: item.color, borderColor: `${item.color}55`, background: `${item.color}18` }}
                 >
-                  {feature.icon}
+                  {item.step}
                 </div>
-                <h3>{feature.title}</h3>
-                <p>{feature.description}</p>
+                <div
+                  className="home-pipeline__icon"
+                  style={{ background: `${item.color}22`, color: item.color, boxShadow: `0 0 20px ${item.color}33` }}
+                >
+                  {item.icon}
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
               </article>
             ))}
           </div>
@@ -217,29 +230,29 @@ export default function HomePage() {
           </div>
 
           <div className="home-works__track">
-            {mockArticles.map((article) => (
+            {recentComics.map((comic) => (
               <article
-                key={article.taskId}
+                key={comic.taskId}
                 className="home-works__card glass-panel"
-                onClick={() => isAdmin && navigate(`/comic/${article.taskId}`)}
-                role={isAdmin ? 'button' : undefined}
-                tabIndex={isAdmin ? 0 : undefined}
-                onKeyDown={isAdmin ? (e) => e.key === 'Enter' && navigate(`/comic/${article.taskId}`) : undefined}
+                onClick={() => navigate(`/comic/${comic.taskId}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && navigate(`/comic/${comic.taskId}`)}
               >
                 <div className="home-works__cover">
-                  {article.coverImage ? (
-                    <img src={article.coverImage} alt={article.mainTitle} />
+                  {comic.coverImage ? (
+                    <img src={comic.coverImage} alt={comic.title ?? comic.topic} />
                   ) : (
                     <div className="home-works__cover-placeholder">
                       <FileTextOutlined />
                     </div>
                   )}
-                  <span className={`home-works__status ${statusClass(article.status)}`}>{statusLabel(article.status)}</span>
+                  <span className={`home-works__status ${statusClass(comic.status)}`}>{statusLabel(comic.status)}</span>
                 </div>
                 <div className="home-works__body">
-                  <h3>{article.mainTitle || article.topic}</h3>
+                  <h3>{comic.title ?? comic.topic}</h3>
                   <time>
-                    <ClockCircleOutlined /> {formatTime(article.createTime)}
+                    <ClockCircleOutlined /> {formatTime(comic.createTime)}
                   </time>
                 </div>
               </article>
