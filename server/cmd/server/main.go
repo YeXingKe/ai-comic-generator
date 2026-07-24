@@ -63,6 +63,10 @@ func main() {
 			user.POST("/update", adminAuth, application.UserHandler.Update)
 			user.POST("/delete", adminAuth, application.UserHandler.Delete)
 		}
+
+		statAdminAuth := middleware.AuthCheck(application.UserService, common.AdminRole)
+		stat := api.Group("/stat")
+		stat.GET("/dashboard", statAdminAuth, application.StatHandler.Dashboard)
 	}
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)

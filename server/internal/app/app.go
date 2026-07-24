@@ -27,6 +27,7 @@ type App struct {
 	HealthHandler *handler.HealthHandler
 	UserHandler   *handler.UserHandler
 	ComicHandler  *handler.ComicHandler
+	StatHandler   *handler.StatHandler
 	UserService   *service.UserService
 }
 
@@ -44,10 +45,13 @@ func New(cfg *config.Config) (*App, error) {
 
 	userStore := store.NewUserStore(db)
 	comicStore := store.NewComicStore(db)
+	statStore := store.NewStatStore(db)
 
 	userService := service.NewUserService(userStore)
+	statService := service.NewStatService(statStore)
 	userHandler := handler.NewUserHandler(userService)
 	healthHandler := handler.NewHealthHandler()
+	statHandler := handler.NewStatHandler(statService)
 
 	localStore, err := storage.NewLocal(&cfg.Storage)
 	if err != nil {
@@ -85,6 +89,7 @@ func New(cfg *config.Config) (*App, error) {
 		HealthHandler: healthHandler,
 		UserHandler:   userHandler,
 		ComicHandler:  comicHandler,
+		StatHandler:   statHandler,
 		UserService:   userService,
 	}, nil
 }

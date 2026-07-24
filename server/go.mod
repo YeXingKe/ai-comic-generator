@@ -1,6 +1,6 @@
 module github.com/ai-comic-generator/server
 
-go 1.24.4
+go 1.25.0
 
 require (
 	github.com/disintegration/imaging v1.6.2
@@ -68,6 +68,7 @@ require (
 	golang.org/x/exp v0.0.0-20240808152545-0cdaa3abc0fa // indirect
 	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
 	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/sync v0.22.0
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	google.golang.org/protobuf v1.36.3 // indirect

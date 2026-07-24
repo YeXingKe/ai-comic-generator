@@ -122,63 +122,72 @@ func (s *StatStore) GetTrend(startTime time.Time) ([]model.StatTrendPoint, error
 }
 
 // GetStatusDistribution 按任务状态分组统计数量，key 为 ComicStatus 常量
-func (s *StatStore) GetStatusDistribution(startTime time.Time) ([]bucketRow, error) {
+func (s *StatStore) GetStatusDistribution(startTime time.Time) ([]model.StatBucket, error) {
 	var rows []bucketRow
 	err := s.db.Model(&model.Comic{}).
 		Scopes(NotDeleted).
 		Where("createTime >= ?", startTime).
-		Select("status as `key`, COUNT(*) as value"). // key 用反引号避免与 MySQL 保留字冲突
-		Group("status").                              // 按 status 字段分组
+		Select("status as `key`, COUNT(*) as value").
+		Group("status").
 		Scan(&rows).Error
-	return rows, err
+	return toBuckets(rows), err
 }
 
 // GetPhaseFunnel 按流水线阶段分组统计，用于漏斗图，排序由 service 层按阶段顺序控制
-func (s *StatStore) GetPhaseFunnel(startTime time.Time) ([]bucketRow, error) {
+func (s *StatStore) GetPhaseFunnel(startTime time.Time) ([]model.StatBucket, error) {
 	var rows []bucketRow
 	err := s.db.Model(&model.Comic{}).
 		Scopes(NotDeleted).
 		Where("createTime >= ?", startTime).
-		Select("phase as `key`, COUNT(*) as value"). // 取 phase 字段作为维度键
+		Select("phase as `key`, COUNT(*) as value").
 		Group("phase").
 		Scan(&rows).Error
-	return rows, err
+	return toBuckets(rows), err
 }
 
 // GetStyleDistribution 按漫画风格分组统计
-func (s *StatStore) GetStyleDistribution(startTime time.Time) ([]bucketRow, error) {
+func (s *StatStore) GetStyleDistribution(startTime time.Time) ([]model.StatBucket, error) {
 	var rows []bucketRow
 	err := s.db.Model(&model.Comic{}).
 		Scopes(NotDeleted).
 		Where("createTime >= ?", startTime).
-		Select("style as `key`, COUNT(*) as value"). // 取 style 字段（cartoon/realistic/chibi）
+		Select("style as `key`, COUNT(*) as value").
 		Group("style").
 		Scan(&rows).Error
-	return rows, err
+	return toBuckets(rows), err
 }
 
 // GetRoleDistribution 按用户角色分组统计（全量，不受 range 影响）
-func (s *StatStore) GetRoleDistribution() ([]bucketRow, error) {
+func (s *StatStore) GetRoleDistribution() ([]model.StatBucket, error) {
 	var rows []bucketRow
-	err := s.db.Model(&model.User). // 查 user 表，不传 startTime
+	err := s.db.Model(&model.User{}).
 		Scopes(NotDeleted).
-		Select("userRole as `key`, COUNT(*) as value"). // 取 userRole 字段（user/admin/vip）
+		Select("userRole as `key`, COUNT(*) as value").
 		Group("userRole").
 		Scan(&rows).Error
-	return rows, err
+	return toBuckets(rows), err
 }
 
 // GetPublishDistribution 按发布状态分组统计，从 publishResult JSON 列提取 status 字段
-func (s *StatStore) GetPublishDistribution(startTime time.Time) ([]bucketRow, error) {
+func (s *StatStore) GetPublishDistribution(startTime time.Time) ([]model.StatBucket, error) {
 	var rows []bucketRow
 	err := s.db.Model(&model.Comic{}).
 		Scopes(NotDeleted).
-		Where("publishResult IS NOT NULL AND createTime >= ?", startTime).                          // 排除未发布（publishResult 为 NULL）的记录
-		Select("JSON_UNQUOTE(JSON_EXTRACT(publishResult, '$.status')) as `key`, COUNT(*) as value"). // JSON_EXTRACT 提取嵌套字段，JSON_UNQUOTE 去掉引号
-		Group("JSON_EXTRACT(publishResult, '$.status')").                                           // GROUP BY 用原始 JSON 表达式，避免别名在部分 MySQL 版本不可用
-		Having("`key` IS NOT NULL").                                                                // 过滤 JSON 里 status 字段为 null 的异常记录
+		Where("publishResult IS NOT NULL AND createTime >= ?", startTime).
+		Select("JSON_UNQUOTE(JSON_EXTRACT(publishResult, '$.status')) as `key`, COUNT(*) as value").
+		Group("JSON_EXTRACT(publishResult, '$.status')").
+		Having("`key` IS NOT NULL").
 		Scan(&rows).Error
-	return rows, err
+	return toBuckets(rows), err
+}
+
+// toBuckets 将内部扫描结构转换为对外 DTO，label 由 service 层填充
+func toBuckets(rows []bucketRow) []model.StatBucket {
+	result := make([]model.StatBucket, len(rows))
+	for i, r := range rows {
+		result[i] = model.StatBucket{Key: r.Key, Value: r.Value}
+	}
+	return result
 }
 
 // GetDB 暴露 db 给 service 层做并发查询
