@@ -96,7 +96,8 @@
 }
 
 @keyframes home-orb-drift {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0, 0) scale(1);
     opacity: 0.75;
   }
@@ -152,7 +153,8 @@
 }
 
 @keyframes home-char-breathe {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -160,7 +162,8 @@
   }
 }
 @keyframes home-tail-sway {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(0deg);
   }
   50% {
@@ -168,7 +171,8 @@
   }
 }
 @keyframes home-wing-flap {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(0deg) scale(1);
   }
   50% {
@@ -176,7 +180,8 @@
   }
 }
 @keyframes home-wave-right {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(0deg);
   }
   50% {
@@ -184,7 +189,8 @@
   }
 }
 @keyframes home-wave-left {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(0deg);
   }
   50% {
@@ -192,7 +198,8 @@
   }
 }
 @keyframes home-face-bob {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -200,7 +207,8 @@
   }
 }
 @keyframes home-aurora-drift {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0, 0) scale(1);
   }
   50% {
@@ -208,7 +216,8 @@
   }
 }
 @keyframes home-star-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.35;
     transform: scale(0.9);
   }
@@ -230,7 +239,9 @@
   animation-delay: var(--star-delay, 0s);
 }
 .home-scene__star--bright {
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 14px rgba(196, 181, 253, 0.45);
+  box-shadow:
+    0 0 8px rgba(255, 255, 255, 0.9),
+    0 0 14px rgba(196, 181, 253, 0.45);
 }
 .home-scene__star--purple {
   background: #e9d5ff;

@@ -30,12 +30,16 @@
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
-  animation: auth-star-pulse var(--star-dur, 3s) ease-in-out infinite, auth-star-drift var(--star-drift-dur, 12s) ease-in-out infinite alternate;
+  animation:
+    auth-star-pulse var(--star-dur, 3s) ease-in-out infinite,
+    auth-star-drift var(--star-drift-dur, 12s) ease-in-out infinite alternate;
   animation-delay: var(--star-delay, 0s), calc(var(--star-delay, 0s) + 0.4s);
 }
 .auth-scene__star--bright {
   background: #fff;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.95), 0 0 16px rgba(196, 181, 253, 0.45);
+  box-shadow:
+    0 0 8px rgba(255, 255, 255, 0.95),
+    0 0 16px rgba(196, 181, 253, 0.45);
 }
 .auth-scene__star--dust {
   background: rgba(255, 255, 255, 0.75);
@@ -71,7 +75,7 @@
   filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
 }
 .auth-scene__meteor::before {
-  content: "";
+  content: '';
   position: absolute;
   left: -4px;
   top: -2px;
@@ -79,7 +83,9 @@
   height: 6px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 0 10px #fff, 0 0 20px rgba(196, 181, 253, 0.8);
+  box-shadow:
+    0 0 10px #fff,
+    0 0 20px rgba(196, 181, 253, 0.8);
 }
 
 .auth-scene__moon {
@@ -90,7 +96,9 @@
   height: 68px;
   border-radius: 50%;
   background: radial-gradient(circle at 32% 32%, #fefce8, #fde047 55%, #ca8a04);
-  box-shadow: 0 0 50px rgba(253, 224, 71, 0.4), 0 0 100px rgba(139, 92, 246, 0.2);
+  box-shadow:
+    0 0 50px rgba(253, 224, 71, 0.4),
+    0 0 100px rgba(139, 92, 246, 0.2);
   animation: auth-moon-float 7s ease-in-out infinite;
 }
 
@@ -226,12 +234,14 @@
 
 .auth-scene__title {
   margin: 8px 0 2px;
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: clamp(20px, 2.8vw, 30px);
   font-weight: 700;
   letter-spacing: 0.25em;
   color: #faf5ff;
-  text-shadow: 0 0 20px rgba(249, 115, 22, 0.5), 0 0 30px rgba(56, 189, 248, 0.4);
+  text-shadow:
+    0 0 20px rgba(249, 115, 22, 0.5),
+    0 0 30px rgba(56, 189, 248, 0.4);
 }
 
 .auth-scene__subtitle {
@@ -412,7 +422,8 @@
   }
 }
 @keyframes auth-star-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
     filter: brightness(0.75);
   }
@@ -434,7 +445,9 @@
   }
 }
 @keyframes auth-meteor-fall {
-  0%, 78%, 100% {
+  0%,
+  78%,
+  100% {
     opacity: 0;
     transform: rotate(-42deg) translate(0, 0);
   }
@@ -490,7 +503,8 @@
   }
 }
 @keyframes auth-moon-float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -498,7 +512,8 @@
   }
 }
 @keyframes auth-glow-drift {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0, 0) scale(1);
   }
   50% {
@@ -506,7 +521,8 @@
   }
 }
 @keyframes auth-clash-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.25;
     transform: scale(1);
   }
@@ -516,7 +532,8 @@
   }
 }
 @keyframes auth-clash-flash {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.75;
     transform: scale(1);
   }
@@ -526,7 +543,8 @@
   }
 }
 @keyframes auth-nezha-lunge {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0) translateY(0) rotate(0deg);
   }
   45% {
@@ -537,7 +555,8 @@
   }
 }
 @keyframes auth-aobing-block {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0) translateY(0) rotate(0deg);
   }
   45% {
@@ -548,7 +567,8 @@
   }
 }
 @keyframes auth-spear-thrust {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   50% {
@@ -556,7 +576,8 @@
   }
 }
 @keyframes auth-spear-parry {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   50% {
@@ -564,7 +585,8 @@
   }
 }
 @keyframes auth-silk-flow {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(0deg) scale(1);
   }
   50% {
@@ -590,7 +612,8 @@
   }
 }
 @keyframes auth-hair-flow {
-  0%, 100% {
+  0%,
+  100% {
     transform: skewX(0deg);
   }
   50% {
@@ -598,7 +621,8 @@
   }
 }
 @keyframes auth-shield-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.2;
   }
   50% {
@@ -606,7 +630,8 @@
   }
 }
 @keyframes auth-tail-sway {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(0deg);
   }
   50% {
@@ -614,7 +639,8 @@
   }
 }
 @keyframes auth-spark {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
     transform: scale(0.8);
   }
@@ -632,11 +658,13 @@
   }
 }
 @keyframes auth-spray-pop {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0;
     transform: scale(0.6) translateY(8px);
   }
-  45%, 55% {
+  45%,
+  55% {
     opacity: 0.85;
     transform: scale(1.2) translateY(-12px);
   }

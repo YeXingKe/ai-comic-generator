@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import dayjs, { type Dayjs } from 'dayjs'
-import { Form, Button, Input, Modal, Select, DatePicker, InputNumber, Space, message,Switch } from 'antd'
+import { Form, Button, Input, Modal, Select, DatePicker, InputNumber, Space, message, Switch } from 'antd'
 import { addUser, updateUser } from '@/api/user'
 import type { UserInfo, UserRole } from '@/types/api'
 
@@ -87,7 +87,7 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
         if (!user) return
         const res = await updateUser({
           id: user.id,
-          status:user.status?1:0,
+          status: user.status ? 1 : 0,
           userName: values.userName?.trim() || null,
           userAvatar: values.userAvatar?.trim() || null,
           userProfile: values.userProfile?.trim() || null,
@@ -106,7 +106,7 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
       }
 
       const res = await addUser({
-        status: values.status?1:0,
+        status: values.status ? 1 : 0,
         userAccount: values.userAccount!.trim(),
         userName: values.userName?.trim() || null,
         userAvatar: values.userAvatar?.trim() || null,
@@ -130,21 +130,8 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
   }
 
   return (
-    <Modal
-      title={isEdit ? '编辑用户' : '新增用户'}
-      open={open}
-      onCancel={handleClose}
-      footer={null}
-      destroyOnClose
-      width={750}
-    >
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        requiredMark={false}
-        style={{ marginTop: 8 }}
-      >
+    <Modal title={isEdit ? '编辑用户' : '新增用户'} open={open} onCancel={handleClose} footer={null} destroyOnClose width={750}>
+      <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false} style={{ marginTop: 8 }}>
         {isEdit ? (
           <Form.Item label="账号">
             <Input value={user?.userAccount} disabled />
@@ -193,25 +180,12 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
         </Form.Item>
 
         {isVip && (
-          <Form.Item
-            name="vipTime"
-            label="VIP 开通时间"
-            rules={[{ required: true, message: '请选择 VIP 开通时间' }]}
-          >
-            <DatePicker
-              showTime
-              format="YYYY-MM-DD HH:mm:ss"
-              placeholder="选择 VIP 开通时间"
-              style={{ width: '100%' }}
-            />
+          <Form.Item name="vipTime" label="VIP 开通时间" rules={[{ required: true, message: '请选择 VIP 开通时间' }]}>
+            <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="选择 VIP 开通时间" style={{ width: '100%' }} />
           </Form.Item>
         )}
 
-        <Form.Item
-          name="quota"
-          label="可用额度"
-          rules={[{ required: true, message: '请输入可用额度' }]}
-        >
+        <Form.Item name="quota" label="可用额度" rules={[{ required: true, message: '请输入可用额度' }]}>
           <InputNumber min={0} precision={0} placeholder="可用文章生成次数" style={{ width: '100%' }} />
         </Form.Item>
 

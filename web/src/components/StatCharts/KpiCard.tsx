@@ -16,19 +16,14 @@ export default function KpiCard({ label, value, delta, icon, iconBg }: Props) {
       <div className="stat-charts__kpi-head">
         <span className="stat-charts__kpi-label">{label}</span>
         {icon && (
-          <span
-            className="stat-charts__kpi-icon"
-            style={iconBg ? { background: iconBg } : undefined}
-          >
+          <span className="stat-charts__kpi-icon" style={iconBg ? { background: iconBg } : undefined}>
             {icon}
           </span>
         )}
       </div>
       <span className="stat-charts__kpi-value">{value}</span>
       {delta !== undefined && (
-        <span
-          className={`stat-charts__kpi-delta stat-charts__kpi-delta--${delta >= 0 ? 'up' : 'down'}`}
-        >
+        <span className={`stat-charts__kpi-delta stat-charts__kpi-delta--${delta >= 0 ? 'up' : 'down'}`}>
           {delta >= 0 ? '↑' : '↓'} {Math.abs(delta)}% 较上周期
         </span>
       )}

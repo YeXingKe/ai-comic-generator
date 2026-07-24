@@ -41,9 +41,7 @@ export async function updatePassword(body: UpdatePasswordRequest) {
 
 export async function listUserVoByPage(body: QueryUserRequest) {
   const key = `user-page:${JSON.stringify(body)}`
-  return dedupeRequest(key, async () =>
-    unwrap(await request.post<BaseResponse<PageResult<UserInfo>>>('/user/page/vo', body)),
-  )
+  return dedupeRequest(key, async () => unwrap(await request.post<BaseResponse<PageResult<UserInfo>>>('/user/page/vo', body)))
 }
 
 export async function deleteUser(body: DeleteRequest) {
@@ -52,16 +50,12 @@ export async function deleteUser(body: DeleteRequest) {
 
 export async function updateUser(body: UpdateUserRequest) {
   const key = `user-update:${JSON.stringify(body)}`
-  return dedupeRequest(key, async () =>
-    unwrap(await request.post<BaseResponse<boolean>>('/user/update', body))
-  )
+  return dedupeRequest(key, async () => unwrap(await request.post<BaseResponse<boolean>>('/user/update', body)))
 }
 
 export async function addUser(body: AddUserRequest) {
   const key = `user-add:${JSON.stringify(body)}`
-  return dedupeRequest(key, async () =>
-    unwrap(await request.post<BaseResponse<boolean>>('/user/add', body))
-  )
+  return dedupeRequest(key, async () => unwrap(await request.post<BaseResponse<boolean>>('/user/add', body)))
 }
 
 export async function healthCheck() {

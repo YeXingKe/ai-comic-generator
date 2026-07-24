@@ -144,15 +144,7 @@ export default function AdminUsersPage() {
           </Form.Item>
         </Form>
 
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={data}
-          loading={loading}
-          pagination={pagination}
-          scroll={{ x: 1100 }}
-          className="page-shell__table"
-        />
+        <Table rowKey="id" columns={columns} dataSource={data} loading={loading} pagination={pagination} scroll={{ x: 1100 }} className="page-shell__table" />
       </div>
 
       <UserFormModal

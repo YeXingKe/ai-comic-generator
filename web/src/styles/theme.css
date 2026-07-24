@@ -83,15 +83,7 @@
   --color-text-muted: rgba(196, 181, 253, 0.55);
   --color-border: rgba(255, 255, 255, 0.12);
   --color-border-light: rgba(255, 255, 255, 0.08);
-  --gradient-hero: linear-gradient(
-    165deg,
-    #0a0618 0%,
-    #1e1033 18%,
-    #2e1065 42%,
-    #4c1d95 58%,
-    #312e81 78%,
-    #0f0a2e 100%
-  );
+  --gradient-hero: linear-gradient(165deg, #0a0618 0%, #1e1033 18%, #2e1065 42%, #4c1d95 58%, #312e81 78%, #0f0a2e 100%);
   --gradient-primary: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
   --bg-primary: #8b5cf6;
   --bg-primary-hover: #7c3aed;
@@ -134,7 +126,12 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'Work Sans',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   background: var(--app-body-bg);
   color: var(--app-text);

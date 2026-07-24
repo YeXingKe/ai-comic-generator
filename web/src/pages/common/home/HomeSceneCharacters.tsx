@@ -51,13 +51,7 @@ export function NiuniuCharacter() {
     <svg viewBox="0 0 400 480" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <ellipse cx="200" cy="456" rx="108" ry="15" fill="rgba(88,28,135,0.32)" />
       <g className="home-scene__niuniu-tail">
-        <path
-          d="M308 340c20 28 24 62 12 92-14 34-48 52-78 40"
-          stroke="#c4b5fd"
-          strokeWidth="14"
-          strokeLinecap="round"
-          fill="none"
-        />
+        <path d="M308 340c20 28 24 62 12 92-14 34-48 52-78 40" stroke="#c4b5fd" strokeWidth="14" strokeLinecap="round" fill="none" />
         <circle cx="318" cy="338" r="10" fill="#fff7ed" stroke="#ddd6fe" strokeWidth="3" />
       </g>
       <g className="home-scene__niuniu-body">
@@ -73,18 +67,8 @@ export function NiuniuCharacter() {
         <ellipse cx="234" cy="404" rx="16" ry="10" fill="#fdba74" />
       </g>
       <g className="home-scene__niuniu-hoodie">
-        <path
-          d="M128 290c8-42 36-68 72-68s64 26 72 68v36c0 18-32 32-72 32s-72-14-72-32v-36z"
-          fill="#8b5cf6"
-          opacity="0.92"
-        />
-        <path
-          d="M156 278c12-22 28-34 44-34s32 12 44 34"
-          stroke="#c4b5fd"
-          strokeWidth="6"
-          strokeLinecap="round"
-          fill="none"
-        />
+        <path d="M128 290c8-42 36-68 72-68s64 26 72 68v36c0 18-32 32-72 32s-72-14-72-32v-36z" fill="#8b5cf6" opacity="0.92" />
+        <path d="M156 278c12-22 28-34 44-34s32 12 44 34" stroke="#c4b5fd" strokeWidth="6" strokeLinecap="round" fill="none" />
       </g>
       <g className="home-scene__niuniu-face">
         <ellipse cx="148" cy="218" rx="22" ry="30" fill="#fff7ed" stroke="#fed7aa" strokeWidth="3" />

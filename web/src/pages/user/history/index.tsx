@@ -60,8 +60,7 @@ export default function HistoryPage() {
         title: '标题',
         dataIndex: 'title',
         ellipsis: true,
-        render: (title: string | null | undefined, record) =>
-          title || record.storyIdeation?.title || record.topic || '未命名作品',
+        render: (title: string | null | undefined, record) => title || record.storyIdeation?.title || record.topic || '未命名作品',
       },
       {
         title: '状态',
@@ -107,15 +106,7 @@ export default function HistoryPage() {
           <p>查看与管理你的全部漫画创作记录</p>
         </header>
 
-        <Table
-          rowKey="taskId"
-          columns={columns}
-          dataSource={records}
-          loading={loading}
-          pagination={tablePagination}
-          scroll={{ x: 960 }}
-          className="page-shell__table"
-        />
+        <Table rowKey="taskId" columns={columns} dataSource={records} loading={loading} pagination={tablePagination} scroll={{ x: 960 }} className="page-shell__table" />
       </div>
     </div>
   )

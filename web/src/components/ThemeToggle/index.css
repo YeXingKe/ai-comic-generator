@@ -20,7 +20,10 @@
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
   line-height: 1;
 }
 .theme-toggle__btn:hover {

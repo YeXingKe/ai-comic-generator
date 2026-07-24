@@ -13,7 +13,7 @@
 }
 
 .footer-logo {
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 18px;
   font-weight: 700;
   color: white;
@@ -45,6 +45,6 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
-[data-theme=classic] .global-footer {
+[data-theme='classic'] .global-footer {
   border-top: none;
 }

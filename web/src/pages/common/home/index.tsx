@@ -2,8 +2,16 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Button, Input } from 'antd'
 import {
-  FileTextOutlined, OrderedListOutlined, EditOutlined, PictureOutlined, ThunderboltOutlined,
-  ClockCircleOutlined, StarOutlined, RightOutlined, RocketOutlined, FireOutlined,
+  FileTextOutlined,
+  OrderedListOutlined,
+  EditOutlined,
+  PictureOutlined,
+  ThunderboltOutlined,
+  ClockCircleOutlined,
+  StarOutlined,
+  RightOutlined,
+  RocketOutlined,
+  FireOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { mockArticles } from '@/constants/mockArticles'
@@ -111,14 +119,10 @@ export default function HomePage() {
 
           <h1 className="home-hero__title">
             <span className="home-hero__title-line">用 AI 绘制</span>
-            <span className="home-hero__title-line home-hero__title-line--accent">
-              你的下一部漫画
-            </span>
+            <span className="home-hero__title-line home-hero__title-line--accent">你的下一部漫画</span>
           </h1>
 
-          <p className="home-hero__desc">
-            从灵感到分镜，一条龙的 AI 漫画工作流。奶龙与牛牛已就位，等你开画。
-          </p>
+          <p className="home-hero__desc">从灵感到分镜，一条龙的 AI 漫画工作流。奶龙与牛牛已就位，等你开画。</p>
 
           <div className="home-composer glass-panel">
             <Input
@@ -181,10 +185,7 @@ export default function HomePage() {
           </div>
           <div className="home-bento__grid">
             {features.map((feature) => (
-              <article
-                key={feature.title}
-                className={`home-bento__card glass-panel ${feature.span === 'wide' ? 'home-bento__card--wide' : ''}`}
-              >
+              <article key={feature.title} className={`home-bento__card glass-panel ${feature.span === 'wide' ? 'home-bento__card--wide' : ''}`}>
                 <div
                   className="home-bento__icon"
                   style={{
@@ -223,11 +224,7 @@ export default function HomePage() {
                 onClick={() => isAdmin && navigate(`/comic/${article.taskId}`)}
                 role={isAdmin ? 'button' : undefined}
                 tabIndex={isAdmin ? 0 : undefined}
-                onKeyDown={
-                  isAdmin
-                    ? (e) => e.key === 'Enter' && navigate(`/comic/${article.taskId}`)
-                    : undefined
-                }
+                onKeyDown={isAdmin ? (e) => e.key === 'Enter' && navigate(`/comic/${article.taskId}`) : undefined}
               >
                 <div className="home-works__cover">
                   {article.coverImage ? (
@@ -237,9 +234,7 @@ export default function HomePage() {
                       <FileTextOutlined />
                     </div>
                   )}
-                  <span className={`home-works__status ${statusClass(article.status)}`}>
-                    {statusLabel(article.status)}
-                  </span>
+                  <span className={`home-works__status ${statusClass(article.status)}`}>{statusLabel(article.status)}</span>
                 </div>
                 <div className="home-works__body">
                   <h3>{article.mainTitle || article.topic}</h3>
@@ -273,9 +268,7 @@ export default function HomePage() {
               </>
             )}
           </nav>
-          <p className="home-page__copyright-text">
-            © {new Date().getFullYear()} AI Comic Generator. All rights reserved.
-          </p>
+          <p className="home-page__copyright-text">© {new Date().getFullYear()} AI Comic Generator. All rights reserved.</p>
         </footer>
       </div>
     </div>

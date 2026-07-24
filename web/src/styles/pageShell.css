@@ -26,7 +26,7 @@
 }
 .page-shell__header h1 {
   margin: 0 0 8px;
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--app-text);

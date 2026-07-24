@@ -16,13 +16,7 @@ interface ReactEChartsProps {
  * 轻量 ECharts 容器：负责实例的创建、option 同步、resize 与销毁。
  * 不依赖 echarts-for-react，避免第三方 wrapper 对 React 19 的兼容问题。
  */
-export default function ReactECharts({
-  option,
-  height = 300,
-  themeKey,
-  loading = false,
-  className,
-}: ReactEChartsProps) {
+export default function ReactECharts({ option, height = 300, themeKey, loading = false, className }: ReactEChartsProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<echarts.ECharts | null>(null)
 
@@ -62,11 +56,5 @@ export default function ReactECharts({
     }
   }, [loading])
 
-  return (
-    <div
-      ref={containerRef}
-      className={className}
-      style={{ width: '100%', height }}
-    />
-  )
+  return <div ref={containerRef} className={className} style={{ width: '100%', height }} />
 }

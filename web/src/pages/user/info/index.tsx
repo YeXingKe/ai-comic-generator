@@ -13,7 +13,6 @@ type ProfileFormValues = {
   userProfile?: string
 }
 
-
 function avatarUrlRule() {
   return {
     validator: (_: unknown, value?: string) => {
@@ -79,34 +78,21 @@ export default function UserInfoPage() {
             <p>更新头像、昵称与简介，或修改登录密码</p>
           </div>
           <div className="page-shell__header-actions">
-            <Button
-              type="primary"
-              loading={profileSubmitting}
-              onClick={() => profileForm.submit()}
-            >
+            <Button type="primary" loading={profileSubmitting} onClick={() => profileForm.submit()}>
               保存资料
             </Button>
           </div>
         </header>
         <Card title="基本信息" className="user-info-page__card">
           <div className="user-info-page__avatar-row">
-            <Avatar
-              size={64}
-              src={avatarUrl || undefined}
-              icon={!avatarUrl ? <UserOutlined /> : undefined}
-            />
+            <Avatar size={64} src={avatarUrl || undefined} icon={!avatarUrl ? <UserOutlined /> : undefined} />
             <div>
               <p style={{ margin: '0 0 4px', fontWeight: 600 }}>{displayName}</p>
               <p className="user-info-page__avatar-hint">头像可通过下方 URL 更新</p>
             </div>
           </div>
 
-          <Form
-            form={profileForm}
-            layout="vertical"
-            onFinish={handleProfileSubmit}
-            requiredMark={false}
-          >
+          <Form form={profileForm} layout="vertical" onFinish={handleProfileSubmit} requiredMark={false}>
             <Form.Item label="账号">
               <Input value={loginUser.userAccount} disabled />
             </Form.Item>
@@ -137,7 +123,7 @@ export default function UserInfoPage() {
               <Input.TextArea placeholder="请输入个人简介" rows={3} maxLength={200} showCount />
             </Form.Item>
           </Form>
-        </Card>     
+        </Card>
       </div>
     </div>
   )

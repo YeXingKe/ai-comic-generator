@@ -13,7 +13,7 @@
 }
 .comic-workshop__hero h1 {
   margin: 0 0 6px;
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 26px;
   font-weight: 700;
   color: var(--app-text);
@@ -92,7 +92,7 @@
   cursor: default;
 }
 .flow-item:not(:last-child)::before {
-  content: "";
+  content: '';
   position: absolute;
   left: 15px;
   top: 44px;
@@ -646,7 +646,9 @@
   border-radius: 12px;
   background: var(--app-surface);
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 .title-option-card:hover {
   border-color: #c4b5fd;
@@ -692,12 +694,21 @@
 }
 
 @keyframes workshop-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 @keyframes workshop-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 @media (max-width: 1200px) {

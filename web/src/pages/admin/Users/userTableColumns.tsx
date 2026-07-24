@@ -4,10 +4,7 @@ import { Avatar, Button, Space, Popconfirm, Tag } from 'antd'
 import { UserOutlined } from '@ant-design/icons'
 import { formatUserTime, roleColor, roleLabel } from '@/utils/userTableHelpers'
 
-export function buildUserTableColumns(options: {
-  onEdit: (user: UserInfo) => void
-  onDelete: (id: number) => void
-}): ColumnsType<UserInfo> {
+export function buildUserTableColumns(options: { onEdit: (user: UserInfo) => void; onDelete: (id: number) => void }): ColumnsType<UserInfo> {
   return [
     { title: 'ID', dataIndex: 'id', width: 72, fixed: 'left' },
     { title: '账号', dataIndex: 'userAccount', width: 140, ellipsis: true },
@@ -24,11 +21,7 @@ export function buildUserTableColumns(options: {
       width: 72,
       render: (url: string | null | undefined) => {
         const avatarUrl = url?.trim()
-        return avatarUrl ? (
-          <Avatar src={avatarUrl} size={36} />
-        ) : (
-          <Avatar size={36} icon={<UserOutlined />} />
-        )
+        return avatarUrl ? <Avatar src={avatarUrl} size={36} /> : <Avatar size={36} icon={<UserOutlined />} />
       },
     },
     { title: '简介', dataIndex: 'userProfile', ellipsis: true, render: (v: string | null) => v || '--' },

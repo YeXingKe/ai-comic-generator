@@ -157,25 +157,10 @@ export interface ArticleVO {
 }
 
 /** 漫画任务状态 */
-export type ComicStatus =
-  | 'PENDING'
-  | 'PROCESSING'
-  | 'AWAITING_CONFIRM'
-  | 'TITLE_CONFIRMED'
-  | 'COMPLETED'
-  | 'FAILED'
+export type ComicStatus = 'PENDING' | 'PROCESSING' | 'AWAITING_CONFIRM' | 'TITLE_CONFIRMED' | 'COMPLETED' | 'FAILED'
 
 /** 漫画流水线阶段 */
-export type ComicPhase =
-  | 'PENDING'
-  | 'TITLE_GENERATION'
-  | 'TITLE_SELECTING'
-  | 'STORY_IDEATION'
-  | 'CHARACTER_DESIGN'
-  | 'STORYBOARD_SCRIPT'
-  | 'IMAGE_GENERATION'
-  | 'LAYOUT_COMPOSE'
-  | 'WECHAT_PUBLISH'
+export type ComicPhase = 'PENDING' | 'TITLE_GENERATION' | 'TITLE_SELECTING' | 'STORY_IDEATION' | 'CHARACTER_DESIGN' | 'STORYBOARD_SCRIPT' | 'IMAGE_GENERATION' | 'LAYOUT_COMPOSE' | 'WECHAT_PUBLISH'
 
 export interface TitleOption {
   title: string

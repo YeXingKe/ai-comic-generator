@@ -1,14 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { UploadProps } from 'antd'
+import { Image, Spin, Input, Button, Select, Radio, Checkbox, Upload, Alert, message } from 'antd'
 import {
-  Image, Spin, Input, Button, Select, Radio, Checkbox, Upload, Alert, message,
-} from 'antd'
-import {
-  CheckOutlined, FontSizeOutlined, EditOutlined, TeamOutlined,
-  OrderedListOutlined, PictureOutlined, LayoutOutlined, SendOutlined, FileTextOutlined,
-  BulbOutlined, PaperClipOutlined, RocketOutlined, DownloadOutlined, EyeOutlined,
-  LoadingOutlined, CheckCircleOutlined, CloseCircleOutlined, ReloadOutlined,
+  CheckOutlined,
+  FontSizeOutlined,
+  EditOutlined,
+  TeamOutlined,
+  OrderedListOutlined,
+  PictureOutlined,
+  LayoutOutlined,
+  SendOutlined,
+  FileTextOutlined,
+  BulbOutlined,
+  PaperClipOutlined,
+  RocketOutlined,
+  DownloadOutlined,
+  EyeOutlined,
+  LoadingOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import { COMIC_PHASE_LABEL, confirmComicTitle, createComic, getComic, startComicPipeline } from '@/api/comic'
 import type { ComicInfo, ComicPhase } from '@/types/api'
@@ -16,14 +28,7 @@ import { resolveComicAssetUrls } from '@/utils/assetUrl'
 import './index.css'
 
 /** 流水线六步（故事构思起，不含标题阶段） */
-const MAIN_PIPELINE_PHASES: ComicPhase[] = [
-  'STORY_IDEATION',
-  'CHARACTER_DESIGN',
-  'STORYBOARD_SCRIPT',
-  'IMAGE_GENERATION',
-  'LAYOUT_COMPOSE',
-  'WECHAT_PUBLISH',
-]
+const MAIN_PIPELINE_PHASES: ComicPhase[] = ['STORY_IDEATION', 'CHARACTER_DESIGN', 'STORYBOARD_SCRIPT', 'IMAGE_GENERATION', 'LAYOUT_COMPOSE', 'WECHAT_PUBLISH']
 
 function phaseToStepIndex(phase: ComicPhase): number {
   if (phase === 'TITLE_GENERATION' || phase === 'TITLE_SELECTING') return 0
@@ -32,7 +37,13 @@ function phaseToStepIndex(phase: ComicPhase): number {
 }
 
 const AGENT_STEPS = [
-  { phase: 'TITLE_SELECTING' as ComicPhase, title: '标题推荐', desc: 'AI 生成多个标题方案，选择或编辑后确认', icon: <FontSizeOutlined />, idleHint: '根据主题生成 4 个传播向标题方案，含副标题卖点说明。' },
+  {
+    phase: 'TITLE_SELECTING' as ComicPhase,
+    title: '标题推荐',
+    desc: 'AI 生成多个标题方案，选择或编辑后确认',
+    icon: <FontSizeOutlined />,
+    idleHint: '根据主题生成 4 个传播向标题方案，含副标题卖点说明。',
+  },
   { phase: 'STORY_IDEATION' as ComicPhase, title: '故事构思', desc: '基于确认标题，生成故事梗概与情节', icon: <EditOutlined />, idleHint: '输出梗概、主题、基调、核心冲突与亮点情节。' },
   { phase: 'CHARACTER_DESIGN' as ComicPhase, title: '角色设定', desc: '设计角色外貌、性格与关系', icon: <TeamOutlined />, idleHint: '生成主角与配角的外貌、性格及角色关系。' },
   { phase: 'STORYBOARD_SCRIPT' as ComicPhase, title: '分镜脚本', desc: '规划分镜格、台词与画面描述', icon: <OrderedListOutlined />, idleHint: '按格数规划场景、台词、旁白与镜头描述。' },
@@ -91,14 +102,7 @@ function getStepStatus(index: number, comic: ComicInfo | null, creating: boolean
   return 'pending'
 }
 
-function buildUserDescription(
-  tone: string,
-  panelCount: number,
-  colorMode: string,
-  keepConsistency: boolean,
-  outputFormat: string,
-  saveDraft: boolean,
-): string {
+function buildUserDescription(tone: string, panelCount: number, colorMode: string, keepConsistency: boolean, outputFormat: string, saveDraft: boolean): string {
   const parts: string[] = []
   if (tone) parts.push(`基调：${tone}`)
   parts.push(`格数：${panelCount}`)
@@ -121,15 +125,7 @@ function getActiveStepIndex(comic: ComicInfo | null, creating: boolean): number 
   return idx >= 0 ? idx : 0
 }
 
-function renderStepDetailContent(
-  stepIndex: number,
-  comic: ComicInfo | null,
-  creating: boolean,
-  isRunning: boolean,
-  isGeneratingTitles: boolean,
-  isAwaitingTitle: boolean,
-  isTitleConfirmed: boolean,
-) {
+function renderStepDetailContent(stepIndex: number, comic: ComicInfo | null, creating: boolean, isRunning: boolean, isGeneratingTitles: boolean, isAwaitingTitle: boolean, isTitleConfirmed: boolean) {
   const step = AGENT_STEPS[stepIndex]
   const status = getStepStatus(stepIndex, comic, creating)
 
@@ -142,11 +138,7 @@ function renderStepDetailContent(
         </div>
       )
     }
-    return (
-      <p className="step-detail__empty">
-        等待前序步骤完成后，将在此展示{step.title}的产出内容。
-      </p>
-    )
+    return <p className="step-detail__empty">等待前序步骤完成后，将在此展示{step.title}的产出内容。</p>
   }
 
   if (!comic) return null
@@ -178,18 +170,35 @@ function renderStepDetailContent(
       if (comic.storyIdeation) {
         return (
           <div className="step-detail">
-            <p><strong>标题：</strong>{comic.storyIdeation.title}</p>
-            <p><strong>梗概：</strong>{comic.storyIdeation.synopsis}</p>
-            <p><strong>主题：</strong>{comic.storyIdeation.theme}</p>
-            <p><strong>基调：</strong>{comic.storyIdeation.tone}</p>
+            <p>
+              <strong>标题：</strong>
+              {comic.storyIdeation.title}
+            </p>
+            <p>
+              <strong>梗概：</strong>
+              {comic.storyIdeation.synopsis}
+            </p>
+            <p>
+              <strong>主题：</strong>
+              {comic.storyIdeation.theme}
+            </p>
+            <p>
+              <strong>基调：</strong>
+              {comic.storyIdeation.tone}
+            </p>
             {comic.storyIdeation.keyConflict && (
-              <p><strong>核心冲突：</strong>{comic.storyIdeation.keyConflict}</p>
+              <p>
+                <strong>核心冲突：</strong>
+                {comic.storyIdeation.keyConflict}
+              </p>
             )}
             {comic.storyIdeation.highlights?.length > 0 && (
               <div>
                 <strong>亮点情节：</strong>
                 <ul>
-                  {comic.storyIdeation.highlights.map((h, i) => <li key={i}>{h}</li>)}
+                  {comic.storyIdeation.highlights.map((h, i) => (
+                    <li key={i}>{h}</li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -303,10 +312,26 @@ function renderStepDetailContent(
       if (comic.publishResult) {
         return (
           <div className="step-detail">
-            <p><strong>状态：</strong>{comic.publishResult.status}</p>
-            <p><strong>标题：</strong>{comic.publishResult.title}</p>
-            {comic.publishResult.mediaId && <p><strong>Media ID：</strong>{comic.publishResult.mediaId}</p>}
-            {comic.publishResult.articleUrl && <p><strong>链接：</strong>{comic.publishResult.articleUrl}</p>}
+            <p>
+              <strong>状态：</strong>
+              {comic.publishResult.status}
+            </p>
+            <p>
+              <strong>标题：</strong>
+              {comic.publishResult.title}
+            </p>
+            {comic.publishResult.mediaId && (
+              <p>
+                <strong>Media ID：</strong>
+                {comic.publishResult.mediaId}
+              </p>
+            )}
+            {comic.publishResult.articleUrl && (
+              <p>
+                <strong>链接：</strong>
+                {comic.publishResult.articleUrl}
+              </p>
+            )}
           </div>
         )
       }
@@ -352,13 +377,7 @@ export default function CreatePage() {
 
   const isAwaitingTitle = comic?.status === 'AWAITING_CONFIRM'
   const isTitleConfirmed = comic?.status === 'TITLE_CONFIRMED'
-  const isGeneratingTitles =
-    !!taskId &&
-    !isAwaitingTitle &&
-    !isTitleConfirmed &&
-    (!comic ||
-      comic.status === 'PENDING' ||
-      (comic.status === 'PROCESSING' && comic.phase === 'TITLE_GENERATION'))
+  const isGeneratingTitles = !!taskId && !isAwaitingTitle && !isTitleConfirmed && (!comic || comic.status === 'PENDING' || (comic.status === 'PROCESSING' && comic.phase === 'TITLE_GENERATION'))
   const isPipelineRunning = comic?.status === 'PROCESSING' && !isGeneratingTitles
   const isBusy = creating || isAwaitingTitle || isTitleConfirmed || isGeneratingTitles || isPipelineRunning
   const isRunning = isGeneratingTitles || isPipelineRunning
@@ -420,9 +439,7 @@ export default function CreatePage() {
     titleInitRef.current = false
 
     try {
-      const userDescription = buildUserDescription(
-        tone, panelCount, colorMode, keepConsistency, outputFormat, saveDraft,
-      )
+      const userDescription = buildUserDescription(tone, panelCount, colorMode, keepConsistency, outputFormat, saveDraft)
       const res = await createComic({
         topic: trimmed,
         style: artStyle,
@@ -501,17 +518,7 @@ export default function CreatePage() {
   const displayStepIndex = selectedStep ?? activeStepIndex
   const displayStep = displayStepIndex !== null ? AGENT_STEPS[displayStepIndex] : null
 
-  const stepDetailContent = displayStepIndex !== null
-    ? renderStepDetailContent(
-      displayStepIndex,
-      comic,
-      creating,
-      isRunning,
-      isGeneratingTitles,
-      isAwaitingTitle,
-      isTitleConfirmed,
-    )
-    : null
+  const stepDetailContent = displayStepIndex !== null ? renderStepDetailContent(displayStepIndex, comic, creating, isRunning, isGeneratingTitles, isAwaitingTitle, isTitleConfirmed) : null
 
   const previewPanels = comic?.panelImages ?? []
   const previewComposed = comic?.composedLayout?.previewUrl
@@ -568,12 +575,8 @@ export default function CreatePage() {
                       {step.icon}
                       <span>{step.title}</span>
                       {status === 'completed' && <span className="flow-item__badge">已完成</span>}
-                      {status === 'active' && isAwaitingTitle && index === 0 && (
-                        <span className="flow-item__badge flow-item__badge--active">待确认</span>
-                      )}
-                      {status === 'active' && !(isAwaitingTitle && index === 0) && (
-                        <span className="flow-item__badge flow-item__badge--active">进行中</span>
-                      )}
+                      {status === 'active' && isAwaitingTitle && index === 0 && <span className="flow-item__badge flow-item__badge--active">待确认</span>}
+                      {status === 'active' && !(isAwaitingTitle && index === 0) && <span className="flow-item__badge flow-item__badge--active">进行中</span>}
                       {status === 'failed' && <span className="flow-item__badge flow-item__badge--failed">失败</span>}
                       {status === 'pending' && <span className="flow-item__badge flow-item__badge--pending">待执行</span>}
                     </div>
@@ -600,59 +603,34 @@ export default function CreatePage() {
           <div className="config-form">
             <div className="config-row">
               <label>主题</label>
-              <Input.TextArea
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="例如：程序员加班夜"
-                disabled={isBusy}
-              />
+              <Input.TextArea value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="例如：程序员加班夜" disabled={isBusy} />
             </div>
 
             <div className="config-row config-row--inline">
               <div className="config-field">
                 <label>格数</label>
-                <Select
-                  value={panelCount}
-                  onChange={setPanelCount}
-                  options={PANEL_OPTIONS}
-                  disabled={isBusy}
-                  style={{ width: '100%' }}
-                />
+                <Select value={panelCount} onChange={setPanelCount} options={PANEL_OPTIONS} disabled={isBusy} style={{ width: '100%' }} />
               </div>
               <div className="config-field">
                 <label>基调</label>
-                <Select
-                  value={tone}
-                  onChange={setTone}
-                  options={TONE_OPTIONS}
-                  disabled={isBusy}
-                  style={{ width: '100%' }}
-                />
+                <Select value={tone} onChange={setTone} options={TONE_OPTIONS} disabled={isBusy} style={{ width: '100%' }} />
               </div>
             </div>
 
             <div className="config-row">
               <label>画风</label>
-              <Radio.Group
-                value={artStyle}
-                onChange={(e) => setArtStyle(e.target.value)}
-                disabled={isBusy}
-                className="config-radio-group"
-              >
+              <Radio.Group value={artStyle} onChange={(e) => setArtStyle(e.target.value)} disabled={isBusy} className="config-radio-group">
                 {ART_STYLE_OPTIONS.map((opt) => (
-                  <Radio.Button key={opt.value} value={opt.value}>{opt.label}</Radio.Button>
+                  <Radio.Button key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </Radio.Button>
                 ))}
               </Radio.Group>
             </div>
 
             <div className="config-row">
               <label>色彩</label>
-              <Radio.Group
-                value={colorMode}
-                onChange={(e) => setColorMode(e.target.value)}
-                disabled={isBusy}
-                className="config-radio-group"
-              >
+              <Radio.Group value={colorMode} onChange={(e) => setColorMode(e.target.value)} disabled={isBusy} className="config-radio-group">
                 <Radio.Button value="color">全彩</Radio.Button>
                 <Radio.Button value="bw">黑白</Radio.Button>
               </Radio.Group>
@@ -661,19 +639,15 @@ export default function CreatePage() {
             <div className="config-row">
               <label>角色参考</label>
               <Upload {...uploadProps} disabled={isBusy}>
-                <Button icon={<PaperClipOutlined />} disabled={isBusy}>上传图片</Button>
+                <Button icon={<PaperClipOutlined />} disabled={isBusy}>
+                  上传图片
+                </Button>
               </Upload>
             </div>
 
             <div className="config-row">
               <label>引擎</label>
-              <Select
-                value={engine}
-                onChange={setEngine}
-                disabled={isBusy}
-                style={{ width: '100%' }}
-                options={[{ value: 'hunyuan', label: '混元生图' }]}
-              />
+              <Select value={engine} onChange={setEngine} disabled={isBusy} style={{ width: '100%' }} options={[{ value: 'hunyuan', label: '混元生图' }]} />
             </div>
 
             <div className="config-checks">
@@ -684,12 +658,7 @@ export default function CreatePage() {
 
             <div className="config-row">
               <label>输出</label>
-              <Radio.Group
-                value={outputFormat}
-                onChange={(e) => setOutputFormat(e.target.value)}
-                disabled={isBusy}
-                className="config-radio-group"
-              >
+              <Radio.Group value={outputFormat} onChange={(e) => setOutputFormat(e.target.value)} disabled={isBusy} className="config-radio-group">
                 <Radio.Button value="long">长图</Radio.Button>
                 <Radio.Button value="single">单张</Radio.Button>
               </Radio.Group>
@@ -703,7 +672,9 @@ export default function CreatePage() {
 
             {!isBusy && (
               <div className="config-hot">
-                <span className="config-hot__label"><BulbOutlined /> 热门主题</span>
+                <span className="config-hot__label">
+                  <BulbOutlined /> 热门主题
+                </span>
                 <div className="config-hot__tags">
                   {HOT_TOPICS.map((t) => (
                     <button key={t} type="button" className="config-hot__tag" onClick={() => setTopic(t)}>
@@ -715,43 +686,18 @@ export default function CreatePage() {
             )}
 
             {!isAwaitingTitle && !isTitleConfirmed && (
-              <Button
-                type="primary"
-                size="large"
-                block
-                icon={<RocketOutlined />}
-                loading={isRunning}
-                onClick={startCreate}
-                disabled={isBusy && !isRunning}
-                className="config-submit"
-              >
+              <Button type="primary" size="large" block icon={<RocketOutlined />} loading={isRunning} onClick={startCreate} disabled={isBusy && !isRunning} className="config-submit">
                 {isGeneratingTitles ? '正在生成标题…' : isPipelineRunning ? '创作进行中…' : '开始创作'}
               </Button>
             )}
 
-            {isAwaitingTitle && (
-              <Alert
-                type="info"
-                showIcon
-                message="标题推荐已生成"
-                description="请在下方预览区选择或编辑标题并确认。"
-                className="config-alert"
-              />
-            )}
+            {isAwaitingTitle && <Alert type="info" showIcon message="标题推荐已生成" description="请在下方预览区选择或编辑标题并确认。" className="config-alert" />}
 
             {isTitleConfirmed && (
-              <Alert
-                type="success"
-                showIcon
-                message="标题已确认"
-                description={`《${pendingTitle || comic?.title}》已锁定，请在预览区点击「开始生成漫画」。`}
-                className="config-alert"
-              />
+              <Alert type="success" showIcon message="标题已确认" description={`《${pendingTitle || comic?.title}》已锁定，请在预览区点击「开始生成漫画」。`} className="config-alert" />
             )}
 
-            {comic?.status === 'FAILED' && (
-              <Alert type="error" message={comic.errorMessage || '创作失败'} showIcon className="config-alert" />
-            )}
+            {comic?.status === 'FAILED' && <Alert type="error" message={comic.errorMessage || '创作失败'} showIcon className="config-alert" />}
           </div>
         </section>
 
@@ -759,9 +705,7 @@ export default function CreatePage() {
         <aside className="comic-workshop__detail">
           <div className="comic-workshop__section-head">
             <h2>步骤详情</h2>
-            {displayStep && (
-              <span>{displayStep.title}</span>
-            )}
+            {displayStep && <span>{displayStep.title}</span>}
           </div>
 
           <div className="detail-panel">
@@ -769,9 +713,7 @@ export default function CreatePage() {
               <div className="detail-idle">
                 <FileTextOutlined className="detail-idle__icon" />
                 <p className="detail-idle__lead">尚未开始创作</p>
-                <p className="detail-idle__desc">
-                  配置参数并点击「开始创作」后，此处将实时展示每个智能体环节的产出。点击左侧流程可切换查看。
-                </p>
+                <p className="detail-idle__desc">配置参数并点击「开始创作」后，此处将实时展示每个智能体环节的产出。点击左侧流程可切换查看。</p>
                 <ul className="detail-idle__steps">
                   {AGENT_STEPS.map((step, i) => (
                     <li key={step.phase}>
@@ -795,9 +737,7 @@ export default function CreatePage() {
                     </div>
                   </div>
                 )}
-                <div className="detail-panel__body">
-                  {stepDetailContent}
-                </div>
+                <div className="detail-panel__body">{stepDetailContent}</div>
               </>
             )}
           </div>
@@ -856,14 +796,7 @@ export default function CreatePage() {
                     showCount
                   />
                 </div>
-                <Button
-                  type="primary"
-                  size="large"
-                  icon={<CheckOutlined />}
-                  loading={confirmingTitle}
-                  onClick={handleConfirmTitle}
-                  className="title-select-panel__confirm"
-                >
+                <Button type="primary" size="large" icon={<CheckOutlined />} loading={confirmingTitle} onClick={handleConfirmTitle} className="title-select-panel__confirm">
                   确认标题
                 </Button>
               </div>
@@ -872,14 +805,7 @@ export default function CreatePage() {
                 <h3 className="title-select-panel__head">标题已确认</h3>
                 <p className="title-select-panel__confirmed-title">{pendingTitle || comic?.title}</p>
                 <p className="title-select-panel__hint">确认无误后，点击下方按钮正式启动 AI 漫画生成流水线。</p>
-                <Button
-                  type="primary"
-                  size="large"
-                  icon={<RocketOutlined />}
-                  loading={startingPipeline}
-                  onClick={handleStartPipeline}
-                  className="title-select-panel__confirm"
-                >
+                <Button type="primary" size="large" icon={<RocketOutlined />} loading={startingPipeline} onClick={handleStartPipeline} className="title-select-panel__confirm">
                   开始生成漫画
                 </Button>
               </div>
@@ -919,22 +845,21 @@ export default function CreatePage() {
                 >
                   下载
                 </Button>
-                <Button
-                  type="primary"
-                  icon={<EyeOutlined />}
-                  onClick={() => navigate(`/comic/${taskId}`)}
-                >
+                <Button type="primary" icon={<EyeOutlined />} onClick={() => navigate(`/comic/${taskId}`)}>
                   查看详情
                 </Button>
-                <Button icon={<ReloadOutlined />} onClick={() => {
-                  setComic(null)
-                  setTaskId('')
-                  setCreating(false)
-                  setPendingTitle('')
-                  setSelectedTitleIdx(null)
-                  setSelectedStep(null)
-                  titleInitRef.current = false
-                }}>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={() => {
+                    setComic(null)
+                    setTaskId('')
+                    setCreating(false)
+                    setPendingTitle('')
+                    setSelectedTitleIdx(null)
+                    setSelectedStep(null)
+                    titleInitRef.current = false
+                  }}
+                >
                   再创作一篇
                 </Button>
               </div>

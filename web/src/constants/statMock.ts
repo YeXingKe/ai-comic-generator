@@ -1,12 +1,4 @@
-import type {
-  ComicPhase,
-  ComicStatus,
-  StatBucket,
-  StatDashboard,
-  StatRange,
-  StatTrendPoint,
-  UserRole,
-} from '@/types/api'
+import type { ComicPhase, ComicStatus, StatBucket, StatDashboard, StatRange, StatTrendPoint, UserRole } from '@/types/api'
 
 /* ── 维度标签映射（与真实模型枚举对齐） ── */
 
@@ -20,16 +12,7 @@ export const STATUS_LABELS: Record<ComicStatus, string> = {
 }
 
 /** 流水线阶段按执行顺序排列，用于漏斗图 */
-export const PHASE_ORDER: ComicPhase[] = [
-  'TITLE_GENERATION',
-  'TITLE_SELECTING',
-  'STORY_IDEATION',
-  'CHARACTER_DESIGN',
-  'STORYBOARD_SCRIPT',
-  'IMAGE_GENERATION',
-  'LAYOUT_COMPOSE',
-  'WECHAT_PUBLISH',
-]
+export const PHASE_ORDER: ComicPhase[] = ['TITLE_GENERATION', 'TITLE_SELECTING', 'STORY_IDEATION', 'CHARACTER_DESIGN', 'STORYBOARD_SCRIPT', 'IMAGE_GENERATION', 'LAYOUT_COMPOSE', 'WECHAT_PUBLISH']
 
 export const PHASE_LABELS: Record<ComicPhase, string> = {
   PENDING: '等待中',
@@ -107,9 +90,7 @@ export function buildMockDashboard(range: StatRange): StatDashboard {
   const completedComics = sum(trend, 'completed') + 168
   const completionRate = Number((completedComics / totalComics).toFixed(3))
   const weeklyNewComics = sum(trend.slice(-7), 'count')
-  const avgDurationMin = Number(
-    (trend.reduce((a, p) => a + p.avgDurationMin, 0) / trend.length).toFixed(1),
-  )
+  const avgDurationMin = Number((trend.reduce((a, p) => a + p.avgDurationMin, 0) / trend.length).toFixed(1))
 
   const statusDistribution: StatBucket[] = [
     { key: 'COMPLETED', label: STATUS_LABELS.COMPLETED, value: completedComics },

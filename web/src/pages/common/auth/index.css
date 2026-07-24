@@ -41,7 +41,10 @@
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(24px);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(139, 92, 246, 0.15) inset, 0 0 60px rgba(139, 92, 246, 0.15);
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(139, 92, 246, 0.15) inset,
+    0 0 60px rgba(139, 92, 246, 0.15);
   animation: auth-panel-enter 0.6s ease-out;
 }
 
@@ -50,7 +53,7 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 28px;
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: #faf5ff;
@@ -85,7 +88,7 @@
   padding: 10px 0;
   border: none;
   background: transparent;
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: rgba(233, 213, 255, 0.65);
@@ -116,7 +119,7 @@
 }
 .auth-panel__header h1 {
   margin: 0 0 8px;
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 26px;
   font-weight: 700;
   color: #fff;
@@ -150,7 +153,10 @@
   background: var(--auth-input-bg) !important;
   border: 1px solid var(--auth-input-border) !important;
   box-shadow: none !important;
-  transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 .auth-panel__form .ant-input-affix-wrapper:hover:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-focused),
 .auth-panel__form .ant-input-affix-wrapper-lg:hover:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-focused) {

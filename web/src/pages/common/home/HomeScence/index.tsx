@@ -79,11 +79,7 @@ export default function HomeScene() {
 
       <div className="home-scene__stars">
         {STARS.map((star, i) => (
-          <span
-            key={i}
-            className={`home-scene__star home-scene__star--${star.variant}`}
-            style={starStyle(star)}
-          />
+          <span key={i} className={`home-scene__star home-scene__star--${star.variant}`} style={starStyle(star)} />
         ))}
       </div>
 

@@ -34,8 +34,7 @@ function buildStars(count: number, seed: number): StarSpec[] {
     const roll = rand()
     const left = rand() * 99 + 0.5
     const top = rand() * 56 + 1
-    const size =
-      roll > 0.92 ? 2.8 + rand() * 1.4 : roll > 0.72 ? 1.6 + rand() * 0.9 : 0.6 + rand() * 1.1
+    const size = roll > 0.92 ? 2.8 + rand() * 1.4 : roll > 0.72 ? 1.6 + rand() * 0.9 : 0.6 + rand() * 1.1
     const opacity = 0.18 + rand() * 0.72
     const colorRoll = rand()
 
@@ -71,11 +70,8 @@ function buildDustBackground(count: number, seed: number): string {
     const y = rand() * 58
     const px = rand() > 0.75 ? 1.4 : 1
     const alpha = 0.12 + rand() * 0.38
-    const rgb =
-      rand() > 0.88 ? '196,181,253' : rand() > 0.76 ? '186,230,253' : '255,255,255'
-    layers.push(
-      `radial-gradient(${px}px ${px}px at ${x.toFixed(2)}% ${y.toFixed(2)}%, rgba(${rgb},${alpha.toFixed(2)}), transparent)`,
-    )
+    const rgb = rand() > 0.88 ? '196,181,253' : rand() > 0.76 ? '186,230,253' : '255,255,255'
+    layers.push(`radial-gradient(${px}px ${px}px at ${x.toFixed(2)}% ${y.toFixed(2)}%, rgba(${rgb},${alpha.toFixed(2)}), transparent)`)
   }
 
   return layers.join(',')
@@ -160,17 +156,10 @@ const FISH = [
 function SkyDecor() {
   return (
     <>
-      <div
-        className="auth-scene__stars auth-scene__stars--dense"
-        style={{ backgroundImage: DUST_BACKGROUND }}
-      />
+      <div className="auth-scene__stars auth-scene__stars--dense" style={{ backgroundImage: DUST_BACKGROUND }} />
       <div className="auth-scene__stars-layer">
         {STARS.map((star, i) => (
-          <span
-            key={i}
-            className={`auth-scene__star auth-scene__star--${star.variant}`}
-            style={starStyle(star)}
-          />
+          <span key={i} className={`auth-scene__star auth-scene__star--${star.variant}`} style={starStyle(star)} />
         ))}
       </div>
       <div className="auth-scene__meteors">
@@ -198,24 +187,10 @@ function FishIcon({ color }: { color: string }) {
         <ellipse cx="20" cy="14" rx="15" ry="9" fill={color} opacity="0.92" />
         <ellipse cx="20" cy="14" rx="11" ry="6.5" fill={color} opacity="0.55" />
         <g className="auth-scene__fish-fin auth-scene__fish-fin--dorsal">
-          <path
-            d="M14 6 C18 4, 24 4, 28 7"
-            stroke={color}
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            fill="none"
-            opacity="0.7"
-          />
+          <path d="M14 6 C18 4, 24 4, 28 7" stroke={color} strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.7" />
         </g>
         <g className="auth-scene__fish-fin auth-scene__fish-fin--pectoral">
-          <path
-            d="M16 16 C12 20, 10 22, 8 24"
-            stroke={color}
-            strokeWidth="2"
-            strokeLinecap="round"
-            fill="none"
-            opacity="0.65"
-          />
+          <path d="M16 16 C12 20, 10 22, 8 24" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.65" />
         </g>
         <circle cx="11" cy="13" r="2" fill="#1e1b4b" opacity="0.55" />
         <circle cx="10.5" cy="12.5" r="0.8" fill="#fff" opacity="0.8" />
@@ -242,10 +217,7 @@ function SeaFish() {
             animationDelay: `${fish.delay}s`,
           }}
         >
-          <div
-            className="auth-scene__fish-scaler"
-            style={{ transform: `scale(${fish.scale})` }}
-          >
+          <div className="auth-scene__fish-scaler" style={{ transform: `scale(${fish.scale})` }}>
             <FishIcon color={fish.color} />
           </div>
         </div>
@@ -255,8 +227,7 @@ function SeaFish() {
 }
 
 function OceanWaves() {
-  const wavePath =
-    'M0,64 C120,96 240,32 360,64 C480,96 600,32 720,64 C840,96 960,32 1080,64 C1200,96 1320,32 1440,64 L1440,200 L0,200 Z'
+  const wavePath = 'M0,64 C120,96 240,32 360,64 C480,96 600,32 720,64 C840,96 960,32 1080,64 C1200,96 1320,32 1440,64 L1440,200 L0,200 Z'
 
   return (
     <div className="auth-scene__ocean">
@@ -281,12 +252,7 @@ function OceanWaves() {
 
 function BattleIllustration() {
   return (
-    <svg
-      className="auth-scene__battle"
-      viewBox="0 0 900 480"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg className="auth-scene__battle" viewBox="0 0 900 480" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#ffe8d6" />
@@ -346,25 +312,9 @@ function BattleIllustration() {
         <circle cx="450" cy="218" r="72" fill="url(#clashGlow)" opacity="0.85" />
         <circle cx="450" cy="218" r="28" fill="#fff" opacity="0.55" />
         {[0, 45, 90, 135].map((deg) => (
-          <line
-            key={deg}
-            x1="450"
-            y1="218"
-            x2="450"
-            y2="168"
-            stroke="#fde68a"
-            strokeWidth="3"
-            strokeLinecap="round"
-            opacity="0.75"
-            transform={`rotate(${deg} 450 218)`}
-          />
+          <line key={deg} x1="450" y1="218" x2="450" y2="168" stroke="#fde68a" strokeWidth="3" strokeLinecap="round" opacity="0.75" transform={`rotate(${deg} 450 218)`} />
         ))}
-        <path
-          d="M430 198 L450 178 L470 198 L450 238 Z"
-          fill="#fff"
-          opacity="0.5"
-          filter="url(#softGlow)"
-        />
+        <path d="M430 198 L450 178 L470 198 L450 238 Z" fill="#fff" opacity="0.5" filter="url(#softGlow)" />
       </g>
 
       {/* 哪吒 */}
@@ -379,14 +329,7 @@ function BattleIllustration() {
           fill="none"
           opacity="0.9"
         />
-        <path
-          className="auth-scene__silk auth-scene__silk--b"
-          d="M225 125 C270 105, 310 125, 340 165 C305 150, 265 130, 225 145"
-          stroke="#ef4444"
-          strokeWidth="8"
-          strokeLinecap="round"
-          fill="none"
-        />
+        <path className="auth-scene__silk auth-scene__silk--b" d="M225 125 C270 105, 310 125, 340 165 C305 150, 265 130, 225 145" stroke="#ef4444" strokeWidth="8" strokeLinecap="round" fill="none" />
 
         {/* 风火轮 */}
         <g className="auth-scene__wheel auth-scene__wheel--nezha">
@@ -446,15 +389,7 @@ function BattleIllustration() {
       {/* 敖丙 */}
       <g className="auth-scene__aobing">
         {/* 龙尾幻影 */}
-        <path
-          className="auth-scene__tail"
-          d="M710 340 C760 360, 790 330, 820 350 C795 345, 755 355, 720 348"
-          stroke="#38bdf8"
-          strokeWidth="6"
-          strokeLinecap="round"
-          fill="none"
-          opacity="0.55"
-        />
+        <path className="auth-scene__tail" d="M710 340 C760 360, 790 330, 820 350 C795 345, 755 355, 720 348" stroke="#38bdf8" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.55" />
 
         {/* 腿 */}
         <path d="M655 305 L640 365" stroke="#334155" strokeWidth="16" strokeLinecap="round" />
@@ -486,16 +421,8 @@ function BattleIllustration() {
         <path d="M668 168 L662 145 L674 162 Z" fill="#e0f2fe" stroke="#38bdf8" strokeWidth="1" />
         <path d="M708 168 L714 143 L700 160 Z" fill="#e0f2fe" stroke="#38bdf8" strokeWidth="1" />
         {/* 长发 */}
-        <path
-          className="auth-scene__hair"
-          d="M658 178 C640 200, 628 240, 620 280 C635 250, 650 210, 668 190"
-          fill="#1e3a5f"
-        />
-        <path
-          className="auth-scene__hair auth-scene__hair--b"
-          d="M718 178 C738 200, 752 245, 760 290 C742 255, 728 215, 712 192"
-          fill="#0f2744"
-        />
+        <path className="auth-scene__hair" d="M658 178 C640 200, 628 240, 620 280 C635 250, 650 210, 668 190" fill="#1e3a5f" />
+        <path className="auth-scene__hair auth-scene__hair--b" d="M718 178 C738 200, 752 245, 760 290 C742 255, 728 215, 712 192" fill="#0f2744" />
         <path d="M662 175 C680 162, 710 162, 728 178 C715 188, 675 188, 662 175 Z" fill="#1e3a5f" />
         {/* 五官 - 冷峻 */}
         <path d="M672 192 L682 190" stroke="#64748b" strokeWidth="2" strokeLinecap="round" />
@@ -507,14 +434,7 @@ function BattleIllustration() {
         <path d="M680 212 Q690 216 700 212" stroke="#64748b" strokeWidth="1.5" fill="none" />
 
         {/* 冰晶护盾 */}
-        <path
-          className="auth-scene__shield"
-          d="M620 230 C600 250, 595 290, 615 320 C635 295, 640 255, 625 235 Z"
-          fill="#38bdf8"
-          opacity="0.25"
-          stroke="#7dd3fc"
-          strokeWidth="2"
-        />
+        <path className="auth-scene__shield" d="M620 230 C600 250, 595 290, 615 320 C635 295, 640 255, 625 235 Z" fill="#38bdf8" opacity="0.25" stroke="#7dd3fc" strokeWidth="2" />
       </g>
 
       {/* 飞溅粒子 */}

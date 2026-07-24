@@ -4,15 +4,7 @@ import { Segmented, message } from 'antd'
 import { useThemeStore } from '@/stores/theme'
 import { getStatDashboard } from '@/api/stat'
 import type { StatDashboard, StatRange } from '@/types/api'
-import {
-  ChartCard,
-  DistributionPie,
-  DurationBar,
-  KpiCard,
-  PhaseFunnel,
-  PublishBar,
-  TrendChart,
-} from '@/components/StatCharts'
+import { ChartCard, DistributionPie, DurationBar, KpiCard, PhaseFunnel, PublishBar, TrendChart } from '@/components/StatCharts'
 import './index.css'
 
 const RANGE_OPTIONS = [
@@ -58,22 +50,12 @@ export default function StaticPage() {
             <p>创作效率与平台数据概览</p>
           </div>
           <div className="stat-page__header-actions">
-            <Segmented
-              value={range}
-              onChange={(v) => setRange(v as StatRange)}
-              options={RANGE_OPTIONS}
-            />
+            <Segmented value={range} onChange={(v) => setRange(v as StatRange)} options={RANGE_OPTIONS} />
           </div>
         </header>
 
         <div className="stat-page__kpis">
-          <KpiCard
-            label="总创作数"
-            value={overview?.totalComics ?? '—'}
-            delta={overview?.deltas.totalComics}
-            icon={<FileDoneOutlined />}
-            iconBg="linear-gradient(135deg, #8b5cf6, #7c3aed)"
-          />
+          <KpiCard label="总创作数" value={overview?.totalComics ?? '—'} delta={overview?.deltas.totalComics} icon={<FileDoneOutlined />} iconBg="linear-gradient(135deg, #8b5cf6, #7c3aed)" />
           <KpiCard
             label="完成率"
             value={overview ? `${(overview.completionRate * 100).toFixed(1)}%` : '—'}
@@ -81,45 +63,17 @@ export default function StaticPage() {
             icon={<ThunderboltOutlined />}
             iconBg="linear-gradient(135deg, #22c55e, #16a34a)"
           />
-          <KpiCard
-            label="本周新增"
-            value={overview?.weeklyNewComics ?? '—'}
-            delta={overview?.deltas.weeklyNewComics}
-            icon={<RiseOutlined />}
-            iconBg="linear-gradient(135deg, #f59e0b, #d97706)"
-          />
-          <KpiCard
-            label="总用户数"
-            value={overview?.totalUsers ?? '—'}
-            delta={overview?.deltas.totalUsers}
-            icon={<TeamOutlined />}
-            iconBg="linear-gradient(135deg, #06b6d4, #0891b2)"
-          />
+          <KpiCard label="本周新增" value={overview?.weeklyNewComics ?? '—'} delta={overview?.deltas.weeklyNewComics} icon={<RiseOutlined />} iconBg="linear-gradient(135deg, #f59e0b, #d97706)" />
+          <KpiCard label="总用户数" value={overview?.totalUsers ?? '—'} delta={overview?.deltas.totalUsers} icon={<TeamOutlined />} iconBg="linear-gradient(135deg, #06b6d4, #0891b2)" />
         </div>
 
         <div className="stat-page__grid">
-          <ChartCard
-            title="创作趋势"
-            subtitle="每日创作量与完成量"
-            span={2}
-            extra={
-              overview && (
-                <span className="stat-page__card-metric">
-                  平均耗时 {overview.avgDurationMin} 分/篇
-                </span>
-              )
-            }
-          >
+          <ChartCard title="创作趋势" subtitle="每日创作量与完成量" span={2} extra={overview && <span className="stat-page__card-metric">平均耗时 {overview.avgDurationMin} 分/篇</span>}>
             <TrendChart data={data?.trend ?? []} theme={theme} loading={loading} />
           </ChartCard>
 
           <ChartCard title="任务状态分布" subtitle="全部任务按状态统计">
-            <DistributionPie
-              data={data?.statusDistribution ?? []}
-              theme={theme}
-              loading={loading}
-              centerLabel="任务"
-            />
+            <DistributionPie data={data?.statusDistribution ?? []} theme={theme} loading={loading} centerLabel="任务" />
           </ChartCard>
 
           <ChartCard title="流水线阶段漏斗" subtitle="各阶段到达任务数与流失">
@@ -127,21 +81,11 @@ export default function StaticPage() {
           </ChartCard>
 
           <ChartCard title="漫画风格占比" subtitle="按生成风格统计">
-            <DistributionPie
-              data={data?.styleDistribution ?? []}
-              theme={theme}
-              loading={loading}
-              rose
-            />
+            <DistributionPie data={data?.styleDistribution ?? []} theme={theme} loading={loading} rose />
           </ChartCard>
 
           <ChartCard title="用户角色分布" subtitle="普通 / VIP / 管理员">
-            <DistributionPie
-              data={data?.roleDistribution ?? []}
-              theme={theme}
-              loading={loading}
-              centerLabel="用户"
-            />
+            <DistributionPie data={data?.roleDistribution ?? []} theme={theme} loading={loading} centerLabel="用户" />
           </ChartCard>
 
           <ChartCard title="平均耗时趋势" subtitle="每日单篇平均生成耗时">

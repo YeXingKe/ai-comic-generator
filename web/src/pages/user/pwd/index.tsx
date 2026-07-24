@@ -14,7 +14,6 @@ export default function UserInfoPage() {
   const [passwordForm] = Form.useForm<PasswordFormValues>()
   const [passwordSubmitting, setPasswordSubmitting] = useState(false)
 
-
   const handlePasswordSubmit = async (values: PasswordFormValues) => {
     setPasswordSubmitting(true)
     try {
@@ -47,12 +46,7 @@ export default function UserInfoPage() {
         </header>
 
         <Card title="修改密码" className="user-info-page__card">
-          <Form
-            form={passwordForm}
-            layout="vertical"
-            onFinish={handlePasswordSubmit}
-            requiredMark={false}
-          >
+          <Form form={passwordForm} layout="vertical" onFinish={handlePasswordSubmit} requiredMark={false}>
             <Form.Item
               name="oldPassword"
               label="原密码"
@@ -94,13 +88,13 @@ export default function UserInfoPage() {
               <Input.Password placeholder="请再次输入新密码" autoComplete="new-password" />
             </Form.Item>
 
-            <Form.Item style={{ marginBottom: 0,textAlign: "right" }}>
+            <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
               <Button type="primary" htmlType="submit" loading={passwordSubmitting}>
                 修改密码
               </Button>
             </Form.Item>
           </Form>
-        </Card>          
+        </Card>
       </div>
     </div>
   )

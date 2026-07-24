@@ -2,15 +2,7 @@ import { useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { MenuProps } from 'antd'
 import { Menu, Avatar, Button, Dropdown } from 'antd'
-import {
-  HomeOutlined,
-  EditOutlined,
-  UserOutlined,
-  HistoryOutlined,
-  BarChartOutlined,
-  LogoutOutlined,
-  LockOutlined,
-} from '@ant-design/icons'
+import { HomeOutlined, EditOutlined, UserOutlined, HistoryOutlined, BarChartOutlined, LogoutOutlined, LockOutlined } from '@ant-design/icons'
 import ThemeToggle from '../ThemeToggle'
 import { getVisibleNavItems } from '@/router/nav'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
@@ -27,9 +19,7 @@ const navIcons: Record<string, React.ReactNode> = {
 
 function matchNavKey(pathname: string, navItems: { key: string; path: string }[]) {
   if (pathname === '/') return '/'
-  const matched = navItems
-    .filter((item) => item.path !== '/')
-    .find((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
+  const matched = navItems.filter((item) => item.path !== '/').find((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
   return matched?.key ?? '/'
 }
 
@@ -41,10 +31,7 @@ export default function GlobalHeader() {
 
   const isLoggedIn = loginUser.id > 0
   const isAdmin = loginUser.userRole === ADMIN_ROLE
-  const navItems = useMemo(
-    () => getVisibleNavItems(isLoggedIn, isAdmin),
-    [isLoggedIn, isAdmin],
-  )
+  const navItems = useMemo(() => getVisibleNavItems(isLoggedIn, isAdmin), [isLoggedIn, isAdmin])
   const selectedKey = matchNavKey(location.pathname, navItems)
   const isImmersive = appTheme === 'immersive'
 
@@ -112,37 +99,20 @@ export default function GlobalHeader() {
           <span className="logo-text">AI 漫画生成器</span>
         </Link>
 
-        <Menu
-          mode="horizontal"
-          selectedKeys={[selectedKey]}
-          items={menuItems}
-          className="nav-menu"
-        />
+        <Menu mode="horizontal" selectedKeys={[selectedKey]} items={menuItems} className="nav-menu" />
 
         <div className="header-actions">
           <ThemeToggle />
           <div className="auth-buttons">
             {isLoggedIn ? (
-              <Dropdown
-                menu={{ items: userMenuItems, onClick: handleUserMenuClick }}
-                placement="bottomRight"
-                trigger={['click']}
-              >
+              <Dropdown menu={{ items: userMenuItems, onClick: handleUserMenuClick }} placement="bottomRight" trigger={['click']}>
                 <div className="user-info">
-                  <Avatar
-                    size={36}
-                    src={avatarUrl || undefined}
-                    icon={!avatarUrl ? <UserOutlined /> : undefined}
-                  />
+                  <Avatar size={36} src={avatarUrl || undefined} icon={!avatarUrl ? <UserOutlined /> : undefined} />
                   <span className="user-name">{displayName}</span>
                 </div>
               </Dropdown>
             ) : (
-              <Button
-                type="primary"
-                className="header-auth-btn"
-                onClick={() => navigate('/user/login')}
-              >
+              <Button type="primary" className="header-auth-btn" onClick={() => navigate('/user/login')}>
                 登录 / 注册
               </Button>
             )}

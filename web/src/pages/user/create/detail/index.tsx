@@ -84,12 +84,7 @@ export default function ComicDetailPage() {
       <div className="page-shell__inner">
         <header className="page-shell__header">
           <div className="page-shell__header-main">
-            <Button
-              type="link"
-              icon={<ArrowLeftOutlined />}
-              onClick={() => navigate('/history')}
-              style={{ paddingLeft: 0, marginBottom: 8 }}
-            >
+            <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => navigate('/history')} style={{ paddingLeft: 0, marginBottom: 8 }}>
               返回历史
             </Button>
             <h1>{title}</h1>
@@ -101,17 +96,11 @@ export default function ComicDetailPage() {
           <Descriptions column={2} bordered size="small" style={{ marginBottom: 16 }}>
             <Descriptions.Item label="任务 ID">{taskId}</Descriptions.Item>
             <Descriptions.Item label="状态">{statusTag(detail.status)}</Descriptions.Item>
-            <Descriptions.Item label="当前阶段">
-              {COMIC_PHASE_LABEL[detail.phase] ?? detail.phase}
-            </Descriptions.Item>
-            <Descriptions.Item label="创建时间">
-              {dayjs(detail.createTime).format('YYYY-MM-DD HH:mm:ss')}
-            </Descriptions.Item>
+            <Descriptions.Item label="当前阶段">{COMIC_PHASE_LABEL[detail.phase] ?? detail.phase}</Descriptions.Item>
+            <Descriptions.Item label="创建时间">{dayjs(detail.createTime).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>
           </Descriptions>
 
-          {detail.errorMessage && (
-            <Alert type="error" message={detail.errorMessage} showIcon style={{ marginBottom: 16 }} />
-          )}
+          {detail.errorMessage && <Alert type="error" message={detail.errorMessage} showIcon style={{ marginBottom: 16 }} />}
 
           {previewUrl && (
             <section style={{ marginBottom: 24 }}>

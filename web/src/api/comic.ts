@@ -1,13 +1,5 @@
 import request, { unwrap } from '@/utils/request'
-import type {
-  BaseResponse,
-  ComicInfo,
-  ComicPageResult,
-  ConfirmTitleRequest,
-  CreateComicRequest,
-  QueryComicRequest,
-  StartComicRequest,
-} from '@/types/api'
+import type { BaseResponse, ComicInfo, ComicPageResult, ConfirmTitleRequest, CreateComicRequest, QueryComicRequest, StartComicRequest } from '@/types/api'
 
 export async function createComic(body: CreateComicRequest) {
   return unwrap(await request.post<BaseResponse<{ taskId: string }>>('/comic/create', body))
