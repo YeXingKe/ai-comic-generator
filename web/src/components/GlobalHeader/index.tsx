@@ -9,6 +9,7 @@ import {
   HistoryOutlined,
   BarChartOutlined,
   LogoutOutlined,
+  LockOutlined,
 } from '@ant-design/icons'
 import ThemeToggle from '../ThemeToggle'
 import { getVisibleNavItems } from '@/router/nav'
