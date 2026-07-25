@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/ai-comic-generator/server/internal/client/cos"
 	"github.com/ai-comic-generator/server/internal/client/hunyuan"
 	"github.com/ai-comic-generator/server/internal/client/wechat"
 	"github.com/ai-comic-generator/server/internal/config"
@@ -62,6 +63,10 @@ func New(cfg *config.Config) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("init hunyuan: %w", err)
 	}
+	cosClient, err := cos.NewClient(&cfg.COS)
+	if err != nil {
+		return nil, fmt.Errorf("init cos: %w", err)
+	}
 	wechatClient := wechat.NewMPClient(&cfg.WeChat)
 
 	llm, llmErr := service.NewLLM(cfg)
@@ -69,8 +74,8 @@ func New(cfg *config.Config) (*App, error) {
 		log.Printf("warn: dashscope llm not ready (%v), comic create disabled", llmErr)
 	}
 
-	imageSvc := service.NewImageService(cfg, localStore, hyClient, llm)
-	composeSvc := service.NewComposeService(localStore)
+	imageSvc := service.NewImageService(cfg, localStore, hyClient, cosClient, llm)
+	composeSvc := service.NewComposeService(localStore, cosClient)
 	publishSvc := service.NewPublishService(localStore, wechatClient)
 
 	var comicHandler *handler.ComicHandler

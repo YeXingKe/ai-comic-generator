@@ -18,6 +18,13 @@ require (
 )
 
 require (
+	github.com/clbanning/mxj v1.8.4 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/mozillazg/go-httpheader v0.2.1 // indirect
+	github.com/tencentyun/cos-go-sdk-v5 v0.7.75 // indirect
+)
+
+require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect

@@ -41,8 +41,15 @@ ai:
 
 # 漫画图片本地存储（步骤 4–5 输出）
 storage:
-  base_path: "./data/comics"
-  public_url: "/static/comics"
+  base_path: "./comics"
+  public_url: "/comics"
+
+# 步骤 4–5：腾讯云 COS 图片存储（未配置时使用本地 URL）
+cos:
+  enabled: true
+  bucket_url: ""
+  secret_id: ""
+  secret_key: ""
 
 # 步骤 6：微信公众号（未配置时仅标记 DRAFT）
 wechat:

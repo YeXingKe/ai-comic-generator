@@ -7,6 +7,7 @@ import (
 	"log"         // 记录混元未启用时的降级日志
 	"strings"     // 拼接角色外貌、台词与 Prompt
 
+	"github.com/ai-comic-generator/server/internal/client/cos"     // 腾讯云 COS 对象存储
 	"github.com/ai-comic-generator/server/internal/client/hunyuan" // 腾讯混元生图客户端
 	"github.com/ai-comic-generator/server/internal/common"         // 生图 Prompt 组装
 	"github.com/ai-comic-generator/server/internal/config"         // 全局配置
@@ -19,14 +20,15 @@ import (
 // ImageService 步骤 4：混元生图（未启用时生成占位图）
 type ImageService struct {
 	hunyuan *hunyuan.Client // 混元生图客户端
+	cos     *cos.Client     // COS 对象存储（可选）
 	store   *storage.Local  // 本地文件存储
 	cfg     *config.Config  // 全局配置（预留扩展）
 	llm     llms.Model      // 可选：用于 PanelImageEnhancePrompt 增强
 }
 
 // NewImageService 创建画面生成服务
-func NewImageService(cfg *config.Config, store *storage.Local, hy *hunyuan.Client, llm llms.Model) *ImageService {
-	return &ImageService{cfg: cfg, store: store, hunyuan: hy, llm: llm}
+func NewImageService(cfg *config.Config, store *storage.Local, hy *hunyuan.Client, cosClient *cos.Client, llm llms.Model) *ImageService {
+	return &ImageService{cfg: cfg, store: store, hunyuan: hy, cos: cosClient, llm: llm}
 }
 
 // GeneratePanels 为每个分镜格生成图片并写入 state.PanelImages
@@ -64,6 +66,15 @@ func (s *ImageService) GeneratePanels(ctx context.Context, state *model.ComicSta
 		}
 
 		url := s.store.PublicURL(state.TaskID, fmt.Sprintf("panel_%d.png", panel.PanelNo))
+		if s.cos.Enabled() {
+			cosKey := fmt.Sprintf("comics/%s/panel_%d.png", state.TaskID, panel.PanelNo)
+			cosURL, err := s.cos.UploadFile(ctx, cosKey, dest)
+			if err != nil {
+				log.Printf("cos upload panel failed taskId=%s panel=%d: %v", state.TaskID, panel.PanelNo, err)
+			} else {
+				url = cosURL
+			}
+		}
 		results = append(results, model.PanelImageResult{
 			PanelNo:     panel.PanelNo,
 			URL:         url,

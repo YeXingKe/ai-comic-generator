@@ -9,14 +9,15 @@ import (
 
 // Config 应用配置（Viper mapstructure 映射 yaml 蛇形字段）
 type Config struct {
-	Server  ServerConfig  `mapstructure:"server"`
+	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
-	Redis   RedisConfig   `mapstructure:"redis"`
-	Session SessionConfig `mapstructure:"session"`
-	Log     LogConfig     `mapstructure:"log"`
-	AI      AIConfig      `mapstructure:"ai"`
-	Storage StorageConfig `mapstructure:"storage"`
-	WeChat  WeChatConfig  `mapstructure:"wechat"`
+	Redis    RedisConfig    `mapstructure:"redis"`
+	Session  SessionConfig  `mapstructure:"session"`
+	Log      LogConfig      `mapstructure:"log"`
+	AI       AIConfig       `mapstructure:"ai"`
+	Storage  StorageConfig  `mapstructure:"storage"`
+	COS      COSConfig      `mapstructure:"cos"`
+	WeChat   WeChatConfig   `mapstructure:"wechat"`
 }
 
 type ServerConfig struct {
@@ -77,6 +78,14 @@ type HunyuanConfig struct {
 type StorageConfig struct {
 	BasePath   string `mapstructure:"base_path"`
 	PublicURL  string `mapstructure:"public_url"`
+}
+
+// COSConfig 腾讯云 COS 图片存储
+type COSConfig struct {
+	Enabled   bool   `mapstructure:"enabled"`
+	BucketURL string `mapstructure:"bucket_url"`
+	SecretID  string `mapstructure:"secret_id"`
+	SecretKey string `mapstructure:"secret_key"`
 }
 
 // WeChatConfig 微信公众号发布

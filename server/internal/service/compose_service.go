@@ -6,8 +6,10 @@ import (
 	"image"
 	"image/color"
 	_ "image/png"
+	"log"
 	"os"
 
+	"github.com/ai-comic-generator/server/internal/client/cos"
 	"github.com/ai-comic-generator/server/internal/model"
 	"github.com/ai-comic-generator/server/internal/storage"
 	"github.com/disintegration/imaging"
@@ -25,11 +27,12 @@ const (
 // ComposeService 步骤 5：imaging 竖向拼接 + gg 绘制标题
 type ComposeService struct {
 	store *storage.Local
+	cos   *cos.Client
 }
 
 // NewComposeService 创建排版合成服务
-func NewComposeService(store *storage.Local) *ComposeService {
-	return &ComposeService{store: store}
+func NewComposeService(store *storage.Local, cosClient *cos.Client) *ComposeService {
+	return &ComposeService{store: store, cos: cosClient}
 }
 
 // Compose 将各分镜图按 16:9 比例竖直拼接成长图
@@ -83,6 +86,15 @@ func (s *ComposeService) Compose(ctx context.Context, state *model.ComicState) e
 	}
 
 	previewURL := s.store.PublicURL(state.TaskID, "composed.png")
+	if s.cos.Enabled() {
+		cosKey := fmt.Sprintf("comics/%s/composed.png", state.TaskID)
+		cosURL, err := s.cos.UploadFile(ctx, cosKey, out)
+		if err != nil {
+			log.Printf("cos upload composed failed taskId=%s: %v", state.TaskID, err)
+		} else {
+			previewURL = cosURL
+		}
+	}
 	state.ComposedLayout = &model.ComposedLayoutResult{
 		Format:     "long_image",
 		PreviewURL: previewURL,
