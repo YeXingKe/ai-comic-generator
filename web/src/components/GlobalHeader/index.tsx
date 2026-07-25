@@ -95,7 +95,8 @@ export default function GlobalHeader() {
     <header className={`global-header${isImmersive ? ' global-header--immersive' : ''}`}>
       <div className="header-inner">
         <Link to="/" className="logo">
-          <span className="logo-icon">✦</span>
+          {/* <span className="logo-icon">✦</span> */}
+          <img src='/favicon.svg' className="logo-icon"/>
           <span className="logo-text">AI 漫画生成器</span>
         </Link>
 

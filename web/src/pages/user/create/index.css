@@ -51,6 +51,18 @@
   font-size: 12px;
   color: var(--app-text-muted);
 }
+.preview-head-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+.preview-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #000 !important;
+}
 
 /* 左侧流程 */
 .comic-workshop__flow {
@@ -243,6 +255,10 @@
   flex-direction: column;
   gap: 6px;
 }
+.config-field--checkboxes {
+  justify-content: flex-end;
+  gap: 8px;
+}
 .config-row--title .config-title-field {
   display: flex;
   align-items: center;
@@ -313,6 +329,63 @@
   margin-top: 4px;
 }
 
+/* 中间卡片头部（Steps + 按钮） */
+.config-card__header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--app-surface-border);
+}
+.config-card__header .ant-steps {
+  flex: 1;
+  min-width: 0;
+}
+/* panel 模式下 antd 默认隐藏图标，覆盖恢复 */
+.config-card__header .ant-steps-panel .ant-steps-item-icon {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  background: transparent !important;
+  border: none !important;
+  font-size: 15px;
+  color: var(--app-text-muted);
+  margin-inline-end: 6px;
+}
+.config-card__header .ant-steps-panel .ant-steps-item-active .ant-steps-item-icon {
+  color: #7c3aed;
+}
+.config-card__header .ant-steps-panel .ant-steps-item-finish .ant-steps-item-icon {
+  color: #22c55e;
+}
+.config-card__actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+}
+.config-card__quota {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.config-card__quota-label {
+  font-size: 12px;
+  color: var(--app-text-muted);
+}
+.config-card__quota-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #7c3aed;
+  line-height: 1;
+}
+.config-card__body {
+  overflow-y: auto;
+  flex: 1;
+}
+
 /* 最右：步骤详情（常驻） */
 .comic-workshop__detail {
   background: var(--app-surface);
@@ -320,9 +393,9 @@
   border-radius: 14px;
   box-shadow: var(--app-surface-shadow);
   padding: 20px;
-  overflow-y: auto;
-  max-height: calc(100vh - 280px);
-  min-height: 420px;
+  height: 720px;
+  display: flex;
+  flex-direction: column;
   position: sticky;
   top: 80px;
 }
@@ -331,7 +404,8 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  min-height: 360px;
+  flex: 1;
+  min-height: 0;
 }
 
 .detail-panel__meta {
@@ -343,6 +417,7 @@
   border: 1px solid var(--app-surface-border);
   font-size: 18px;
   color: #7c3aed;
+  flex-shrink: 0;
 }
 .detail-panel__meta h3 {
   margin: 0 0 4px;
@@ -519,6 +594,188 @@
   gap: 10px;
   padding-top: 8px;
   border-top: 1px solid var(--app-surface-border);
+}
+
+/* 预览区：生成中三栏布局 */
+.preview-body--generating {
+  display: grid;
+  grid-template-columns: 360px 1fr 360px;
+  gap: 14px;
+  height: 500px;
+  min-height: 0;
+}
+
+/* 左栏：分镜列表 */
+.preview-panel-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--app-surface-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--app-page-bg);
+}
+.preview-panel-list__title {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-text);
+  border-bottom: 1px solid var(--app-surface-border);
+  flex-shrink: 0;
+}
+.preview-panel-list__items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.preview-panel-list__item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.preview-panel-list__item:hover {
+  background: rgba(139, 92, 246, 0.06);
+}
+.preview-panel-list__item--active {
+  background: rgba(139, 92, 246, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.25);
+}
+.preview-panel-list__no {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7c3aed;
+}
+.preview-panel-list__text {
+  font-size: 12px;
+  color: var(--app-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.preview-panel-list__empty {
+  font-size: 13px;
+  color: var(--app-text-muted);
+  text-align: center;
+  padding: 24px 12px;
+}
+
+/* 中栏：选中分镜图片 */
+.preview-panel-image {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--app-surface-border);
+  border-radius: 10px;
+  background: var(--app-page-bg);
+  overflow: hidden;
+  padding: 16px;
+}
+.preview-panel-image__img {
+  max-width: 480px;
+  max-height: 400px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+.preview-panel-image__label {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--app-text-muted);
+}
+.preview-panel-image__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--app-text-muted);
+  font-size: 14px;
+}
+.preview-panel-image__placeholder .anticon {
+  font-size: 28px;
+  color: #7c3aed;
+  opacity: 0.6;
+}
+
+/* 右栏：完整长图 */
+.preview-panel-composed {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--app-surface-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--app-page-bg);
+}
+.preview-panel-composed__title {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-text);
+  border-bottom: 1px solid var(--app-surface-border);
+  flex-shrink: 0;
+}
+.preview-panel-composed .ant-image {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.preview-panel-composed__img {
+  width: 100%;
+  object-fit: contain;
+  max-height: 100%;
+}
+.preview-panel-composed__placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--app-text-muted);
+  font-size: 14px;
+  padding: 20px;
+}
+.preview-panel-composed__placeholder .anticon {
+  font-size: 28px;
+  color: #7c3aed;
+  opacity: 0.6;
+}
+
+/* 预览区状态提示 */
+.preview-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  gap: 12px;
+}
+.preview-status__icon {
+  font-size: 36px;
+  color: #7c3aed;
+  opacity: 0.6;
+}
+.preview-status__icon--success {
+  color: #22c55e;
+}
+.preview-status p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--app-text-secondary);
+  max-width: 400px;
 }
 
 /* 步骤详情内容 */
@@ -715,6 +972,10 @@
   .comic-workshop__workspace {
     grid-template-columns: 240px minmax(220px, 1fr) 420px;
   }
+  .preview-body--generating {
+    grid-template-columns: 280px 1fr 280px;
+    height: 420px;
+  }
 }
 
 @media (max-width: 992px) {
@@ -726,10 +987,22 @@
   .comic-workshop__detail {
     max-height: none;
     min-height: 0;
+    height: auto;
     position: static;
   }
   .comic-workshop__detail {
     order: 3;
+  }
+  .preview-body--generating {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 300px auto;
+    height: auto;
+    gap: 12px;
+  }
+  .config-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 }
 
@@ -742,5 +1015,8 @@
   }
   .preview-panels {
     justify-content: center;
+  }
+  .preview-body--generating {
+    grid-template-rows: auto 240px auto;
   }
 }

@@ -492,6 +492,19 @@
   color: rgba(196, 181, 253, 0.42);
 }
 
+.home-page__copyright-icp {
+  margin-top: 6px;
+}
+
+.home-page__copyright-icp a {
+  color: rgba(196, 181, 253, 0.42);
+  transition: color 0.2s ease;
+}
+
+.home-page__copyright-icp a:hover {
+  color: #c4b5fd;
+}
+
 @keyframes home-fade-up {
   from {
     opacity: 0;
@@ -706,4 +719,12 @@
 .home-page--classic .home-page__copyright-text,
 .home-page--classic .home-page__copyright-links a {
   color: var(--app-text-muted);
+}
+
+.home-page--classic .home-page__copyright-icp a {
+  color: var(--app-text-muted);
+}
+
+.home-page--classic .home-page__copyright-icp a:hover {
+  color: var(--color-primary);
 }

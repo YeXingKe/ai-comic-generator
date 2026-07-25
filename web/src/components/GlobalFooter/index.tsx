@@ -26,6 +26,11 @@ export default function GlobalFooter() {
           )}
         </div>
         <p className="footer-copy">© {new Date().getFullYear()} AI Comic Generator. All rights reserved.</p>
+        <p className="footer-icp">
+          <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer">
+            粤ICP备2023094742号-1
+          </a>
+        </p>
       </div>
     </footer>
   )

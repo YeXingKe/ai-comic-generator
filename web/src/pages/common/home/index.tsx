@@ -282,6 +282,11 @@ export default function HomePage() {
             )}
           </nav>
           <p className="home-page__copyright-text">© {new Date().getFullYear()} AI Comic Generator. All rights reserved.</p>
+          <p className="home-page__copyright-text home-page__copyright-icp">
+            <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer">
+              粤ICP备2023094742号-1
+            </a>
+          </p>
         </footer>
       </div>
     </div>

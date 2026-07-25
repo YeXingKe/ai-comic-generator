@@ -45,6 +45,18 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
+.footer-icp {
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+.footer-icp a {
+  color: rgba(255, 255, 255, 0.45);
+  transition: color 0.2s ease;
+}
+.footer-icp a:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 [data-theme='classic'] .global-footer {
   border-top: none;
 }

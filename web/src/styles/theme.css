@@ -260,3 +260,86 @@ a:hover {
 .ant-menu-horizontal > .ant-menu-submenu:hover::after {
   border-bottom-color: var(--color-primary) !important;
 }
+
+/* ── 沉浸主题：Segmented 分段选择器 ── */
+[data-theme='immersive'] .ant-segmented {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(196, 181, 253, 0.75) !important;
+}
+
+[data-theme='immersive'] .ant-segmented .ant-segmented-item {
+  color: rgba(196, 181, 253, 0.75) !important;
+}
+
+[data-theme='immersive'] .ant-segmented .ant-segmented-item:hover:not(.ant-segmented-item-selected) {
+  color: #e9d5ff !important;
+  background: rgba(167, 139, 250, 0.12) !important;
+}
+
+[data-theme='immersive'] .ant-segmented .ant-segmented-item-selected {
+  background: rgba(139, 92, 246, 0.45) !important;
+  color: #faf5ff !important;
+  box-shadow: 0 1px 6px rgba(139, 92, 246, 0.3) !important;
+}
+
+[data-theme='immersive'] .ant-segmented .ant-segmented-thumb {
+  background: rgba(139, 92, 246, 0.45) !important;
+}
+
+/* ── 沉浸主题：头像下拉菜单 ── */
+[data-theme='immersive'] .ant-dropdown .ant-dropdown-menu {
+  background: rgba(18, 10, 38, 0.98) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55) !important;
+}
+
+[data-theme='immersive'] .ant-dropdown .ant-dropdown-menu-item {
+  color: #e9d5ff !important;
+}
+
+[data-theme='immersive'] .ant-dropdown .ant-dropdown-menu-item .anticon {
+  color: #c4b5fd !important;
+}
+
+[data-theme='immersive'] .ant-dropdown .ant-dropdown-menu-item:hover {
+  background: rgba(167, 139, 250, 0.15) !important;
+  color: #faf5ff !important;
+}
+
+[data-theme='immersive'] .ant-dropdown .ant-dropdown-menu-item:hover .anticon {
+  color: #e9d5ff !important;
+}
+
+[data-theme='immersive'] .ant-dropdown .ant-dropdown-menu-item-danger {
+  color: #f87171 !important;
+}
+
+[data-theme='immersive'] .ant-dropdown .ant-dropdown-menu-item-danger .anticon {
+  color: #f87171 !important;
+}
+
+[data-theme='immersive'] .ant-dropdown .ant-dropdown-menu-item-danger:hover {
+  background: rgba(248, 113, 113, 0.12) !important;
+  color: #fca5a5 !important;
+}
+
+[data-theme='immersive'] .ant-dropdown .ant-dropdown-menu-item-divider {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ── 沉浸主题：底部 footer ── */
+[data-theme='immersive'] .global-footer {
+  background: #05030f !important;
+}
+
+[data-theme='immersive'] .global-footer .footer-copy {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-theme='immersive'] .global-footer .footer-icp a {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-theme='immersive'] .global-footer .footer-icp a:hover {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
