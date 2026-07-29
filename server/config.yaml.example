@@ -38,6 +38,24 @@ ai:
     secret_key: ""
     region: "ap-guangzhou"
     model: "hunyuan-image"
+  # 图片生成后端选择：hunyuan | openai_image_1k | openai_image_4k
+  image_backend: "hunyuan" 
+  openai_image_1k:
+    enabled: false
+    api_key: ""
+    model: "gpt-image-2"
+    base_url: "https://api.wszhu.top"  
+    timeout: 120                           # 超时时间（秒）
+    size: "1024x1024"                      # 图片尺寸（1024x1024 | 1792x1024 | 1024x1792）
+    quality: "standard"                    # 图片质量（standard | hd，部分中转站不支持 hd）
+  openai_image_4k:
+    enabled: false
+    api_key: ""
+    model: "gpt-image-2-4k"
+    base_url: "https://api.wszhu.top"    
+    timeout: 120                           # 超时时间（秒）
+    size: "1024x1024"                      # 图片尺寸（1024x1024 | 1792x1024 | 1024x1792）
+    quality: "hd"                    # 图片质量（standard | hd，部分中转站不支持 hd）  
 
 # 漫画图片本地存储（步骤 4–5 输出）
 storage:
