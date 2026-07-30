@@ -74,6 +74,17 @@ type HunyuanConfig struct {
 	Enabled   bool   `mapstructure:"enabled"`
 }
 
+// Config OpenAI 图片生成配置
+type GPTConfig struct {
+    APIKey  string `mapstructure:"api_key"`
+    Model   string `mapstructure:"model"`
+    BaseURL string `mapstructure:"base_url"`
+    Enabled bool   `mapstructure:"enabled"`
+    Timeout int    `mapstructure:"timeout"`
+    Size    string `mapstructure:"size"`    // 图片尺寸，如 "1024x1024"
+    Quality string `mapstructure:"quality"` // standard | hd
+}
+
 // StorageConfig 本地漫画资源存储
 type StorageConfig struct {
 	BasePath   string `mapstructure:"base_path"`
