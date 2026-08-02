@@ -54,8 +54,22 @@ type LogConfig struct {
 
 // AIConfig 大模型与生图配置
 type AIConfig struct {
-	DashScope DashScopeConfig `mapstructure:"dashscope"`
-	Hunyuan   HunyuanConfig   `mapstructure:"hunyuan"`
+	DashScope     DashScopeConfig   `mapstructure:"dashscope"`
+	Hunyuan       HunyuanConfig     `mapstructure:"hunyuan"`
+	ImageBackend  string            `mapstructure:"image_backend"`
+	OpenAIImage1K OpenAIImageConfig `mapstructure:"openai_image_1k"`
+	OpenAIImage4K OpenAIImageConfig `mapstructure:"openai_image_4k"`
+}
+
+// OpenAIImageConfig OpenAI 兼容生图（gpt-image-1 / gpt-image-2 等）
+type OpenAIImageConfig struct {
+	Enabled bool   `mapstructure:"enabled"`
+	APIKey  string `mapstructure:"api_key"`
+	Model   string `mapstructure:"model"`
+	BaseURL string `mapstructure:"base_url"`
+	Timeout int    `mapstructure:"timeout"`
+	Size    string `mapstructure:"size"`
+	Quality string `mapstructure:"quality"`
 }
 
 // DashScopeConfig 通义千问（qwen-plus，OpenAI 兼容接口）
@@ -137,6 +151,21 @@ func applyDefaults(cfg *Config) {
 	}
 	if cfg.AI.Hunyuan.Model == "" {
 		cfg.AI.Hunyuan.Model = "hunyuan-image"
+	}
+	if cfg.AI.ImageBackend == "" {
+		cfg.AI.ImageBackend = "hunyuan"
+	}
+	if cfg.AI.OpenAIImage1K.Timeout == 0 {
+		cfg.AI.OpenAIImage1K.Timeout = 120
+	}
+	if cfg.AI.OpenAIImage1K.Size == "" {
+		cfg.AI.OpenAIImage1K.Size = "1024x1024"
+	}
+	if cfg.AI.OpenAIImage4K.Timeout == 0 {
+		cfg.AI.OpenAIImage4K.Timeout = 120
+	}
+	if cfg.AI.OpenAIImage4K.Size == "" {
+		cfg.AI.OpenAIImage4K.Size = "1024x1024"
 	}
 	if cfg.Storage.BasePath == "" {
 		cfg.Storage.BasePath = "./data/comics"

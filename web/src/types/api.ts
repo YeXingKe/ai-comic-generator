@@ -162,6 +162,9 @@ export type ComicStatus = 'PENDING' | 'PROCESSING' | 'AWAITING_CONFIRM' | 'TITLE
 /** 漫画流水线阶段 */
 export type ComicPhase = 'PENDING' | 'TITLE_GENERATION' | 'TITLE_SELECTING' | 'STORY_IDEATION' | 'CHARACTER_DESIGN' | 'STORYBOARD_SCRIPT' | 'IMAGE_GENERATION' | 'LAYOUT_COMPOSE' | 'WECHAT_PUBLISH'
 
+/** 生图后端，对应后端 config.yaml 的 ai.image_backend 可选值 */
+export type ImageBackend = 'hunyuan' | 'openai_image_1k' | 'openai_image_4k'
+
 export interface TitleOption {
   title: string
   subtitle?: string
@@ -235,6 +238,7 @@ export interface ComicInfo {
   title?: string | null
   coverImage?: string | null
   style: string
+  imageBackend: ImageBackend
   titleOptions?: TitleOptionsResult | null
   storyIdeation?: StoryIdeationResult | null
   characters?: ComicCharacter[]
@@ -253,6 +257,7 @@ export interface CreateComicRequest {
   topic: string
   userDescription?: string
   style?: string
+  imageBackend?: ImageBackend
 }
 
 export interface ConfirmTitleRequest {

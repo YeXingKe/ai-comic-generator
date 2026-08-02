@@ -1,34 +1,51 @@
 package service // 业务逻辑层：流水线第 4 步画面生成
 
 import (
-	"context"     // 控制混元 / LLM 请求超时
-	"fmt"         // 格式化分镜错误信息
-	"image/color" // 占位图背景与边框颜色
-	"log"         // 记录混元未启用时的降级日志
-	"strings"     // 拼接角色外貌、台词与 Prompt
+	"context"
+	"fmt"
+	"image/color"
+	"log"
+	"strings"
 
-	"github.com/ai-comic-generator/server/internal/client/cos"     // 腾讯云 COS 对象存储
-	"github.com/ai-comic-generator/server/internal/client/hunyuan" // 腾讯混元生图客户端
-	"github.com/ai-comic-generator/server/internal/common"         // 生图 Prompt 组装
-	"github.com/ai-comic-generator/server/internal/config"         // 全局配置
-	"github.com/ai-comic-generator/server/internal/model"          // 流水线状态与分镜图片结果
-	"github.com/ai-comic-generator/server/internal/storage"        // 本地分镜图路径与 URL
-	"github.com/fogleman/gg"                                       // 绘制占位分镜图
-	"github.com/tmc/langchaingo/llms"                              // LLM 增强生图 Prompt
+	"github.com/ai-comic-generator/server/internal/client/cos"
+	"github.com/ai-comic-generator/server/internal/common"
+	"github.com/ai-comic-generator/server/internal/config"
+	"github.com/ai-comic-generator/server/internal/model"
+	"github.com/ai-comic-generator/server/internal/storage"
+	"github.com/fogleman/gg"
+	"github.com/tmc/langchaingo/llms"
 )
 
-// ImageService 步骤 4：混元生图（未启用时生成占位图）
-type ImageService struct {
-	hunyuan *hunyuan.Client // 混元生图客户端
-	cos     *cos.Client     // COS 对象存储（可选）
-	store   *storage.Local  // 本地文件存储
-	cfg     *config.Config  // 全局配置（预留扩展）
-	llm     llms.Model      // 可选：用于 PanelImageEnhancePrompt 增强
+// ImageGenerator 生图后端抽象（hunyuan / openai-image 等均实现此接口）
+type ImageGenerator interface {
+	Enabled() bool
+	Generate(ctx context.Context, prompt, destPath string) error
 }
 
-// NewImageService 创建画面生成服务
-func NewImageService(cfg *config.Config, store *storage.Local, hy *hunyuan.Client, cosClient *cos.Client, llm llms.Model) *ImageService {
-	return &ImageService{cfg: cfg, store: store, hunyuan: hy, cos: cosClient, llm: llm}
+// ImageService 步骤 4：生图（支持混元 / OpenAI 兼容后端；未启用时生成占位图）
+type ImageService struct {
+	generators map[string]ImageGenerator // 生图后端注册表：image_backend 值 -> 对应 generator
+	cos        *cos.Client
+	store      *storage.Local
+	cfg        *config.Config
+	llm        llms.Model
+}
+
+// NewImageService 创建画面生成服务，generators 由 app.go 按 image_backend 名称注册全部可用后端
+func NewImageService(cfg *config.Config, store *storage.Local, generators map[string]ImageGenerator, cosClient *cos.Client, llm llms.Model) *ImageService {
+	return &ImageService{cfg: cfg, store: store, generators: generators, cos: cosClient, llm: llm}
+}
+
+// resolveGenerator 按任务选定的 image_backend 取对应生成器；未配置或未启用则返回 nil（走占位图兜底）
+func (s *ImageService) resolveGenerator(backend string) ImageGenerator {
+	if backend == "" {
+		backend = common.ImageBackendHunyuan
+	}
+	gen, ok := s.generators[backend]
+	if !ok || gen == nil || !gen.Enabled() {
+		return nil
+	}
+	return gen
 }
 
 // GeneratePanels 为每个分镜格生成图片并写入 state.PanelImages
@@ -42,6 +59,7 @@ func (s *ImageService) GeneratePanels(ctx context.Context, state *model.ComicSta
 
 	charRef, _ := buildCharacterRef(state.Characters)
 	results := make([]model.PanelImageResult, 0, len(state.Storyboard.Panels))
+	generator := s.resolveGenerator(state.ImageBackend)
 
 	for _, panel := range state.Storyboard.Panels {
 		dest := s.store.PanelPath(state.TaskID, panel.PanelNo)
@@ -50,15 +68,15 @@ func (s *ImageService) GeneratePanels(ctx context.Context, state *model.ComicSta
 		hyPrompt := s.buildPanelPrompt(ctx, state.Style, panel.Scene, charRef, panel.ImagePrompt, dialogue, narration)
 
 		var genErr error
-		if s.hunyuan.Enabled() {
-			genErr = s.hunyuan.Generate(ctx, hyPrompt, dest)
+		if generator != nil {
+			genErr = generator.Generate(ctx, hyPrompt, dest)
 			if genErr == nil {
 				if err := overlayPanelCaption(dest, dialogue, narration); err != nil {
 					log.Printf("overlay panel caption failed taskId=%s panel=%d: %v", state.TaskID, panel.PanelNo, err)
 				}
 			}
 		} else {
-			log.Printf("hunyuan disabled, use placeholder panel: taskId=%s panel=%d", state.TaskID, panel.PanelNo)
+			log.Printf("image generator disabled, use placeholder panel: taskId=%s panel=%d", state.TaskID, panel.PanelNo)
 			genErr = renderPlaceholderPanel(dest, panel.PanelNo, panel.Scene, dialogue, narration)
 		}
 		if genErr != nil {
@@ -78,7 +96,7 @@ func (s *ImageService) GeneratePanels(ctx context.Context, state *model.ComicSta
 		results = append(results, model.PanelImageResult{
 			PanelNo:     panel.PanelNo,
 			URL:         url,
-			Method:      panelImageMethod(s.hunyuan.Enabled()),
+			Method:      panelImageMethod(generator != nil),
 			ImagePrompt: hyPrompt,
 		})
 	}

@@ -112,11 +112,12 @@ func (s *ComicStore) MarkTitleConfirmed(state *model.ComicState) error {
 // BuildStateFromComic 从数据库实体恢复流水线内存态
 func (s *ComicStore) BuildStateFromComic(c *model.Comic) *model.ComicState {
 	state := &model.ComicState{
-		TaskID: c.TaskID,
-		UserID: c.UserID,
-		Topic:  c.Topic,
-		Style:  c.Style,
-		Phase:  c.Phase,
+		TaskID:       c.TaskID,
+		UserID:       c.UserID,
+		Topic:        c.Topic,
+		Style:        c.Style,
+		ImageBackend: c.ImageBackend,
+		Phase:        c.Phase,
 	}
 	if c.UserDescription != nil {
 		state.UserDescription = *c.UserDescription

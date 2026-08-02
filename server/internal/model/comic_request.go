@@ -5,6 +5,7 @@ type CreateComicRequest struct {
 	Topic           string  `json:"topic" binding:"required" example:"哪吒闹海"`
 	UserDescription *string `json:"userDescription" example:"四格漫画，搞笑风格"`
 	Style           string  `json:"style" example:"cartoon" enums:"cartoon,realistic,chibi,animal"`
+	ImageBackend    string  `json:"imageBackend" example:"hunyuan" enums:"hunyuan,openai_image_1k,openai_image_4k"`
 }
 
 // QueryComicRequest 查询漫画任务

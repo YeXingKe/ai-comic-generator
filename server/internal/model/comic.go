@@ -12,6 +12,7 @@ type Comic struct {
 	Title           *string    `gorm:"column:title" json:"title"`                                                 // 漫画标题（故事构思阶段确定后写入）
 	CoverImage      *string    `gorm:"column:coverImage" json:"coverImage"`                                       // 封面图 URL（排版合成后写入）
 	Style           string     `gorm:"column:style;default:cartoon" json:"style"`                                 // 漫画风格：cartoon / realistic / chibi / animal，默认 cartoon
+	ImageBackend    string     `gorm:"column:imageBackend;default:hunyuan" json:"imageBackend"`                   // 生图后端：hunyuan / openai_image_1k / openai_image_4k，用户创建时选定
 
 	// 六步产物：数据库以 JSON 字符串存储，返回 API 时由 ToComicInfo 解析为结构体
 	TitleOptions   *string `gorm:"column:titleOptions;type:json" json:"titleOptions"`     // 0. 标题推荐列表（JSON）
@@ -145,6 +146,7 @@ type ComicInfo struct {
 	Title           *string               `json:"title"`           // 漫画标题
 	CoverImage      *string               `json:"coverImage"`      // 封面图 URL
 	Style           string                `json:"style"`           // 漫画风格
+	ImageBackend    string                `json:"imageBackend"`    // 生图后端
 	TitleOptions    *TitleOptionsResult   `json:"titleOptions"`    // 标题推荐列表（已解析）
 	StoryIdeation   *StoryIdeationResult  `json:"storyIdeation"`   // 故事构思（已解析）
 	Characters      []ComicCharacter      `json:"characters"`      // 角色列表（已解析）
@@ -174,6 +176,7 @@ func (c *Comic) ToComicInfo() *ComicInfo {
 		Title:           c.Title,
 		CoverImage:      c.CoverImage,
 		Style:           c.Style,
+		ImageBackend:    c.ImageBackend,
 		Status:          c.Status,
 		Phase:           c.Phase,
 		ErrorMessage:    c.ErrorMessage,
@@ -222,6 +225,7 @@ type ComicState struct {
 	Topic           string                `json:"topic"`           // 创作主题
 	UserDescription string                `json:"userDescription"` // 用户描述（编排时用 string，空则为 ""）
 	Style           string                `json:"style"`           // 漫画风格
+	ImageBackend    string                `json:"imageBackend"`    // 生图后端：hunyuan / openai_image_1k / openai_image_4k
 	Phase           string                `json:"phase"`           // 当前执行到的阶段
 	SelectedTitle   string                `json:"selectedTitle"`   // 用户确认的标题
 	TitleOptions    *TitleOptionsResult   `json:"titleOptions"`    // 标题推荐（内存态）

@@ -9,3 +9,4 @@ server/config.yaml
 *.log
 .vscode/
 .idea/
+docs

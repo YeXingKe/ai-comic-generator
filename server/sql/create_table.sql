@@ -46,6 +46,7 @@ create table if not exists comic
     title           varchar(200)                          null comment '漫画标题（故事构思后写入）',
     coverImage      varchar(1024)                         null comment '封面图 URL（排版合成后写入）',
     style           varchar(50)  default 'cartoon'        not null comment '漫画风格：cartoon/realistic/chibi',
+    imageBackend    varchar(50)  default 'hunyuan'         not null comment '生图后端：hunyuan/openai_image_1k/openai_image_4k',
     titleOptions    JSON                                  null comment '第0步：标题推荐列表',
     storyIdeation   JSON                                  null comment '第1步：故事构思结果',
     characters      JSON                                  null comment '第2步：角色设定列表',

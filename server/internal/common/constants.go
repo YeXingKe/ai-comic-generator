@@ -24,6 +24,13 @@ const (
 	MaxPageSize     = 100
 )
 
+// 生图后端标识（与 config.yaml 的 ai.image_backend / *.mapstructure 值一致）
+const (
+	ImageBackendHunyuan      = "hunyuan"
+	ImageBackendOpenAIImage1K = "openai_image_1k"
+	ImageBackendOpenAIImage4K = "openai_image_4k"
+)
+
 // 智能体日志标识
 const (
 	Agent1TitleAgent  = "agent1_title_agent"

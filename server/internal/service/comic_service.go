@@ -28,14 +28,19 @@ func (s *ComicService) Create(userID int64, req *model.CreateComicRequest) (stri
 	if style == "" {
 		style = common.ComicStyleCartoon
 	}
+	imageBackend := req.ImageBackend
+	if imageBackend == "" {
+		imageBackend = common.ImageBackendHunyuan
+	}
 
 	comic := &model.Comic{
-		TaskID: taskID,
-		UserID: userID,
-		Topic:  req.Topic,
-		Style:  style,
-		Status: model.ComicStatusPending,
-		Phase:  model.ComicPhasePending,
+		TaskID:       taskID,
+		UserID:       userID,
+		Topic:        req.Topic,
+		Style:        style,
+		ImageBackend: imageBackend,
+		Status:       model.ComicStatusPending,
+		Phase:        model.ComicPhasePending,
 	}
 	if req.UserDescription != nil {
 		comic.UserDescription = req.UserDescription
@@ -45,11 +50,12 @@ func (s *ComicService) Create(userID int64, req *model.CreateComicRequest) (stri
 	}
 
 	state := &model.ComicState{
-		TaskID: taskID,
-		UserID: userID,
-		Topic:  req.Topic,
-		Style:  style,
-		Phase:  model.ComicPhasePending,
+		TaskID:       taskID,
+		UserID:       userID,
+		Topic:        req.Topic,
+		Style:        style,
+		ImageBackend: imageBackend,
+		Phase:        model.ComicPhasePending,
 	}
 	if req.UserDescription != nil {
 		state.UserDescription = *req.UserDescription

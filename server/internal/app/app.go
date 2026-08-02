@@ -7,8 +7,10 @@ import (
 	"log"
 
 	"github.com/ai-comic-generator/server/internal/client/cos"
+	"github.com/ai-comic-generator/server/internal/client/gpt"
 	"github.com/ai-comic-generator/server/internal/client/hunyuan"
 	"github.com/ai-comic-generator/server/internal/client/wechat"
+	"github.com/ai-comic-generator/server/internal/common"
 	"github.com/ai-comic-generator/server/internal/config"
 	"github.com/ai-comic-generator/server/internal/handler"
 	"github.com/ai-comic-generator/server/internal/service"
@@ -74,7 +76,21 @@ func New(cfg *config.Config) (*App, error) {
 		log.Printf("warn: dashscope llm not ready (%v), comic create disabled", llmErr)
 	}
 
-	imageSvc := service.NewImageService(cfg, localStore, hyClient, cosClient, llm)
+	gptClient1K, err := gpt.NewClient(&cfg.AI.OpenAIImage1K)
+	if err != nil {
+		return nil, fmt.Errorf("init gpt image 1k: %w", err)
+	}
+	gptClient4K, err := gpt.NewClient(&cfg.AI.OpenAIImage4K)
+	if err != nil {
+		return nil, fmt.Errorf("init gpt image 4k: %w", err)
+	}
+	// 生图后端注册表：用户在创建漫画时按需选择，未选择时回退到 hunyuan
+	generators := map[string]service.ImageGenerator{
+		common.ImageBackendHunyuan:       hyClient,
+		common.ImageBackendOpenAIImage1K: gptClient1K,
+		common.ImageBackendOpenAIImage4K: gptClient4K,
+	}
+	imageSvc := service.NewImageService(cfg, localStore, generators, cosClient, llm)
 	composeSvc := service.NewComposeService(localStore, cosClient)
 	publishSvc := service.NewPublishService(localStore, wechatClient)
 
