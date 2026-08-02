@@ -652,7 +652,7 @@ export default function CreatePage() {
                     <Select value={tone} onChange={setTone} options={TONE_OPTIONS} disabled={isBusy} style={{ width: '100%' }} />
                   </div>
                   <div className="config-field">
-                    <label>引擎</label>
+                    <label>模型</label>
                     <Select value={engine} onChange={setEngine} disabled={isBusy} style={{ width: '100%' }} options={[{ value: 'hunyuan', label: '混元生图' },{ value: 'openai_image_1k', label: 'OpenAI 1K' },{ value: 'openai_image_4k', label: 'OpenAI 4K' }]} />
                   </div>
                 </div>

@@ -240,8 +240,8 @@ export default function HomePage() {
                 onKeyDown={(e) => e.key === 'Enter' && navigate(`/comic/${comic.taskId}`)}
               >
                 <div className="home-works__cover">
-                  {comic.coverImage ? (
-                    <img src={comic.coverImage} alt={comic.title ?? comic.topic} />
+                  {comic?.panelImages?.length ? (
+                    <img src={comic.panelImages[0].url} alt={comic.title ?? comic.topic} />
                   ) : (
                     <div className="home-works__cover-placeholder">
                       <FileTextOutlined />
