@@ -4,15 +4,16 @@ import "time" // 时间类型，用于创建/完成时间等字段
 
 // Comic 漫画生成任务实体（对应数据库表 comic）
 type Comic struct {
-	ID              int64      `gorm:"primaryKey;autoIncrement" json:"id"`                                      // 主键 ID，自增
-	TaskID          string     `gorm:"column:taskId;uniqueIndex:uk_taskId" json:"taskId"`                       // 任务 ID（UUID），全局唯一标识一次漫画生成
-	UserID          int64      `gorm:"column:userId;index:idx_userId" json:"userId"`                              // 所属用户 ID，关联 user 表
-	Topic           string     `gorm:"column:topic" json:"topic"`                                                 // 创作主题/关键词（用户输入）
-	UserDescription *string    `gorm:"column:userDescription;type:text" json:"userDescription"`                   // 用户补充描述（可选，*string 表示可为 NULL）
-	Title           *string    `gorm:"column:title" json:"title"`                                                 // 漫画标题（故事构思阶段确定后写入）
-	CoverImage      *string    `gorm:"column:coverImage" json:"coverImage"`                                       // 封面图 URL（排版合成后写入）
-	Style           string     `gorm:"column:style;default:cartoon" json:"style"`                                 // 漫画风格：cartoon / realistic / chibi / animal，默认 cartoon
-	ImageBackend    string     `gorm:"column:imageBackend;default:hunyuan" json:"imageBackend"`                   // 生图后端：hunyuan / openai_image_1k / openai_image_4k，用户创建时选定
+	ID              int64   `gorm:"primaryKey;autoIncrement" json:"id"`                        // 主键 ID，自增
+	TaskID          string  `gorm:"column:taskId;uniqueIndex:uk_taskId" json:"taskId"`         // 任务 ID（UUID），全局唯一标识一次漫画生成
+	UserID          int64   `gorm:"column:userId;index:idx_userId" json:"userId"`              // 所属用户 ID，关联 user 表
+	Topic           string  `gorm:"column:topic" json:"topic"`                                 // 创作主题/关键词（用户输入）
+	UserDescription *string `gorm:"column:userDescription;type:text" json:"userDescription"`   // 用户补充描述（可选，*string 表示可为 NULL）
+	Title           *string `gorm:"column:title" json:"title"`                                 // 漫画标题（故事构思阶段确定后写入）
+	CoverImage      *string `gorm:"column:coverImage" json:"coverImage"`                       // 封面图 URL（排版合成后写入）
+	Style           string  `gorm:"column:style;default:cartoon" json:"style"`                 // 漫画风格：cartoon / realistic / chibi / animal，默认 cartoon
+	ImageBackend    string  `gorm:"column:imageBackend;default:hunyuan" json:"imageBackend"`   // 生图后端：hunyuan / openai_image_1k / openai_image_4k，用户创建时选定
+	CaptionTextMode     string  `gorm:"column:captionTextMode;default:top" json:"captionTextMode"`     // 文案模式：none不叠加 / top顶部字幕（默认）/ bubble对话气泡
 
 	// 六步产物：数据库以 JSON 字符串存储，返回 API 时由 ToComicInfo 解析为结构体
 	TitleOptions   *string `gorm:"column:titleOptions;type:json" json:"titleOptions"`     // 0. 标题推荐列表（JSON）
@@ -23,13 +24,13 @@ type Comic struct {
 	ComposedLayout *string `gorm:"column:composedLayout;type:json" json:"composedLayout"` // 5. 排版合成结果（JSON）
 	PublishResult  *string `gorm:"column:publishResult;type:json" json:"publishResult"`   // 6. 公众号发布结果（JSON）
 
-	Status        string     `gorm:"column:status;default:PENDING;index:idx_status" json:"status"`              // 任务总状态：PENDING / PROCESSING / COMPLETED / FAILED
-	Phase         string     `gorm:"column:phase;default:PENDING" json:"phase"`                                 // 当前流水线阶段（见 ComicPhase 常量）
-	ErrorMessage  *string    `gorm:"column:errorMessage;type:text" json:"errorMessage"`                         // 失败时的错误信息（成功时为 nil）
-	CreateTime    time.Time  `gorm:"column:createTime;autoCreateTime;index:idx_createTime" json:"createTime"`   // 任务创建时间，GORM 自动写入
-	CompletedTime *time.Time `gorm:"column:completedTime" json:"completedTime"`                                 // 任务完成时间（未完成时为 nil）
-	UpdateTime    time.Time  `gorm:"column:updateTime;autoUpdateTime" json:"updateTime"`                        // 最后更新时间，GORM 自动维护
-	IsDelete      int        `gorm:"column:isDelete;default:0" json:"-"`                                        // 软删除：0 正常，1 已删除；json:"-" 不返回前端
+	Status        string     `gorm:"column:status;default:PENDING;index:idx_status" json:"status"`            // 任务总状态：PENDING / PROCESSING / COMPLETED / FAILED
+	Phase         string     `gorm:"column:phase;default:PENDING" json:"phase"`                               // 当前流水线阶段（见 ComicPhase 常量）
+	ErrorMessage  *string    `gorm:"column:errorMessage;type:text" json:"errorMessage"`                       // 失败时的错误信息（成功时为 nil）
+	CreateTime    time.Time  `gorm:"column:createTime;autoCreateTime;index:idx_createTime" json:"createTime"` // 任务创建时间，GORM 自动写入
+	CompletedTime *time.Time `gorm:"column:completedTime" json:"completedTime"`                               // 任务完成时间（未完成时为 nil）
+	UpdateTime    time.Time  `gorm:"column:updateTime;autoUpdateTime" json:"updateTime"`                      // 最后更新时间，GORM 自动维护
+	IsDelete      int        `gorm:"column:isDelete;default:0" json:"-"`                                      // 软删除：0 正常，1 已删除；json:"-" 不返回前端
 }
 
 // TableName 指定 GORM 映射的表名
@@ -94,26 +95,27 @@ type ComicCharacter struct {
 
 // StoryboardPanel 分镜脚本中的单格（一格漫画）
 type StoryboardPanel struct {
-	PanelNo     int      `json:"panelNo"`     // 分镜格序号，从 1 开始
-	Scene       string   `json:"scene"`       // 场景与画面描述
-	Dialogue    []string `json:"dialogue"`    // 角色台词列表（可多气泡）
-	Narration   string   `json:"narration"`   // 旁白文字
-	Camera      string   `json:"camera"`      // 镜头类型（特写 / 中景 / 全景等）
-	ImagePrompt string   `json:"imagePrompt"` // 该格 AI 生图的英文/中文 Prompt
+	PanelNo     int      `json:"panelNo"`              // 分镜格序号，从 1 开始
+	Scene       string   `json:"scene"`                // 场景与画面描述
+	Dialogue    []string `json:"dialogue"`             // 角色台词列表（中文）
+	DialogueEn  []string `json:"dialogueEn,omitempty"` // 台词英文版（供 bubble 模式 / 英文气泡使用）
+	Narration   string   `json:"narration"`            // 旁白文字
+	Camera      string   `json:"camera"`               // 镜头类型（特写 / 中景 / 全景等）
+	ImagePrompt string   `json:"imagePrompt"`          // 该格 AI 生图的英文 Prompt
 }
 
 // StoryboardResult 完整分镜脚本
 type StoryboardResult struct {
 	PageCount int               `json:"pageCount"` // 预计页数
-	Panels    []StoryboardPanel `json:"panels"`  // 全部分镜格列表
+	Panels    []StoryboardPanel `json:"panels"`    // 全部分镜格列表
 }
 
 // PanelImageResult 某一格生成完成后的图片结果
 type PanelImageResult struct {
-	PanelNo     int    `json:"panelNo"`     // 对应分镜格序号
-	URL         string `json:"url"`         // 图片访问地址
+	PanelNo     int    `json:"panelNo"`                           // 对应分镜格序号
+	URL         string `json:"url"`                               // 图片访问地址
 	Method      string `json:"method" enums:"AI_GENERATE,UPLOAD"` // 图片来源：AI 生成 或 用户上传
-	ImagePrompt string `json:"imagePrompt"` // 实际使用的生图 Prompt（便于追溯）
+	ImagePrompt string `json:"imagePrompt"`                       // 实际使用的生图 Prompt（便于追溯）
 }
 
 // ComposedLayoutResult 排版合成后的成品信息
@@ -126,12 +128,12 @@ type ComposedLayoutResult struct {
 
 // PublishResult 公众号发布结果
 type PublishResult struct {
-	Platform    string     `json:"platform" example:"WECHAT_MP"`            // 发布平台，当前为微信公众号 WECHAT_MP
-	Title       string     `json:"title"`                                   // 发布标题（来自故事构思）
-	MediaID     string     `json:"mediaId"`                                 // 微信素材库中的 media_id
-	ArticleURL  string     `json:"articleUrl"`                              // 发布后的文章链接（若有）
-	PublishedAt *time.Time `json:"publishedAt"`                             // 发布时间（未发布时为 nil）
-	Status      string     `json:"status" enums:"DRAFT,PUBLISHED,FAILED"`   // 发布状态：草稿 / 已发布 / 失败
+	Platform    string     `json:"platform" example:"WECHAT_MP"`          // 发布平台，当前为微信公众号 WECHAT_MP
+	Title       string     `json:"title"`                                 // 发布标题（来自故事构思）
+	MediaID     string     `json:"mediaId"`                               // 微信素材库中的 media_id
+	ArticleURL  string     `json:"articleUrl"`                            // 发布后的文章链接（若有）
+	PublishedAt *time.Time `json:"publishedAt"`                           // 发布时间（未发布时为 nil）
+	Status      string     `json:"status" enums:"DRAFT,PUBLISHED,FAILED"` // 发布状态：草稿 / 已发布 / 失败
 }
 
 // ---------- API 响应（JSON 字段已解析为 Go 结构体，非字符串） ----------
@@ -147,6 +149,7 @@ type ComicInfo struct {
 	CoverImage      *string               `json:"coverImage"`      // 封面图 URL
 	Style           string                `json:"style"`           // 漫画风格
 	ImageBackend    string                `json:"imageBackend"`    // 生图后端
+	CaptionTextMode     string                `json:"captionTextMode"`     // 文案模式：none / top / bubble
 	TitleOptions    *TitleOptionsResult   `json:"titleOptions"`    // 标题推荐列表（已解析）
 	StoryIdeation   *StoryIdeationResult  `json:"storyIdeation"`   // 故事构思（已解析）
 	Characters      []ComicCharacter      `json:"characters"`      // 角色列表（已解析）
@@ -177,6 +180,7 @@ func (c *Comic) ToComicInfo() *ComicInfo {
 		CoverImage:      c.CoverImage,
 		Style:           c.Style,
 		ImageBackend:    c.ImageBackend,
+		CaptionTextMode: c.CaptionTextMode,
 		Status:          c.Status,
 		Phase:           c.Phase,
 		ErrorMessage:    c.ErrorMessage,
@@ -226,6 +230,8 @@ type ComicState struct {
 	UserDescription string                `json:"userDescription"` // 用户描述（编排时用 string，空则为 ""）
 	Style           string                `json:"style"`           // 漫画风格
 	ImageBackend    string                `json:"imageBackend"`    // 生图后端：hunyuan / openai_image_1k / openai_image_4k
+	CaptionTextMode     string                `json:"captionTextMode"`     // 文案模式：none / top / bubble
+	PromptLang      string                `json:"promptLang"`      // Prompt 语言：zh（通义千问）/ en（GPT）
 	Phase           string                `json:"phase"`           // 当前执行到的阶段
 	SelectedTitle   string                `json:"selectedTitle"`   // 用户确认的标题
 	TitleOptions    *TitleOptionsResult   `json:"titleOptions"`    // 标题推荐（内存态）

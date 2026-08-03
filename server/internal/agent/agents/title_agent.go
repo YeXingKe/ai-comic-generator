@@ -12,15 +12,19 @@ import (
 
 // TitleAgent 标题推荐 Agent（流水线第 0 步，qwen-plus）
 type TitleAgent struct {
-	llm llms.Model
+	llm           llms.Model
+	promptBuilder *common.PromptBuilder
 }
 
-func NewTitleAgent(llm llms.Model) *TitleAgent {
-	return &TitleAgent{llm: llm}
+func NewTitleAgent(llm llms.Model, promptBuilder *common.PromptBuilder) *TitleAgent {
+	return &TitleAgent{
+		llm:           llm,
+		promptBuilder: promptBuilder,
+	}
 }
 
 func (a *TitleAgent) Execute(ctx context.Context, state *model.ComicState) error {
-	prompt := common.BuildTitleIdeationPrompt(state.Topic, state.Style, state.UserDescription)
+	prompt := a.promptBuilder.BuildTitleIdeation(state.Topic, state.Style, state.UserDescription)
 	content, err := llms.GenerateFromSinglePrompt(ctx, a.llm, prompt)
 	if err != nil {
 		return fmt.Errorf("title llm: %w", err)

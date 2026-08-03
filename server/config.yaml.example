@@ -31,6 +31,8 @@ ai:
     api_key: "sk-xxx"
     model: "qwen-plus"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  # Prompt 语言：zh（中文，适用通义千问）/ en（英文，适用 GPT 模型）
+  prompt_lang: "zh"
   # 步骤 4：腾讯混元生图（未配置时开发模式用占位图）
   hunyuan:
     enabled: false

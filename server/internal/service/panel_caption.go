@@ -3,8 +3,8 @@ package service
 import (
 	"fmt"
 	"image"
-	_ "image/jpeg"
 	"image/color"
+	_ "image/jpeg"
 	_ "image/png"
 	"os"
 	"strings"
@@ -17,6 +17,97 @@ const (
 	panelCaptionMaxRunes  = 24
 	panelCaptionLineWidth = 12
 )
+
+// OverlayCaption 根据 captionTextMode 选择叠加方式（统一入口）
+func OverlayCaption(path, dialogue, narration, captionTextMode string) error {
+	switch captionTextMode {
+	case common.CaptionModeNone:
+		return nil
+	case common.CaptionModeBubble:
+		return overlayBubbleCaption(path, dialogue, narration)
+	default: // top
+		return overlayPanelCaption(path, dialogue, narration)
+	}
+}
+
+// overlayBubbleCaption 在分镜图底部叠加圆角气泡对话框
+func overlayBubbleCaption(path, dialogue, narration string) error {
+	text := strings.TrimSpace(dialogue)
+	if text == "" {
+		text = strings.TrimSpace(narration)
+	}
+	if text == "" {
+		return nil
+	}
+
+	img, err := loadPanelImage(path)
+	if err != nil {
+		return err
+	}
+	bounds := img.Bounds()
+	w, h := bounds.Dx(), bounds.Dy()
+	dc := gg.NewContext(w, h)
+	dc.DrawImage(img, 0, 0)
+
+	lines := wrapCaptionLines(common.TruncateRunes(text, panelCaptionMaxRunes), panelCaptionLineWidth)
+	if err := drawBubbleCaption(dc, lines, w, h); err != nil {
+		return err
+	}
+	return dc.SavePNG(path)
+}
+
+func drawBubbleCaption(dc *gg.Context, lines []string, panelW, panelH int) error {
+	if len(lines) == 0 {
+		return nil
+	}
+
+	fontSize := float64(panelH) * 0.042
+	if fontSize < 24 {
+		fontSize = 24
+	}
+	if err := loadCaptionFont(dc, fontSize); err != nil {
+		return err
+	}
+
+	lineH := fontSize * 1.3
+	padX := fontSize * 1.2
+	padY := fontSize * 0.7
+	totalTextH := float64(len(lines))*lineH - (lineH - fontSize)
+	bubbleH := totalTextH + padY*2
+	bubbleW := float64(panelW) * 0.86
+	if bubbleW > float64(panelW)-40 {
+		bubbleW = float64(panelW) - 40
+	}
+	radius := fontSize * 0.8
+	bx := (float64(panelW) - bubbleW) / 2
+	by := float64(panelH) - bubbleH - float64(panelH)*0.04
+	_ = padX
+
+	// shadow
+	dc.SetColor(color.RGBA{0, 0, 0, 60})
+	dc.DrawRoundedRectangle(bx+3, by+3, bubbleW, bubbleH, radius)
+	dc.Fill()
+
+	// bubble background
+	dc.SetColor(color.RGBA{255, 255, 255, 230})
+	dc.DrawRoundedRectangle(bx, by, bubbleW, bubbleH, radius)
+	dc.Fill()
+
+	// bubble border
+	dc.SetColor(color.RGBA{40, 40, 40, 200})
+	dc.SetLineWidth(2)
+	dc.DrawRoundedRectangle(bx, by, bubbleW, bubbleH, radius)
+	dc.Stroke()
+
+	// text
+	dc.SetColor(color.RGBA{20, 20, 20, 255})
+	centerX := float64(panelW) / 2
+	textY := by + padY + fontSize*0.88
+	for i, line := range lines {
+		dc.DrawStringAnchored(line, centerX, textY+float64(i)*lineH, 0.5, 0.5)
+	}
+	return nil
+}
 
 // overlayPanelCaption 在分镜图顶部叠加居中中文台词/旁白（无气泡框，参考公众号条漫顶栏字幕）
 func overlayPanelCaption(path, dialogue, narration string) error {

@@ -136,7 +136,7 @@ const CharacterDesignPrompt = `你是一位专业漫画角色设计师，擅长�
 // ---------- 步骤 3：分镜脚本 ----------
 
 // StoryboardScriptPrompt 分镜脚本 Agent（Agent3）
-// 占位符：{storyIdeation} {characters} {style} {panelCount} {descriptionSection} {stylePrompt}
+// 占位符：{storyIdeation} {characters} {style} {panelCount} {descriptionSection} {stylePrompt} {captionCompositionHint}
 const StoryboardScriptPrompt = `你是一位经验丰富的漫画分镜师，擅长将故事拆解为适合公众号发布的四格/六格漫画脚本。
 
 根据以下故事与角色，编写分镜脚本：
@@ -153,11 +153,11 @@ const StoryboardScriptPrompt = `你是一位经验丰富的漫画分镜师，擅
 1. 共 {panelCount} 格，panelNo 从 1 连续编号到 {panelCount}
 2. 第 1 格作为引子或场景建立，最后一格作为 punchline、反转或温情收尾
 3. scene 描述画面内容、角色动作、表情、背景环境，具体到可作画（每格 50-100 字）
-4. dialogue 为该格角色台词数组，每句不超过 20 字，符合角色 personality；无台词时返回空数组 []
+4. dialogue 为中文台词数组，每句不超过 20 字，符合角色 personality；dialogueEn 为对应英文翻译数组，格式与 dialogue 完全对应；无台词时两者均返回空数组 []
 5. narration 旁白，无则留空字符串 ""
 6. camera 标明镜头：特写 / 中景 / 全景 / 俯视 / 仰视 / 过肩等
 7. imagePrompt 必须为英文关键词式短句（非长段落），总长不超过 180 个英文字符；包含：角色外貌关键词、动作、场景、光影、风格词；必须注明 horizontal 16:9 cinematic widescreen comic panel
-8. imagePrompt 只描述纯画面（角色外貌、动作、场景、光影、构图），**禁止** speech bubble、文字、中文/英文台词；画面上方留白，中文台词由程序后续在顶部叠加字幕
+8. imagePrompt 只描述纯画面，**禁止**写入任何文字/台词/speech bubble；{captionCompositionHint}
 9. 角色外貌与 dialogue 须与角色设定一致，勿凭空新增未设定角色
 10. pageCount 填写 1（单页四格/六格）或实际页数
 
@@ -169,6 +169,7 @@ const StoryboardScriptPrompt = `你是一位经验丰富的漫画分镜师，擅
       "panelNo": 1,
       "scene": "画面与动作描述",
       "dialogue": ["角色A：台词"],
+      "dialogueEn": ["Character A: line"],
       "narration": "",
       "camera": "中景",
       "imagePrompt": "English prompt for AI image generation, cartoon style, ..."
@@ -177,6 +178,7 @@ const StoryboardScriptPrompt = `你是一位经验丰富的漫画分镜师，擅
       "panelNo": 2,
       "scene": "画面与动作描述",
       "dialogue": [],
+      "dialogueEn": [],
       "narration": "旁白文字",
       "camera": "特写",
       "imagePrompt": "English prompt..."
@@ -221,12 +223,12 @@ const AiModifyStoryboardPrompt = `你是一位专业的漫画分镜师，擅长�
 
 // ---------- 步骤 4：图片生成（Prompt 增强，供 image_service 使用） ----------
 
-// PanelImageEnhancePrompt 在分镜 imagePrompt 基础上增强生图指令（画面不含文字，台词由程序叠加顶栏字幕）
-// 占位符：{style} {stylePrompt} {imagePrompt} {scene} {characters} {dialogue} {narration}
+// PanelImageEnhancePrompt 在分镜 imagePrompt 基础上增强生图指令（画面不含文字，台词模式由 captionTextMode 决定）
+// 占位符：{style} {stylePrompt} {imagePrompt} {scene} {characters} {dialogue} {narration} {captionCompositionHint}
 const PanelImageEnhancePrompt = `### 任务 ###
 你是一位专业漫画分镜画师，负责将分镜信息转化为一条「可直接用于 AI 绘画模型」的英文 Prompt。
 **重要：生图模型不渲染文字。Prompt 中禁止出现任何中文/英文台词、禁止要求绘制 speech bubble 或文字框。**
-台词与旁白将由后续程序在画面顶部居中叠加中文黑字字幕（无气泡），你只需描述纯画面（角色、动作、场景、构图）。
+台词由后续程序按文案模式叠加到画面，你只需描述纯画面（角色、动作、场景、构图）。
 
 ### 输入 ###
 漫画风格：{style}
@@ -240,7 +242,7 @@ const PanelImageEnhancePrompt = `### 任务 ###
 ### 画面要求 ###
 1. single comic panel, horizontal 16:9 cinematic widescreen frame
 2. 角色表情、动作与台词情绪一致，但**画面中不得出现任何文字、字母、数字、水印、乱码**
-3. 画面上方约 20% 区域构图留白，便于后续叠加顶栏字幕（leave top area clear, no text, no speech bubble）
+3. {captionCompositionHint}
 4. clean line art, 风格词、角色一致性、场景、光影
 
 ### 输出要求 ###
@@ -400,7 +402,7 @@ func BuildCharacterDesignPrompt(storyIdeationJSON, style string) string {
 }
 
 // BuildStoryboardScriptPrompt 组装分镜脚本完整 Prompt
-func BuildStoryboardScriptPrompt(storyIdeationJSON, charactersJSON, style, userDescription string, panelCount int) string {
+func BuildStoryboardScriptPrompt(storyIdeationJSON, charactersJSON, style, userDescription, captionTextMode string, panelCount int) string {
 	if panelCount <= 0 {
 		panelCount = 4
 	}
@@ -411,11 +413,12 @@ func BuildStoryboardScriptPrompt(storyIdeationJSON, charactersJSON, style, userD
 	prompt = strings.ReplaceAll(prompt, "{panelCount}", countStr)
 	prompt = strings.ReplaceAll(prompt, "{descriptionSection}", BuildDescriptionSection(userDescription))
 	prompt = strings.ReplaceAll(prompt, "{stylePrompt}", GetComicStylePrompt(style))
+	prompt = strings.ReplaceAll(prompt, "{captionCompositionHint}", getCaptionCompositionHint(captionTextMode))
 	return prompt
 }
 
-// BuildPanelImageEnhancePrompt 组装混元生图 Prompt（画面纯绘，顶栏字幕由程序叠加）
-func BuildPanelImageEnhancePrompt(style, scene, characters, imagePrompt, dialogue, narration string) string {
+// BuildPanelImageEnhancePrompt 组装生图 Prompt（画面纯绘，台词模式由 captionTextMode 决定）
+func BuildPanelImageEnhancePrompt(style, scene, characters, imagePrompt, dialogue, narration, captionTextMode string) string {
 	if dialogue == "" {
 		dialogue = "（无）"
 	}
@@ -429,11 +432,12 @@ func BuildPanelImageEnhancePrompt(style, scene, characters, imagePrompt, dialogu
 	prompt = strings.ReplaceAll(prompt, "{dialogue}", dialogue)
 	prompt = strings.ReplaceAll(prompt, "{narration}", narration)
 	prompt = strings.ReplaceAll(prompt, "{stylePrompt}", GetComicStylePrompt(style))
+	prompt = strings.ReplaceAll(prompt, "{captionCompositionHint}", getCaptionCompositionHint(captionTextMode))
 	return prompt
 }
 
-// BuildDirectPanelImagePrompt 不经 LLM，直接拼装纯画面英文 Prompt（顶栏字幕由程序叠加）
-func BuildDirectPanelImagePrompt(style, scene, characters, imagePrompt, dialogue, narration string) string {
+// BuildDirectPanelImagePrompt 不经 LLM，直接拼装纯画面英文 Prompt
+func BuildDirectPanelImagePrompt(style, scene, characters, imagePrompt, dialogue, narration, captionTextMode string) string {
 	_ = dialogue
 	_ = narration
 	parts := make([]string, 0, 14)
@@ -456,7 +460,14 @@ func BuildDirectPanelImagePrompt(style, scene, characters, imagePrompt, dialogue
 		"horizontal 16:9 aspect ratio",
 		"clean line art",
 		"vibrant colors",
-		"leave top area clear",
+	)
+	switch captionTextMode {
+	case captionTextModeTop:
+		parts = append(parts, "leave top area clear", "no text in top area")
+	case captionTextModeBubble:
+		parts = append(parts, "leave space near characters for speech bubble overlay")
+	}
+	parts = append(parts,
 		"no text",
 		"no letters",
 		"no speech bubble",
@@ -474,6 +485,18 @@ func BuildDirectPanelImagePrompt(style, scene, characters, imagePrompt, dialogue
 	}
 	parts = append(parts, "no deformed hands, high quality illustration")
 	return TruncateHunyuanPrompt(strings.Join(parts, ", "))
+}
+
+// getCaptionCompositionHint 根据文案模式返回生图构图要求提示（注入 imagePrompt 模板）
+func getCaptionCompositionHint(captionTextMode string) string {
+	switch captionTextMode {
+	case captionTextModeTop:
+		return "画面上方约 20% 区域构图留白，便于后续叠加顶栏字幕（leave top area clear, no text in top 20%）"
+	case captionTextModeBubble:
+		return "正常构图，角色周围保留气泡叠加空间（normal composition, leave space near characters for speech bubble overlay）"
+	default: // none
+		return "正常满帧构图，无需为文案预留空间（full frame composition, no caption overlay needed）"
+	}
 }
 
 func truncateRunes(s string, max int) string {

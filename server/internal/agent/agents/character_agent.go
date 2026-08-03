@@ -13,12 +13,16 @@ import (
 
 // CharacterAgent 角色设定 Agent（流水线第 2 步，qwen-plus）
 type CharacterAgent struct {
-	llm llms.Model
+	llm           llms.Model
+	promptBuilder *common.PromptBuilder
 }
 
 // NewCharacterAgent 创建角色设定 Agent
-func NewCharacterAgent(llm llms.Model) *CharacterAgent {
-	return &CharacterAgent{llm: llm}
+func NewCharacterAgent(llm llms.Model, promptBuilder *common.PromptBuilder) *CharacterAgent {
+	return &CharacterAgent{
+		llm:           llm,
+		promptBuilder: promptBuilder,
+	}
 }
 
 // Execute 根据故事构思生成角色列表，写入 state.Characters
@@ -31,7 +35,7 @@ func (a *CharacterAgent) Execute(ctx context.Context, state *model.ComicState) e
 		return fmt.Errorf("marshal story: %w", err)
 	}
 
-	prompt := common.BuildCharacterDesignPrompt(string(storyJSON), state.Style)
+	prompt := a.promptBuilder.BuildCharacterDesign(string(storyJSON), state.Style)
 	content, err := llms.GenerateFromSinglePrompt(ctx, a.llm, prompt)
 	if err != nil {
 		return fmt.Errorf("character llm: %w", err)

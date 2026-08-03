@@ -12,17 +12,21 @@ import (
 
 // StoryAgent 故事构思 Agent（流水线第 1 步）
 type StoryAgent struct {
-	llm llms.Model
+	llm           llms.Model
+	promptBuilder *common.PromptBuilder
 }
 
 // NewStoryAgent 创建故事构思 Agent
-func NewStoryAgent(llm llms.Model) *StoryAgent {
-	return &StoryAgent{llm: llm}
+func NewStoryAgent(llm llms.Model, promptBuilder *common.PromptBuilder) *StoryAgent {
+	return &StoryAgent{
+		llm:           llm,
+		promptBuilder: promptBuilder,
+	}
 }
 
 // Execute 根据用户主题生成故事构思，写入 state.StoryIdeation
 func (a *StoryAgent) Execute(ctx context.Context, state *model.ComicState) error {
-	prompt := common.BuildStoryIdeationPrompt(state.Topic, state.Style, state.UserDescription, state.SelectedTitle)
+	prompt := a.promptBuilder.BuildStoryIdeation(state.Topic, state.Style, state.UserDescription, state.SelectedTitle)
 	content, err := llms.GenerateFromSinglePrompt(ctx, a.llm, prompt)
 	if err != nil {
 		return fmt.Errorf("story llm: %w", err)

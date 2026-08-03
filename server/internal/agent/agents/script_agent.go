@@ -15,12 +15,16 @@ const defaultPanelCount = 4
 
 // ScriptAgent 分镜脚本 Agent（流水线第 3 步，qwen-plus）
 type ScriptAgent struct {
-	llm llms.Model
+	llm           llms.Model
+	promptBuilder *common.PromptBuilder
 }
 
 // NewScriptAgent 创建分镜脚本 Agent
-func NewScriptAgent(llm llms.Model) *ScriptAgent {
-	return &ScriptAgent{llm: llm}
+func NewScriptAgent(llm llms.Model, promptBuilder *common.PromptBuilder) *ScriptAgent {
+	return &ScriptAgent{
+		llm:           llm,
+		promptBuilder: promptBuilder,
+	}
 }
 
 // Execute 根据故事与角色生成分镜脚本，写入 state.Storyboard
@@ -35,8 +39,8 @@ func (a *ScriptAgent) Execute(ctx context.Context, state *model.ComicState) erro
 	storyJSON, _ := json.Marshal(state.StoryIdeation)
 	charJSON, _ := json.Marshal(state.Characters)
 
-	prompt := common.BuildStoryboardScriptPrompt(
-		string(storyJSON), string(charJSON), state.Style, state.UserDescription, defaultPanelCount,
+	prompt := a.promptBuilder.BuildStoryboardScript(
+		string(storyJSON), string(charJSON), state.Style, state.UserDescription, state.CaptionTextMode, defaultPanelCount,
 	)
 	content, err := llms.GenerateFromSinglePrompt(ctx, a.llm, prompt)
 	if err != nil {

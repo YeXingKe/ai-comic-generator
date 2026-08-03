@@ -57,6 +57,7 @@ type AIConfig struct {
 	DashScope     DashScopeConfig   `mapstructure:"dashscope"`
 	Hunyuan       HunyuanConfig     `mapstructure:"hunyuan"`
 	ImageBackend  string            `mapstructure:"image_backend"`
+	PromptLang    string            `mapstructure:"prompt_lang"` // zh（默认，通义千问）或 en（GPT）
 	OpenAIImage1K OpenAIImageConfig `mapstructure:"openai_image_1k"`
 	OpenAIImage4K OpenAIImageConfig `mapstructure:"openai_image_4k"`
 }
@@ -166,6 +167,9 @@ func applyDefaults(cfg *Config) {
 	}
 	if cfg.AI.OpenAIImage4K.Size == "" {
 		cfg.AI.OpenAIImage4K.Size = "1024x1024"
+	}
+	if cfg.AI.PromptLang == "" {
+		cfg.AI.PromptLang = "zh"
 	}
 	if cfg.Storage.BasePath == "" {
 		cfg.Storage.BasePath = "./data/comics"

@@ -23,7 +23,7 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons'
 import { COMIC_PHASE_LABEL, confirmComicTitle, createComic, getComic, startComicPipeline } from '@/api/comic'
-import type { ComicInfo, ComicPhase, ImageBackend } from '@/types/api'
+import type { ComicInfo, ComicPhase, ImageBackend, captionTextMode } from '@/types/api'
 import { resolveComicAssetUrls } from '@/utils/assetUrl'
 import { useLoginUserStore } from '@/stores/loginUser'
 import './index.css'
@@ -363,6 +363,7 @@ export default function CreatePage() {
   const [artStyle, setArtStyle] = useState('animal')
   const [colorMode, setColorMode] = useState<'color' | 'bw'>('color')
   const [engine, setEngine] = useState<ImageBackend>('hunyuan')
+  const [captionTextMode, setcaptionTextMode] = useState<captionTextMode>('top')
   const [keepConsistency, setKeepConsistency] = useState(true)
   const [outputFormat, setOutputFormat] = useState<'long' | 'single'>('long')
   const [saveDraft, setSaveDraft] = useState(true)
@@ -457,6 +458,7 @@ export default function CreatePage() {
         style: artStyle,
         userDescription,
         imageBackend: engine,
+        captionTextMode,
       })
       if (res.code === 0 && res.data?.taskId) {
         setTaskId(res.data.taskId)
@@ -654,6 +656,10 @@ export default function CreatePage() {
                   <div className="config-field">
                     <label>模型</label>
                     <Select value={engine} onChange={setEngine} disabled={isBusy} style={{ width: '100%' }} options={[{ value: 'hunyuan', label: '混元生图' },{ value: 'openai_image_1k', label: 'OpenAI 1K' },{ value: 'openai_image_4k', label: 'OpenAI 4K' }]} />
+                  </div>
+                  <div className="config-field">
+                    <label>文案</label>
+                    <Select value={captionTextMode} onChange={setcaptionTextMode} disabled={isBusy} style={{ width: '100%' }} options={[{ value: 'top', label: '顶部字幕' }, { value: 'bubble', label: '对话气泡' }, { value: 'none', label: '不显示' }]} />
                   </div>
                 </div>
 

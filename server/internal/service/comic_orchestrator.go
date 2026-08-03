@@ -7,6 +7,7 @@ import (
 
 	"github.com/ai-comic-generator/server/internal/agent"
 	"github.com/ai-comic-generator/server/internal/agent/agents"
+	"github.com/ai-comic-generator/server/internal/common"
 	"github.com/ai-comic-generator/server/internal/model"
 	"github.com/ai-comic-generator/server/internal/store"
 	"github.com/tmc/langchaingo/llms"
@@ -26,6 +27,7 @@ type ComicOrchestrator struct {
 
 func NewComicOrchestrator(
 	llm llms.Model,
+	promptBuilder *common.PromptBuilder,
 	comicStore *store.ComicStore,
 	imageSvc *ImageService,
 	composeSvc *ComposeService,
@@ -33,10 +35,10 @@ func NewComicOrchestrator(
 ) *ComicOrchestrator {
 	return &ComicOrchestrator{
 		comicStore:     comicStore,
-		titleAgent:     agents.NewTitleAgent(llm),
-		storyAgent:     agents.NewStoryAgent(llm),
-		characterAgent: agents.NewCharacterAgent(llm),
-		scriptAgent:    agents.NewScriptAgent(llm),
+		titleAgent:     agents.NewTitleAgent(llm, promptBuilder),
+		storyAgent:     agents.NewStoryAgent(llm, promptBuilder),
+		characterAgent: agents.NewCharacterAgent(llm, promptBuilder),
+		scriptAgent:    agents.NewScriptAgent(llm, promptBuilder),
 		imageService:   imageSvc,
 		composeService: composeSvc,
 		publishService: publishSvc,

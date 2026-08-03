@@ -165,6 +165,9 @@ export type ComicPhase = 'PENDING' | 'TITLE_GENERATION' | 'TITLE_SELECTING' | 'S
 /** 生图后端，对应后端 config.yaml 的 ai.image_backend 可选值 */
 export type ImageBackend = 'hunyuan' | 'openai_image_1k' | 'openai_image_4k'
 
+/** 文案展示模式，对应后端 common.captionTextMode* 常量 */
+export type captionTextMode = 'none' | 'top' | 'bubble'
+
 export interface TitleOption {
   title: string
   subtitle?: string
@@ -195,6 +198,7 @@ export interface StoryboardPanel {
   panelNo: number
   scene: string
   dialogue: string[]
+  dialogueEn?: string[]
   narration: string
   camera: string
   imagePrompt: string
@@ -239,6 +243,7 @@ export interface ComicInfo {
   coverImage?: string | null
   style: string
   imageBackend: ImageBackend
+  captionTextMode: captionTextMode
   titleOptions?: TitleOptionsResult | null
   storyIdeation?: StoryIdeationResult | null
   characters?: ComicCharacter[]
@@ -258,6 +263,7 @@ export interface CreateComicRequest {
   userDescription?: string
   style?: string
   imageBackend?: ImageBackend
+  captionTextMode?: captionTextMode
 }
 
 export interface ConfirmTitleRequest {

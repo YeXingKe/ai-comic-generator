@@ -5,7 +5,7 @@ import (
 	"time"          // 记录任务完成时间
 
 	"github.com/ai-comic-generator/server/internal/model" // 漫画实体与请求模型
-	"gorm.io/gorm" // ORM，操作 MySQL
+	"gorm.io/gorm"                                        // ORM，操作 MySQL
 )
 
 // ComicStore 漫画任务数据访问
@@ -25,9 +25,9 @@ func (s *ComicStore) Create(comic *model.Comic) error {
 
 // GetByTaskID 按任务 UUID 查询漫画（排除软删除）
 func (s *ComicStore) GetByTaskID(taskID string) (*model.Comic, error) {
-	var comic model.Comic                                                                      // 声明接收查询结果的实体
+	var comic model.Comic                                                        // 声明接收查询结果的实体
 	err := s.db.Where("taskId = ? AND isDelete = 0", taskID).First(&comic).Error // 按 taskId 查首条未删除记录
-	if err != nil { // 未找到或数据库错误
+	if err != nil {                                                              // 未找到或数据库错误
 		return nil, err // 返回 nil 与错误
 	}
 	return &comic, nil // 返回查询到的漫画指针
@@ -37,7 +37,7 @@ func (s *ComicStore) GetByTaskID(taskID string) (*model.Comic, error) {
 func (s *ComicStore) UpdatePhase(taskID, status, phase string) error {
 	return s.db.Model(&model.Comic{}). // 指定更新 comic 表
 						Where("taskId = ? AND isDelete = 0", taskID). // 限定目标任务
-						Updates(map[string]interface{}{ // 批量更新字段
+						Updates(map[string]interface{}{               // 批量更新字段
 			"status": status, // 任务总状态（如 PROCESSING）
 			"phase":  phase,  // 当前步骤阶段（如 STORY_IDEATION）
 		}).Error // 返回更新错误（若有）
@@ -55,8 +55,8 @@ func (s *ComicStore) SyncState(state *model.ComicState) error {
 		updates["title"] = state.SelectedTitle
 	}
 	if state.StoryIdeation != nil { // 故事构思步骤已完成
-		j := toJSON(state.StoryIdeation) // 序列化为 JSON 字符串
-		updates["storyIdeation"] = j     // 写入 storyIdeation 列
+		j := toJSON(state.StoryIdeation)     // 序列化为 JSON 字符串
+		updates["storyIdeation"] = j         // 写入 storyIdeation 列
 		if state.StoryIdeation.Title != "" { // AI 生成了标题
 			updates["title"] = state.StoryIdeation.Title // 同步到 title 列便于列表展示
 		}
@@ -72,7 +72,7 @@ func (s *ComicStore) SyncState(state *model.ComicState) error {
 	}
 	if state.ComposedLayout != nil { // 排版合成步骤已完成
 		updates["composedLayout"] = toJSON(state.ComposedLayout) // 写入 composedLayout JSON 列
-		if state.ComposedLayout.CoverImage != "" { // 有封面图 URL
+		if state.ComposedLayout.CoverImage != "" {               // 有封面图 URL
 			updates["coverImage"] = state.ComposedLayout.CoverImage // 同步到 coverImage 列
 		}
 	}
@@ -112,12 +112,13 @@ func (s *ComicStore) MarkTitleConfirmed(state *model.ComicState) error {
 // BuildStateFromComic 从数据库实体恢复流水线内存态
 func (s *ComicStore) BuildStateFromComic(c *model.Comic) *model.ComicState {
 	state := &model.ComicState{
-		TaskID:       c.TaskID,
-		UserID:       c.UserID,
-		Topic:        c.Topic,
-		Style:        c.Style,
-		ImageBackend: c.ImageBackend,
-		Phase:        c.Phase,
+		TaskID:          c.TaskID,
+		UserID:          c.UserID,
+		Topic:           c.Topic,
+		Style:           c.Style,
+		ImageBackend:    c.ImageBackend,
+		CaptionTextMode: c.CaptionTextMode,
+		Phase:           c.Phase,
 	}
 	if c.UserDescription != nil {
 		state.UserDescription = *c.UserDescription
@@ -166,19 +167,19 @@ func parseJSONInto(raw string, target interface{}) {
 func (s *ComicStore) MarkFailed(taskID, phase, errMsg string) error {
 	return s.db.Model(&model.Comic{}). // 指定更新 comic 表
 						Where("taskId = ? AND isDelete = 0", taskID). // 限定目标任务
-						Updates(map[string]interface{}{ // 批量更新失败相关字段
+						Updates(map[string]interface{}{               // 批量更新失败相关字段
 			"status":       model.ComicStatusFailed, // 总状态改为 FAILED
-			"phase":        phase,                 // 记录失败时所在阶段
-			"errorMessage": errMsg,                // 记录错误详情供前端展示
+			"phase":        phase,                   // 记录失败时所在阶段
+			"errorMessage": errMsg,                  // 记录错误详情供前端展示
 		}).Error // 返回更新错误（若有）
 }
 
 // MarkCompleted 标记任务全部步骤完成
 func (s *ComicStore) MarkCompleted(taskID string) error {
-	now := time.Now() // 取当前时间作为完成时间
+	now := time.Now()                  // 取当前时间作为完成时间
 	return s.db.Model(&model.Comic{}). // 指定更新 comic 表
 						Where("taskId = ? AND isDelete = 0", taskID). // 限定目标任务
-						Updates(map[string]interface{}{ // 批量更新完成相关字段
+						Updates(map[string]interface{}{               // 批量更新完成相关字段
 			"status":        model.ComicStatusCompleted,    // 总状态改为 COMPLETED
 			"phase":         model.ComicPhaseWechatPublish, // 最终阶段为公众号发布
 			"completedTime": &now,                          // 写入完成时间戳
@@ -188,7 +189,7 @@ func (s *ComicStore) MarkCompleted(taskID string) error {
 // ListByPage 分页查询漫画任务列表
 func (s *ComicStore) ListByPage(req *model.QueryComicRequest) (*model.ComicPageResult, error) {
 	q := s.db.Model(&model.Comic{}).Where("isDelete = 0") // 基础查询：未软删除
-	if req.UserID != nil { // 按用户 ID 筛选（普通用户只看自己的）
+	if req.UserID != nil {                                // 按用户 ID 筛选（普通用户只看自己的）
 		q = q.Where("userId = ?", *req.UserID) // 追加 userId 条件
 	}
 	if req.Status != nil && *req.Status != "" { // 按任务状态筛选
@@ -198,20 +199,20 @@ func (s *ComicStore) ListByPage(req *model.QueryComicRequest) (*model.ComicPageR
 		q = q.Where("phase = ?", *req.Phase) // 追加 phase 条件
 	}
 
-	var total int64                             // 符合条件的总记录数
+	var total int64                               // 符合条件的总记录数
 	if err := q.Count(&total).Error; err != nil { // 统计总数
 		return nil, err // 统计失败则返回错误
 	}
 
 	pageNum, pageSize := req.PageNum, req.PageSize // 读取请求中的分页参数
-	if pageNum <= 0 { // 页码非法时使用默认值
+	if pageNum <= 0 {                              // 页码非法时使用默认值
 		pageNum = 1 // 默认第 1 页
 	}
 	if pageSize <= 0 { // 每页条数非法时使用默认值
 		pageSize = 10 // 默认每页 10 条
 	}
 
-	var rows []model.Comic // 当前页的数据行
+	var rows []model.Comic             // 当前页的数据行
 	err := q.Order("createTime DESC"). // 按创建时间倒序
 						Offset(int((pageNum - 1) * pageSize)). // 跳过前面页的数据
 						Limit(int(pageSize)).                  // 限制本页条数
@@ -221,7 +222,7 @@ func (s *ComicStore) ListByPage(req *model.QueryComicRequest) (*model.ComicPageR
 	}
 
 	records := make([]model.ComicInfo, 0, len(rows)) // 预分配 API 响应切片
-	for i := range rows { // 遍历查询结果
+	for i := range rows {                            // 遍历查询结果
 		if info := rows[i].ToComicInfo(); info != nil { // 实体转 API 结构（含 JSON 解析）
 			records = append(records, *info) // 追加到结果列表
 		}
@@ -234,7 +235,7 @@ func (s *ComicStore) ListByPage(req *model.QueryComicRequest) (*model.ComicPageR
 // toJSON 将任意结构体序列化为 JSON 字符串（失败返回空串）
 func toJSON(v interface{}) string {
 	b, err := json.Marshal(v) // 序列化
-	if err != nil { // 序列化失败
+	if err != nil {           // 序列化失败
 		return "" // 返回空字符串，避免写入非法 JSON
 	}
 	return string(b) // 转为 string 供 GORM 写入 JSON 列

@@ -24,16 +24,17 @@ type ImageGenerator interface {
 
 // ImageService 步骤 4：生图（支持混元 / OpenAI 兼容后端；未启用时生成占位图）
 type ImageService struct {
-	generators map[string]ImageGenerator // 生图后端注册表：image_backend 值 -> 对应 generator
-	cos        *cos.Client
-	store      *storage.Local
-	cfg        *config.Config
-	llm        llms.Model
+	generators    map[string]ImageGenerator // 生图后端注册表：image_backend 值 -> 对应 generator
+	cos           *cos.Client
+	store         *storage.Local
+	cfg           *config.Config
+	llm           llms.Model
+	promptBuilder *common.PromptBuilder
 }
 
 // NewImageService 创建画面生成服务，generators 由 app.go 按 image_backend 名称注册全部可用后端
-func NewImageService(cfg *config.Config, store *storage.Local, generators map[string]ImageGenerator, cosClient *cos.Client, llm llms.Model) *ImageService {
-	return &ImageService{cfg: cfg, store: store, generators: generators, cos: cosClient, llm: llm}
+func NewImageService(cfg *config.Config, store *storage.Local, generators map[string]ImageGenerator, cosClient *cos.Client, llm llms.Model, promptBuilder *common.PromptBuilder) *ImageService {
+	return &ImageService{cfg: cfg, store: store, generators: generators, cos: cosClient, llm: llm, promptBuilder: promptBuilder}
 }
 
 // resolveGenerator 按任务选定的 image_backend 取对应生成器；未配置或未启用则返回 nil（走占位图兜底）
@@ -65,13 +66,13 @@ func (s *ImageService) GeneratePanels(ctx context.Context, state *model.ComicSta
 		dest := s.store.PanelPath(state.TaskID, panel.PanelNo)
 		dialogue := common.FormatPanelDialogue(panel.Dialogue)
 		narration := strings.TrimSpace(panel.Narration)
-		hyPrompt := s.buildPanelPrompt(ctx, state.Style, panel.Scene, charRef, panel.ImagePrompt, dialogue, narration)
+		hyPrompt := s.buildPanelPrompt(ctx, state.Style, panel.Scene, charRef, panel.ImagePrompt, dialogue, narration, state.CaptionTextMode)
 
 		var genErr error
 		if generator != nil {
 			genErr = generator.Generate(ctx, hyPrompt, dest)
 			if genErr == nil {
-				if err := overlayPanelCaption(dest, dialogue, narration); err != nil {
+				if err := OverlayCaption(dest, dialogue, narration, state.CaptionTextMode); err != nil {
 					log.Printf("overlay panel caption failed taskId=%s panel=%d: %v", state.TaskID, panel.PanelNo, err)
 				}
 			}
@@ -106,13 +107,13 @@ func (s *ImageService) GeneratePanels(ctx context.Context, state *model.ComicSta
 	return nil
 }
 
-// buildPanelPrompt 优先经 LLM 增强（画面不含文字，台词由程序叠加顶栏字幕），失败则直接拼装英文 Prompt
-func (s *ImageService) buildPanelPrompt(ctx context.Context, style, scene, charRef, imagePrompt, dialogue, narration string) string {
+// buildPanelPrompt 优先经 LLM 增强（画面不含文字，台词由程序叠加），失败则直接拼装英文 Prompt
+func (s *ImageService) buildPanelPrompt(ctx context.Context, style, scene, charRef, imagePrompt, dialogue, narration, captionTextMode string) string {
 	base := imagePrompt
 	if base == "" {
 		base = scene
 	}
-	meta := common.BuildPanelImageEnhancePrompt(style, scene, charRef, base, dialogue, narration)
+	meta := s.promptBuilder.BuildPanelImageEnhance(style, scene, charRef, base, dialogue, narration, captionTextMode)
 	if s.llm != nil {
 		content, err := llms.GenerateFromSinglePrompt(ctx, s.llm, meta)
 		if err != nil {
@@ -121,7 +122,7 @@ func (s *ImageService) buildPanelPrompt(ctx context.Context, style, scene, charR
 			return common.TruncateHunyuanPrompt(common.SanitizeHunyuanImagePrompt(trimmed))
 		}
 	}
-	return common.TruncateHunyuanPrompt(common.BuildDirectPanelImagePrompt(style, scene, charRef, base, dialogue, narration))
+	return common.TruncateHunyuanPrompt(common.BuildDirectPanelImagePrompt(style, scene, charRef, base, dialogue, narration, captionTextMode))
 }
 
 func panelImageMethod(hunyuanOn bool) string {

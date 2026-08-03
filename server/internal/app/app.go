@@ -90,14 +90,15 @@ func New(cfg *config.Config) (*App, error) {
 		common.ImageBackendOpenAIImage1K: gptClient1K,
 		common.ImageBackendOpenAIImage4K: gptClient4K,
 	}
-	imageSvc := service.NewImageService(cfg, localStore, generators, cosClient, llm)
+	promptBuilder := common.NewPromptBuilder(cfg.AI.PromptLang)
+	imageSvc := service.NewImageService(cfg, localStore, generators, cosClient, llm, promptBuilder)
 	composeSvc := service.NewComposeService(localStore, cosClient)
 	publishSvc := service.NewPublishService(localStore, wechatClient)
 
 	var comicHandler *handler.ComicHandler
 	if llmErr == nil {
 		orchestrator := service.NewComicOrchestrator(
-			llm, comicStore, imageSvc, composeSvc, publishSvc,
+			llm, promptBuilder, comicStore, imageSvc, composeSvc, publishSvc,
 		)
 		comicService := service.NewComicService(comicStore, orchestrator)
 		comicHandler = handler.NewComicHandler(comicService)
