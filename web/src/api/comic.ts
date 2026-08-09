@@ -1,8 +1,65 @@
 import request, { unwrap } from '@/utils/request'
-import type { BaseResponse, ComicInfo, ComicPageResult, ConfirmTitleRequest, CreateComicRequest, QueryComicRequest, StartComicRequest } from '@/types/api'
+import type {
+  BaseResponse,
+  ComicInfo,
+  ComicPageResult,
+  ConfirmTitleRequest,
+  CreateComicRequest,
+  CreateCustomComicRequest,
+  CustomComicInfo,
+  CustomComicPageResult,
+  PublishComicRequest,
+  PublishResult,
+  QueryComicRequest,
+  QueryCustomComicRequest,
+  StartComicRequest,
+} from '@/types/api'
 
 export async function createComic(body: CreateComicRequest) {
   return unwrap(await request.post<BaseResponse<{ taskId: string }>>('/comic/create', body))
+}
+
+export async function createCustomComic(body: CreateCustomComicRequest) {
+  return unwrap(await request.post<BaseResponse<{ taskId: string }>>('/comic/custom/create', body))
+}
+
+export async function getCustomComic(taskId: string) {
+  return unwrap(await request.get<BaseResponse<CustomComicInfo>>('/comic/custom/get', { params: { taskId } }))
+}
+
+export async function listCustomComicPage(body: QueryCustomComicRequest) {
+  return unwrap(await request.post<BaseResponse<CustomComicPageResult>>('/comic/custom/page', body))
+}
+
+/** 下载自定义创作全部分镜 zip（需登录 Cookie） */
+export async function downloadCustomComicZip(taskId: string) {
+  const res = await request.get<Blob>('/comic/custom/download', {
+    params: { taskId },
+    responseType: 'blob',
+  })
+  const contentType = String(res.headers['content-type'] || '')
+  if (contentType.includes('application/json')) {
+    const text = await res.data.text()
+    let message = '下载失败'
+    try {
+      const json = JSON.parse(text) as BaseResponse
+      if (json.message) message = json.message
+    } catch {
+      /* ignore */
+    }
+    throw new Error(message)
+  }
+  const disposition = String(res.headers['content-disposition'] || '')
+  const matched = /filename="?([^";]+)"?/i.exec(disposition)
+  const filename = matched?.[1] || `custom-comic-${taskId.slice(0, 8)}.zip`
+  const url = URL.createObjectURL(res.data)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
 }
 
 export async function confirmComicTitle(body: ConfirmTitleRequest) {
@@ -11,6 +68,10 @@ export async function confirmComicTitle(body: ConfirmTitleRequest) {
 
 export async function startComicPipeline(body: StartComicRequest) {
   return unwrap(await request.post<BaseResponse<null>>('/comic/start', body))
+}
+
+export async function publishComic(body: PublishComicRequest) {
+  return unwrap(await request.post<BaseResponse<PublishResult>>('/comic/publish', body))
 }
 
 export async function getComic(taskId: string) {

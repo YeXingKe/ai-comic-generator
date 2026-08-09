@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { MenuProps } from 'antd'
 import { Menu, Avatar, Button, Dropdown } from 'antd'
-import { HomeOutlined, EditOutlined, UserOutlined, HistoryOutlined, BarChartOutlined, LogoutOutlined, LockOutlined } from '@ant-design/icons'
+import { HomeOutlined, EditOutlined, UserOutlined, HistoryOutlined, BarChartOutlined, LogoutOutlined, LockOutlined, ThunderboltOutlined, FormOutlined } from '@ant-design/icons'
 import ThemeToggle from '../ThemeToggle'
 import { getVisibleNavItems } from '@/router/nav'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
@@ -11,16 +11,27 @@ import './index.css'
 
 const navIcons: Record<string, React.ReactNode> = {
   '/': <HomeOutlined />,
-  '/create': <EditOutlined />,
+  'create-menu': <EditOutlined />,
+  '/create': <ThunderboltOutlined />,
+  '/create/custom': <FormOutlined />,
   '/admin/users': <UserOutlined />,
   '/history': <HistoryOutlined />,
   '/admin/data': <BarChartOutlined />,
 }
 
-function matchNavKey(pathname: string, navItems: { key: string; path: string }[]) {
+function matchNavKey(pathname: string, navItems: { key: string; path: string; children?: { key: string; path: string }[] }[]) {
   if (pathname === '/') return '/'
-  const matched = navItems.filter((item) => item.path !== '/').find((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
-  return matched?.key ?? '/'
+  for (const item of navItems) {
+    if (item.children?.length) {
+      const child = item.children.find((c) => pathname === c.path || pathname.startsWith(`${c.path}/`))
+      if (child) return child.key
+      continue
+    }
+    if (item.path !== '/' && (pathname === item.path || pathname.startsWith(`${item.path}/`))) {
+      return item.key
+    }
+  }
+  return '/'
 }
 
 export default function GlobalHeader() {
@@ -35,18 +46,42 @@ export default function GlobalHeader() {
   const selectedKey = matchNavKey(location.pathname, navItems)
   const isImmersive = appTheme === 'immersive'
 
-  const menuItems: MenuProps['items'] = navItems.map((item) => ({
-    key: item.key,
-    label: (
-      <Link to={item.path} className="nav-menu__link">
-        <span className="nav-menu__content">
-          <span className="nav-menu__icon">{navIcons[item.key]}</span>
-          <span>{item.label}</span>
-        </span>
-        <span className="nav-menu__indicator" aria-hidden />
-      </Link>
-    ),
-  }))
+  const menuItems: MenuProps['items'] = navItems.map((item) => {
+    if (item.children?.length) {
+      return {
+        key: item.key,
+        label: (
+          <span className="nav-menu__content">
+            <span className="nav-menu__icon">{navIcons[item.key]}</span>
+            <span>{item.label}</span>
+          </span>
+        ),
+        children: item.children.map((child) => ({
+          key: child.key,
+          label: (
+            <Link to={child.path} className="nav-menu__link">
+              <span className="nav-menu__content">
+                <span className="nav-menu__icon">{navIcons[child.key]}</span>
+                <span>{child.label}</span>
+              </span>
+            </Link>
+          ),
+        })),
+      }
+    }
+    return {
+      key: item.key,
+      label: (
+        <Link to={item.path} className="nav-menu__link">
+          <span className="nav-menu__content">
+            <span className="nav-menu__icon">{navIcons[item.key]}</span>
+            <span>{item.label}</span>
+          </span>
+          <span className="nav-menu__indicator" aria-hidden />
+        </Link>
+      ),
+    }
+  })
 
   const handleLogout = async () => {
     await logout()
@@ -95,8 +130,7 @@ export default function GlobalHeader() {
     <header className={`global-header${isImmersive ? ' global-header--immersive' : ''}`}>
       <div className="header-inner">
         <Link to="/" className="logo">
-          {/* <span className="logo-icon">✦</span> */}
-          <img src='/favicon.svg' className="logo-icon"/>
+          <img src="/favicon.svg" className="logo-icon" alt="" />
           <span className="logo-text">AI 漫画生成器</span>
         </Link>
 

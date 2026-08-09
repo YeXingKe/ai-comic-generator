@@ -212,7 +212,7 @@ export interface StoryboardResult {
 export interface PanelImageResult {
   panelNo: number
   url: string
-  method: 'AI_GENERATE' | 'UPLOAD'
+  method: 'AI_GENERATE' | 'UPLOAD' | 'PLACEHOLDER'
   imagePrompt: string
 }
 
@@ -237,6 +237,10 @@ export interface ComicInfo {
   id: number
   taskId: string
   userId: number
+  /** 创建者账号（联查） */
+  userAccount?: string
+  /** 创建者昵称（联查） */
+  userName?: string | null
   topic: string
   userDescription?: string | null
   title?: string | null
@@ -266,6 +270,50 @@ export interface CreateComicRequest {
   captionTextMode?: captionTextMode
 }
 
+/** 自定义创作画幅（2:3 贴合小红书竖版） */
+export type AspectRatio = '1:1' | '16:9' | '9:16' | '2:3'
+
+/** 自定义创作任务状态 */
+export type CustomComicStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+
+export interface CreateCustomComicRequest {
+  prompt: string
+  aspectRatio?: AspectRatio
+  imageBackend?: ImageBackend
+  panelCount?: number
+}
+
+export interface CustomComicInfo {
+  id: number
+  taskId: string
+  userId: number
+  userAccount?: string
+  userName?: string | null
+  prompt: string
+  aspectRatio: AspectRatio
+  imageBackend: ImageBackend
+  panelCount: number
+  panelImages: PanelImageResult[]
+  status: CustomComicStatus
+  errorMessage?: string | null
+  createTime: string
+  updateTime: string
+}
+
+export interface QueryCustomComicRequest {
+  userId?: number
+  status?: CustomComicStatus
+  pageNum?: number
+  pageSize?: number
+}
+
+export interface CustomComicPageResult {
+  total: number
+  records: CustomComicInfo[]
+  pageNum: number
+  pageSize: number
+}
+
 export interface ConfirmTitleRequest {
   taskId: string
   title: string
@@ -273,6 +321,11 @@ export interface ConfirmTitleRequest {
 
 export interface StartComicRequest {
   taskId: string
+}
+
+export interface PublishComicRequest {
+  taskId: string
+  platform?: 'WECHAT_MP'
 }
 
 export interface QueryComicRequest {

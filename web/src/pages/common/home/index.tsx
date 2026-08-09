@@ -15,7 +15,7 @@ import {
   FireOutlined,
   BulbOutlined,
   TeamOutlined,
-  SendOutlined,
+  LayoutOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
@@ -62,9 +62,9 @@ const pipelineSteps = [
   },
   {
     step: 6,
-    icon: <SendOutlined />,
-    title: '排版发布',
-    description: '自动合成漫画页面，一键推送公众号',
+    icon: <LayoutOutlined />,
+    title: '排版合成',
+    description: '自动合成漫画长图，成品可随时发布公众号',
     color: '#fb7185',
   },
 ]

@@ -10,7 +10,6 @@ import {
   OrderedListOutlined,
   PictureOutlined,
   LayoutOutlined,
-  SendOutlined,
   FileTextOutlined,
   BulbOutlined,
   PaperClipOutlined,
@@ -28,8 +27,8 @@ import { resolveComicAssetUrls } from '@/utils/assetUrl'
 import { useLoginUserStore } from '@/stores/loginUser'
 import './index.css'
 
-/** 流水线六步（故事构思起，不含标题阶段） */
-const MAIN_PIPELINE_PHASES: ComicPhase[] = ['STORY_IDEATION', 'CHARACTER_DESIGN', 'STORYBOARD_SCRIPT', 'IMAGE_GENERATION', 'LAYOUT_COMPOSE', 'WECHAT_PUBLISH']
+/** 流水线五步（故事构思起，不含标题阶段与公众号发布） */
+const MAIN_PIPELINE_PHASES: ComicPhase[] = ['STORY_IDEATION', 'CHARACTER_DESIGN', 'STORYBOARD_SCRIPT', 'IMAGE_GENERATION', 'LAYOUT_COMPOSE']
 
 function phaseToStepIndex(phase: ComicPhase): number {
   if (phase === 'TITLE_GENERATION' || phase === 'TITLE_SELECTING') return 0
@@ -49,8 +48,7 @@ const AGENT_STEPS = [
   { phase: 'CHARACTER_DESIGN' as ComicPhase, title: '角色设定', desc: '设计角色外貌、性格与关系', icon: <TeamOutlined />, idleHint: '生成主角与配角的外貌、性格及角色关系。' },
   { phase: 'STORYBOARD_SCRIPT' as ComicPhase, title: '分镜脚本', desc: '规划分镜格、台词与画面描述', icon: <OrderedListOutlined />, idleHint: '按格数规划场景、台词、旁白与镜头描述。' },
   { phase: 'IMAGE_GENERATION' as ComicPhase, title: '画面生成', desc: '混元生图逐格绘制漫画画面', icon: <PictureOutlined />, idleHint: '逐格调用混元生图，生成漫画分镜画面。' },
-  { phase: 'LAYOUT_COMPOSE' as ComicPhase, title: '排版合成', desc: '16:9 分镜竖向拼接成长图', icon: <LayoutOutlined />, idleHint: '将各格 16:9 分镜按顺序竖向拼接，合成封面预览。' },
-  { phase: 'WECHAT_PUBLISH' as ComicPhase, title: '发布', desc: '上传素材至微信公众号', icon: <SendOutlined />, idleHint: '上传素材至公众号草稿箱或标记发布状态。' },
+  { phase: 'LAYOUT_COMPOSE' as ComicPhase, title: '排版合成', desc: '16:9 分镜竖向拼接成长图', icon: <LayoutOutlined />, idleHint: '将各格 16:9 分镜按顺序竖向拼接，合成封面预览。完成后可在创作历史中发布至公众号。' },
 ]
 
 const TONE_OPTIONS = [
@@ -103,7 +101,7 @@ function getStepStatus(index: number, comic: ComicInfo | null, creating: boolean
   return 'pending'
 }
 
-function buildUserDescription(tone: string, panelCount: number, colorMode: string, keepConsistency: boolean, outputFormat: string, saveDraft: boolean): string {
+function buildUserDescription(tone: string, panelCount: number, colorMode: string, keepConsistency: boolean, outputFormat: string): string {
   const parts: string[] = []
   if (tone) parts.push(`基调：${tone}`)
   parts.push(`格数：${panelCount}`)
@@ -112,7 +110,6 @@ function buildUserDescription(tone: string, panelCount: number, colorMode: strin
   if (keepConsistency) parts.push('保持角色一致性')
   if (outputFormat === 'single') parts.push('输出：单张')
   else parts.push('输出：长图')
-  if (saveDraft) parts.push('同时保存公众号草稿')
   return parts.join('，')
 }
 
@@ -309,42 +306,6 @@ function renderStepDetailContent(stepIndex: number, comic: ComicInfo | null, cre
         )
       }
       return <p className="step-detail__empty">该步骤尚未完成，完成后将展示排版合成预览。</p>
-    case 'WECHAT_PUBLISH':
-      if (comic.publishResult) {
-        return (
-          <div className="step-detail">
-            <p>
-              <strong>状态：</strong>
-              {comic.publishResult.status}
-            </p>
-            <p>
-              <strong>标题：</strong>
-              {comic.publishResult.title}
-            </p>
-            {comic.publishResult.mediaId && (
-              <p>
-                <strong>Media ID：</strong>
-                {comic.publishResult.mediaId}
-              </p>
-            )}
-            {comic.publishResult.articleUrl && (
-              <p>
-                <strong>链接：</strong>
-                {comic.publishResult.articleUrl}
-              </p>
-            )}
-          </div>
-        )
-      }
-      if (status === 'active' && isRunning) {
-        return (
-          <div className="step-detail step-detail--waiting">
-            <Spin size="small" />
-            <p>正在上传素材至微信公众号…</p>
-          </div>
-        )
-      }
-      return <p className="step-detail__empty">该步骤尚未完成，完成后将展示发布结果。</p>
     default:
       return null
   }
@@ -366,7 +327,6 @@ export default function CreatePage() {
   const [captionTextMode, setcaptionTextMode] = useState<captionTextMode>('top')
   const [keepConsistency, setKeepConsistency] = useState(true)
   const [outputFormat, setOutputFormat] = useState<'long' | 'single'>('long')
-  const [saveDraft, setSaveDraft] = useState(true)
 
   const [creating, setCreating] = useState(false)
   const [confirmingTitle, setConfirmingTitle] = useState(false)
@@ -452,7 +412,7 @@ export default function CreatePage() {
     titleInitRef.current = false
 
     try {
-      const userDescription = buildUserDescription(tone, panelCount, colorMode, keepConsistency, outputFormat, saveDraft)
+      const userDescription = buildUserDescription(tone, panelCount, colorMode, keepConsistency, outputFormat)
       const res = await createComic({
         topic: trimmed,
         style: artStyle,
@@ -555,7 +515,7 @@ export default function CreatePage() {
     <div className="comic-workshop">
       <header className="comic-workshop__hero">
         <h1>🎨 AI 漫画工坊</h1>
-        <p>标题推荐 + 六步智能体协作，从主题到成品漫画一键生成</p>
+        <p>标题推荐 + 五步智能体协作，从主题到成品漫画一键生成</p>
       </header>
 
       <div className="comic-workshop__workspace">
@@ -698,7 +658,6 @@ export default function CreatePage() {
                   <div className="config-field config-field--checkboxes">
                     <label>选项</label>
                     <Checkbox checked={keepConsistency} onChange={(e) => setKeepConsistency(e.target.checked)} disabled={isBusy}>保持角色一致性</Checkbox>
-                    <Checkbox checked={saveDraft} onChange={(e) => setSaveDraft(e.target.checked)} disabled={isBusy}>同时保存公众号草稿</Checkbox>
                   </div>
                 </div>
 
@@ -801,7 +760,7 @@ export default function CreatePage() {
                     type="success"
                     showIcon
                     message="创作完成"
-                    description={`《${pendingTitle || comic?.title}》已生成，请在下方预览区查看成品。`}
+                    description={`《${pendingTitle || comic?.title}》已生成，请在下方预览区查看成品。可前往创作历史发布至公众号。`}
                     className="config-alert"
                   />
                 )}

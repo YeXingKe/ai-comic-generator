@@ -150,6 +150,15 @@
 .nav-menu.ant-menu-horizontal > .ant-menu-item-selected .nav-menu__indicator {
   background: var(--color-primary);
 }
+.nav-menu.ant-menu-horizontal > .ant-menu-submenu {
+  padding-inline: 16px;
+}
+.nav-menu.ant-menu-horizontal > .ant-menu-submenu::after {
+  display: none !important;
+}
+.nav-menu.ant-menu-horizontal > .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: var(--color-primary);
+}
 
 .header-actions {
   flex-shrink: 0;

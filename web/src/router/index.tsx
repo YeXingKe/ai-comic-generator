@@ -5,6 +5,7 @@ import HomePage from '@/pages/common/home'
 import AuthPage from '@/pages/common/auth'
 import HistoryPage from '@/pages/user/history'
 import ComicCreatePage from '@/pages/user/create'
+import ComicCustomCreatePage from '@/pages/user/create/custom'
 import ComicDetailPage from '@/pages/user/create/detail'
 import AdminUsersPage from '@/pages/admin/Users'
 import AdminDataPage from '@/pages/admin/StaticPage'
@@ -38,6 +39,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <ComicCreatePage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: '/create/custom',
+        element: (
+          <RequireAuth>
+            <ComicCustomCreatePage />
           </RequireAuth>
         ),
       },

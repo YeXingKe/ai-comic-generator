@@ -368,7 +368,7 @@
 }
 .config-card__quota {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
 }
 .config-card__quota-label {
