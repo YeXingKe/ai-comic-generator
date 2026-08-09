@@ -21,9 +21,9 @@ const (
 // OverlayCaption 根据 captionTextMode 选择叠加方式（统一入口）
 func OverlayCaption(path, dialogue, narration, captionTextMode string) error {
 	switch captionTextMode {
-	case common.CaptionModeNone:
+	case common.CaptionTextModeNone:
 		return nil
-	case common.CaptionModeBubble:
+	case common.CaptionTextModeBubble:
 		return overlayBubbleCaption(path, dialogue, narration)
 	default: // top
 		return overlayPanelCaption(path, dialogue, narration)

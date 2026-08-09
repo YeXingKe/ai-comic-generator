@@ -13,12 +13,14 @@ import (
 
 // ComicService 漫画任务业务层
 type ComicService struct {
-	comicStore   *store.ComicStore
-	orchestrator *ComicOrchestrator
+	comicStore     *store.ComicStore
+	userStore      *store.UserStore
+	orchestrator   *ComicOrchestrator
+	publishService *PublishService
 }
 
-func NewComicService(comicStore *store.ComicStore, orchestrator *ComicOrchestrator) *ComicService {
-	return &ComicService{comicStore: comicStore, orchestrator: orchestrator}
+func NewComicService(comicStore *store.ComicStore, userStore *store.UserStore, orchestrator *ComicOrchestrator, publishSvc *PublishService) *ComicService {
+	return &ComicService{comicStore: comicStore, userStore: userStore, orchestrator: orchestrator, publishService: publishSvc}
 }
 
 // Create 创建漫画任务，异步生成标题推荐后等待用户确认
@@ -34,7 +36,7 @@ func (s *ComicService) Create(userID int64, req *model.CreateComicRequest) (stri
 	}
 	captionTextMode := req.CaptionTextMode
 	if captionTextMode == "" {
-		captionTextMode = common.CaptionModeTop
+		captionTextMode = common.CaptionTextModeTop
 	}
 
 	comic := &model.Comic{
@@ -101,7 +103,7 @@ func (s *ComicService) ConfirmTitle(userID int64, req *model.ConfirmTitleRequest
 	return s.comicStore.MarkTitleConfirmed(state)
 }
 
-// StartPipeline 正式启动故事构思起的六步流水线
+// StartPipeline 正式启动故事构思起的五步流水线
 func (s *ComicService) StartPipeline(userID int64, req *model.StartComicRequest, isAdmin bool) error {
 	comic, err := s.comicStore.GetByTaskID(req.TaskID)
 	if err != nil {
@@ -133,12 +135,47 @@ func (s *ComicService) StartPipeline(userID int64, req *model.StartComicRequest,
 	return nil
 }
 
+// Publish 将已完成作品发布至微信公众号（历史列表手动触发）
+func (s *ComicService) Publish(userID int64, req *model.PublishComicRequest, isAdmin bool) (*model.PublishResult, error) {
+	comic, err := s.comicStore.GetByTaskID(req.TaskID)
+	if err != nil {
+		return nil, common.ErrNotFound
+	}
+	if !isAdmin && comic.UserID != userID {
+		return nil, common.ErrNoAuth
+	}
+	if comic.Status != model.ComicStatusCompleted {
+		return nil, common.ErrOperation.WithMessage("仅已完成的作品可发布")
+	}
+
+	state := s.comicStore.BuildStateFromComic(comic)
+	if state.ComposedLayout == nil {
+		return nil, common.ErrOperation.WithMessage("作品尚未完成排版合成，无法发布")
+	}
+
+	ctx := context.Background()
+	pubErr := s.publishService.Publish(ctx, state)
+	if state.PublishResult != nil {
+		if saveErr := s.comicStore.SavePublishResult(req.TaskID, state.PublishResult); saveErr != nil {
+			log.Printf("comic publish result save failed taskId=%s err=%v", req.TaskID, saveErr)
+			return nil, common.ErrSystem
+		}
+	}
+	if pubErr != nil {
+		log.Printf("comic publish failed taskId=%s err=%v", req.TaskID, pubErr)
+		return state.PublishResult, common.ErrOperation.WithMessage("发布失败，请稍后重试")
+	}
+	return state.PublishResult, nil
+}
+
 func (s *ComicService) GetByTaskID(taskID string) (*model.ComicInfo, error) {
 	comic, err := s.comicStore.GetByTaskID(taskID)
 	if err != nil {
 		return nil, common.ErrNotFound
 	}
-	return comic.ToComicInfo(), nil
+	info := comic.ToComicInfo()
+	s.attachUsers([]*model.ComicInfo{info})
+	return info, nil
 }
 
 func (s *ComicService) ListByPage(req *model.QueryComicRequest) (*model.ComicPageResult, error) {
@@ -155,6 +192,11 @@ func (s *ComicService) ListByPage(req *model.QueryComicRequest) (*model.ComicPag
 	if err != nil {
 		return nil, common.ErrSystem
 	}
+	infos := make([]*model.ComicInfo, 0, len(page.Records))
+	for i := range page.Records {
+		infos = append(infos, &page.Records[i])
+	}
+	s.attachUsers(infos)
 	return page, nil
 }
 
@@ -166,5 +208,49 @@ func (s *ComicService) GetForUser(taskID string, userID int64, isAdmin bool) (*m
 	if !isAdmin && comic.UserID != userID {
 		return nil, common.ErrNoAuth
 	}
-	return comic.ToComicInfo(), nil
+	info := comic.ToComicInfo()
+	s.attachUsers([]*model.ComicInfo{info})
+	return info, nil
+}
+
+// attachUsers 批量联查创建者账号/昵称并回填到 ComicInfo（不落库）
+func (s *ComicService) attachUsers(infos []*model.ComicInfo) {
+	if len(infos) == 0 || s.userStore == nil {
+		return
+	}
+	idSet := make(map[int64]struct{}, len(infos))
+	ids := make([]int64, 0, len(infos))
+	for _, info := range infos {
+		if info == nil || info.UserID <= 0 {
+			continue
+		}
+		if _, ok := idSet[info.UserID]; ok {
+			continue
+		}
+		idSet[info.UserID] = struct{}{}
+		ids = append(ids, info.UserID)
+	}
+	if len(ids) == 0 {
+		return
+	}
+	users, err := s.userStore.ListByIDs(ids)
+	if err != nil {
+		log.Printf("comic attachUsers: list users failed: %v", err)
+		return
+	}
+	byID := make(map[int64]*model.User, len(users))
+	for i := range users {
+		byID[users[i].ID] = &users[i]
+	}
+	for _, info := range infos {
+		if info == nil {
+			continue
+		}
+		u, ok := byID[info.UserID]
+		if !ok {
+			continue
+		}
+		info.UserAccount = u.UserAccount
+		info.UserName = u.UserName
+	}
 }

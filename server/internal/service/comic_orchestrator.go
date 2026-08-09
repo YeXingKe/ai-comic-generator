@@ -13,7 +13,7 @@ import (
 	"github.com/tmc/langchaingo/llms"
 )
 
-// ComicOrchestrator 漫画流水线编排器（标题推荐 + 六步）
+// ComicOrchestrator 漫画流水线编排器（标题推荐 + 五步创作，不含公众号发布）
 type ComicOrchestrator struct {
 	comicStore     *store.ComicStore
 	titleAgent     agent.Agent
@@ -22,7 +22,6 @@ type ComicOrchestrator struct {
 	scriptAgent    agent.Agent
 	imageService   *ImageService
 	composeService *ComposeService
-	publishService *PublishService
 }
 
 func NewComicOrchestrator(
@@ -31,7 +30,6 @@ func NewComicOrchestrator(
 	comicStore *store.ComicStore,
 	imageSvc *ImageService,
 	composeSvc *ComposeService,
-	publishSvc *PublishService,
 ) *ComicOrchestrator {
 	return &ComicOrchestrator{
 		comicStore:     comicStore,
@@ -41,7 +39,6 @@ func NewComicOrchestrator(
 		scriptAgent:    agents.NewScriptAgent(llm, promptBuilder),
 		imageService:   imageSvc,
 		composeService: composeSvc,
-		publishService: publishSvc,
 	}
 }
 
@@ -58,7 +55,7 @@ func (o *ComicOrchestrator) RunTitles(ctx context.Context, state *model.ComicSta
 	return o.comicStore.MarkAwaitingTitleConfirm(state)
 }
 
-// RunFromStory 从故事构思起执行后续六步（用户确认标题后调用）
+// RunFromStory 从故事构思起执行后续五步（用户确认标题后调用；公众号发布由用户在历史列表手动触发）
 func (o *ComicOrchestrator) RunFromStory(ctx context.Context, state *model.ComicState) error {
 	steps := []struct {
 		phase string
@@ -69,7 +66,6 @@ func (o *ComicOrchestrator) RunFromStory(ctx context.Context, state *model.Comic
 		{model.ComicPhaseStoryboardScript, o.scriptAgent.Execute},
 		{model.ComicPhaseImageGeneration, o.imageService.GeneratePanels},
 		{model.ComicPhaseLayoutCompose, o.composeService.Compose},
-		{model.ComicPhaseWechatPublish, o.publishService.Publish},
 	}
 
 	for _, step := range steps {

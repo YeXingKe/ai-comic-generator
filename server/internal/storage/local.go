@@ -25,8 +25,17 @@ func (l *Local) TaskDir(taskID string) string {
 	return filepath.Join(l.basePath, taskID)
 }
 
+// CustomTaskDir 自定义创作任务目录：base/custom/{taskId}
+func (l *Local) CustomTaskDir(taskID string) string {
+	return filepath.Join(l.basePath, "custom", taskID)
+}
+
 func (l *Local) PanelPath(taskID string, panelNo int) string {
 	return filepath.Join(l.TaskDir(taskID), fmt.Sprintf("panel_%d.png", panelNo))
+}
+
+func (l *Local) CustomPanelPath(taskID string, panelNo int) string {
+	return filepath.Join(l.CustomTaskDir(taskID), fmt.Sprintf("panel_%d.png", panelNo))
 }
 
 func (l *Local) ComposedPath(taskID string) string {
@@ -35,6 +44,14 @@ func (l *Local) ComposedPath(taskID string) string {
 
 func (l *Local) PublicURL(taskID, filename string) string {
 	return fmt.Sprintf("%s/%s/%s", trimSlash(l.publicURL), taskID, filename)
+}
+
+func (l *Local) CustomPublicURL(taskID, filename string) string {
+	return fmt.Sprintf("%s/custom/%s/%s", trimSlash(l.publicURL), taskID, filename)
+}
+
+func (l *Local) EnsureCustomTaskDir(taskID string) error {
+	return os.MkdirAll(l.CustomTaskDir(taskID), 0o755)
 }
 
 func trimSlash(s string) string {

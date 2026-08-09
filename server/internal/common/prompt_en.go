@@ -418,9 +418,9 @@ func BuildPanelImageEnhancePromptEN(style, scene, characters, imagePrompt, dialo
 // getCaptionCompositionHintEN - Return image composition requirements based on caption mode
 func getCaptionCompositionHintEN(captionTextMode string) string {
 	switch captionTextMode {
-	case captionTextModeTop:
+	case CaptionTextModeTop:
 		return "Leave top ~20% of frame clear for overlay caption bar (leave top area clear, no text in top 20%)"
-	case captionTextModeBubble:
+	case CaptionTextModeBubble:
 		return "Normal composition, leave space near characters for speech bubble overlay (normal composition, leave space near characters for speech bubble overlay)"
 	default: // none
 		return "Full frame composition, no space needed for captions (full frame composition, no caption overlay needed)"

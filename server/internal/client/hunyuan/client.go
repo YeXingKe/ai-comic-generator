@@ -45,19 +45,26 @@ func (c *Client) Enabled() bool {
 	return c != nil && c.enabled // 客户端非空且已配置有效密钥
 }
 
-// Generate 根据 Prompt 生图并保存到 destPath
+// Generate 根据 Prompt 生图并保存到 destPath（默认 16:9）
 func (c *Client) Generate(ctx context.Context, prompt, destPath string) error {
+	return c.GenerateWithSize(ctx, prompt, destPath, "1920:1080")
+}
+
+// GenerateWithSize 按指定分辨率生图；resolution 为空时使用 1920:1080
+func (c *Client) GenerateWithSize(ctx context.Context, prompt, destPath, resolution string) error {
 	if !c.Enabled() { // 混元未启用则拒绝调用
 		return fmt.Errorf("hunyuan disabled") // 返回禁用错误
+	}
+	if resolution == "" {
+		resolution = "1920:1080"
 	}
 	req := hunyuan.NewTextToImageLiteRequest()       // 创建文生图精简版请求对象
 	prompt = appcommon.TruncateHunyuanPrompt(prompt) // 混元 TextToImageLite 有长度上限
 	req.Prompt = tccommon.StringPtr(prompt)          // 设置生图 Prompt（转为 SDK 字符串指针）
-	req.Resolution = tccommon.StringPtr("1920:1080") // 16:9 电影宽银幕比例
+	req.Resolution = tccommon.StringPtr(resolution)
 	req.RspImgType = tccommon.StringPtr("base64")
 	req.LogoAdd = tccommon.Int64Ptr(0) // 去掉 AI 生成水印
-	
-	// response, err := client.TextToImageLite(request)
+
 	resp, err := c.api.TextToImageLiteWithContext(ctx, req) // 带上下文调用混元文生图 API
 	if err != nil {                                         // 网络或 API 层错误
 		return fmt.Errorf("hunyuan text to image: %w", err) // 包装 API 错误
@@ -67,7 +74,7 @@ func (c *Client) Generate(ctx context.Context, prompt, destPath string) error {
 	}
 
 	data, err := base64.StdEncoding.DecodeString(*resp.Response.ResultImage) // 将 base64 图片解码为字节数组
-	if err != nil { // base64 解码失败
+	if err != nil {                                                          // base64 解码失败
 		return fmt.Errorf("decode image: %w", err) // 包装解码错误
 	}
 	if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil { // 确保目标目录存在

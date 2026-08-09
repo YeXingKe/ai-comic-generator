@@ -39,6 +39,19 @@ func (s *UserStore) GetByID(id int64) (*model.User, error) {
 	return &user, nil
 }
 
+// ListByIDs 按 ID 列表批量查询用户（跳过已软删除）
+func (s *UserStore) ListByIDs(ids []int64) ([]model.User, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	var users []model.User
+	err := s.db.Scopes(NotDeleted).Where("id IN ?", ids).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 // GetByAccount 根据账号获取用户
 func (s *UserStore) GetByAccount(account string) (*model.User, error) {
 	var user model.User

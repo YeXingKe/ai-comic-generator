@@ -20,7 +20,7 @@ func NewComicHandler(svc *service.ComicService) *ComicHandler {
 	return &ComicHandler{svc: svc} // 保存服务引用供各接口方法调用
 }
 
-// Create 创建漫画生成任务（异步六步流水线）
+// Create 创建漫画生成任务（异步标题推荐 + 五步创作流水线）
 func (h *ComicHandler) Create(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c) // 从 AuthCheck 中间件注入的 Context 读取登录用户
 	if !ok { // 未挂中间件或登录态异常（正常流程下 AuthCheck 已拦截）
@@ -34,7 +34,7 @@ func (h *ComicHandler) Create(c *gin.Context) {
 		return // 终止处理
 	}
 
-	taskID, err := h.svc.Create(loginUser.ID, &req) // 调用业务层创建任务，后台 goroutine 跑六步流水线
+	taskID, err := h.svc.Create(loginUser.ID, &req) // 调用业务层创建任务，后台异步跑标题推荐
 	if err != nil { // 创建失败（如数据库写入错误）
 		handleError(c, err) // 将业务错误映射为统一 JSON 响应
 		return // 终止处理
@@ -63,7 +63,7 @@ func (h *ComicHandler) ConfirmTitle(c *gin.Context) {
 	c.JSON(http.StatusOK, common.Success(true))
 }
 
-// Start 正式启动后续六步流水线
+// Start 正式启动后续五步流水线
 func (h *ComicHandler) Start(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -82,6 +82,28 @@ func (h *ComicHandler) Start(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, common.Success(true))
+}
+
+// Publish 将已完成作品发布至微信公众号
+func (h *ComicHandler) Publish(c *gin.Context) {
+	loginUser, ok := middleware.GetLoginUserFromContext(c)
+	if !ok {
+		c.JSON(http.StatusOK, common.Error(common.ErrNotLogin))
+		return
+	}
+
+	var req model.PublishComicRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, common.Error(common.ErrParams))
+		return
+	}
+
+	result, err := h.svc.Publish(loginUser.ID, &req, isAdminUser(loginUser))
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, common.Success(result))
 }
 
 // Get 查询任务详情

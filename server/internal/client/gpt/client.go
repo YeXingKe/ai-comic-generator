@@ -105,10 +105,18 @@ func (c *Client) Name() string {
 	return "openai" // 返回固定名称用于日志标识和监控
 }
 
-// Generate 根据 prompt 生图并保存到 destPath
+// Generate 根据 prompt 生图并保存到 destPath（使用配置默认尺寸）
 func (c *Client) Generate(ctx context.Context, prompt, destPath string) error {
+	return c.GenerateWithSize(ctx, prompt, destPath, "")
+}
+
+// GenerateWithSize 按指定尺寸生图；size 为空时使用配置默认值
+func (c *Client) GenerateWithSize(ctx context.Context, prompt, destPath, size string) error {
 	if !c.Enabled() { // 检查客户端是否已启用
 		return fmt.Errorf("openai image generator disabled") // 返回禁用错误
+	}
+	if size == "" {
+		size = c.size
 	}
 
 	// 构造请求体（适配中转站）
@@ -116,7 +124,7 @@ func (c *Client) Generate(ctx context.Context, prompt, destPath string) error {
 		Model:          c.model,   // 使用配置的模型名称（gpt-image-2 等）
 		Prompt:         prompt,    // 用户提供的生图提示词
 		N:              1,         // 生成图片数量固定为 1 张
-		Size:           c.size,    // 图片尺寸（来自配置）
+		Size:           size,      // 图片尺寸（请求级或配置默认）
 		Quality:        c.quality, // 图片质量（来自配置）
 		ResponseFormat: "url",     // 响应格式为 URL（也可选 b64_json）
 	}

@@ -33,9 +33,9 @@ const (
 
 // 文案展示模式（前端创建漫画时选择，贯穿整条生成流水线）
 const (
-	CaptionModeNone   = "none"   // 不叠加任何文案
-	CaptionModeTop    = "top"    // 顶部居中字幕（默认）
-	CaptionModeBubble = "bubble" // 对话气泡（底部居中圆角气泡框）
+	CaptionTextModeNone   = "none"   // 不叠加任何文案
+	CaptionTextModeTop    = "top"    // 顶部居中字幕（默认）
+	CaptionTextModeBubble = "bubble" // 对话气泡（底部居中圆角气泡框）
 )
 
 // 智能体日志标识

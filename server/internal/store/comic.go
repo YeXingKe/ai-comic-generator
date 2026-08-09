@@ -76,10 +76,17 @@ func (s *ComicStore) SyncState(state *model.ComicState) error {
 			updates["coverImage"] = state.ComposedLayout.CoverImage // 同步到 coverImage 列
 		}
 	}
-	if state.PublishResult != nil { // 公众号发布步骤已完成
+	if state.PublishResult != nil { // 公众号发布结果已产生
 		updates["publishResult"] = toJSON(state.PublishResult) // 写入 publishResult JSON 列
 	}
 	return s.db.Model(&model.Comic{}).Where("taskId = ?", state.TaskID).Updates(updates).Error
+}
+
+// SavePublishResult 仅更新公众号发布结果（手动发布，不改动创作状态与阶段）
+func (s *ComicStore) SavePublishResult(taskID string, result *model.PublishResult) error {
+	return s.db.Model(&model.Comic{}).
+		Where("taskId = ? AND isDelete = 0", taskID).
+		Update("publishResult", toJSON(result)).Error
 }
 
 // MarkAwaitingTitleConfirm 标题推荐完成，等待用户选择
@@ -180,9 +187,9 @@ func (s *ComicStore) MarkCompleted(taskID string) error {
 	return s.db.Model(&model.Comic{}). // 指定更新 comic 表
 						Where("taskId = ? AND isDelete = 0", taskID). // 限定目标任务
 						Updates(map[string]interface{}{               // 批量更新完成相关字段
-			"status":        model.ComicStatusCompleted,    // 总状态改为 COMPLETED
-			"phase":         model.ComicPhaseWechatPublish, // 最终阶段为公众号发布
-			"completedTime": &now,                          // 写入完成时间戳
+			"status":        model.ComicStatusCompleted,   // 总状态改为 COMPLETED
+			"phase":         model.ComicPhaseLayoutCompose, // 创作完成于排版合成；发布由历史列表手动触发
+			"completedTime": &now,                         // 写入完成时间戳
 		}).Error // 返回更新错误（若有）
 }
 

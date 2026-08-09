@@ -24,7 +24,7 @@ type ConfirmTitleRequest struct {
 	Title  string `json:"title" binding:"required"`
 }
 
-// StartComicRequest 正式启动后续六步流水线
+// StartComicRequest 正式启动后续五步流水线
 type StartComicRequest struct {
 	TaskID string `json:"taskId" binding:"required"`
 }
@@ -35,7 +35,7 @@ type ConfirmStoryboardRequest struct {
 	Storyboard []StoryboardPanel `json:"storyboard" binding:"required"`
 }
 
-// PublishComicRequest 触发公众号发布
+// PublishComicRequest 在历史列表中手动触发公众号发布
 type PublishComicRequest struct {
 	TaskID   string `json:"taskId" binding:"required"`
 	Platform string `json:"platform" example:"WECHAT_MP" enums:"WECHAT_MP"`

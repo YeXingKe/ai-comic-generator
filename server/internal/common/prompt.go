@@ -462,9 +462,9 @@ func BuildDirectPanelImagePrompt(style, scene, characters, imagePrompt, dialogue
 		"vibrant colors",
 	)
 	switch captionTextMode {
-	case captionTextModeTop:
+	case CaptionTextModeTop:
 		parts = append(parts, "leave top area clear", "no text in top area")
-	case captionTextModeBubble:
+	case CaptionTextModeBubble:
 		parts = append(parts, "leave space near characters for speech bubble overlay")
 	}
 	parts = append(parts,
@@ -490,9 +490,9 @@ func BuildDirectPanelImagePrompt(style, scene, characters, imagePrompt, dialogue
 // getCaptionCompositionHint 根据文案模式返回生图构图要求提示（注入 imagePrompt 模板）
 func getCaptionCompositionHint(captionTextMode string) string {
 	switch captionTextMode {
-	case captionTextModeTop:
+	case CaptionTextModeTop:
 		return "画面上方约 20% 区域构图留白，便于后续叠加顶栏字幕（leave top area clear, no text in top 20%）"
-	case captionTextModeBubble:
+	case CaptionTextModeBubble:
 		return "正常构图，角色周围保留气泡叠加空间（normal composition, leave space near characters for speech bubble overlay）"
 	default: // none
 		return "正常满帧构图，无需为文案预留空间（full frame composition, no caption overlay needed）"

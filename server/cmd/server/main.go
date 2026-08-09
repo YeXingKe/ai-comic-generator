@@ -33,14 +33,22 @@ func main() {
 	{
 		api.GET("/health", application.HealthHandler.Check)
 
+		comicAuth := middleware.AuthCheck(application.UserService, "")
 		if application.ComicHandler != nil {
 			comic := api.Group("/comic")
-			comicAuth := middleware.AuthCheck(application.UserService, "")
 			comic.POST("/create", comicAuth, application.ComicHandler.Create)
 			comic.POST("/confirm-title", comicAuth, application.ComicHandler.ConfirmTitle)
 			comic.POST("/start", comicAuth, application.ComicHandler.Start)
+			comic.POST("/publish", comicAuth, application.ComicHandler.Publish)
 			comic.GET("/get", comicAuth, application.ComicHandler.Get)
 			comic.POST("/page", comicAuth, application.ComicHandler.ListPage)
+		}
+		if application.CustomComicHandler != nil {
+			custom := api.Group("/comic/custom")
+			custom.POST("/create", comicAuth, application.CustomComicHandler.Create)
+			custom.GET("/get", comicAuth, application.CustomComicHandler.Get)
+			custom.POST("/page", comicAuth, application.CustomComicHandler.ListPage)
+			custom.GET("/download", comicAuth, application.CustomComicHandler.DownloadZip)
 		}
 
 		r.Static(application.Config.Storage.PublicURL, application.Config.Storage.BasePath)

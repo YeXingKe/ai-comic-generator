@@ -48,7 +48,7 @@ const (
 	ComicStatusFailed          = "FAILED"           // 某步骤失败，任务终止
 )
 
-// ComicPhase 漫画生成流水线阶段（标题推荐 + 六步 + 初始态）
+// ComicPhase 漫画生成流水线阶段（标题推荐 + 五步创作 + 可选发布 + 初始态）
 const (
 	ComicPhasePending          = "PENDING"           // 初始：任务已创建，尚未进入第一步
 	ComicPhaseTitleGeneration  = "TITLE_GENERATION"  // 第 0 步：AI 生成标题推荐
@@ -57,8 +57,8 @@ const (
 	ComicPhaseCharacterDesign  = "CHARACTER_DESIGN"  // 第 2 步：角色设定
 	ComicPhaseStoryboardScript = "STORYBOARD_SCRIPT" // 第 3 步：分镜脚本
 	ComicPhaseImageGeneration  = "IMAGE_GENERATION"  // 第 4 步：图片生成
-	ComicPhaseLayoutCompose    = "LAYOUT_COMPOSE"    // 第 5 步：排版合成
-	ComicPhaseWechatPublish    = "WECHAT_PUBLISH"    // 第 6 步：公众号发布
+	ComicPhaseLayoutCompose    = "LAYOUT_COMPOSE"    // 第 5 步：排版合成（创作流水线终点）
+	ComicPhaseWechatPublish    = "WECHAT_PUBLISH"    // 公众号发布（历史列表手动触发，非自动流水线步骤）
 )
 
 // ---------- 分步 JSON 结构（序列化后存入 Comic 对应 JSON 列） ----------
@@ -143,13 +143,15 @@ type ComicInfo struct {
 	ID              int64                 `json:"id"`              // 主键 ID
 	TaskID          string                `json:"taskId"`          // 任务 UUID
 	UserID          int64                 `json:"userId"`          // 所属用户 ID
+	UserAccount     string                `json:"userAccount"`     // 创建者账号（联查，不落库）
+	UserName        *string               `json:"userName"`        // 创建者昵称（联查，不落库）
 	Topic           string                `json:"topic"`           // 创作主题
 	UserDescription *string               `json:"userDescription"` // 用户补充描述
 	Title           *string               `json:"title"`           // 漫画标题
 	CoverImage      *string               `json:"coverImage"`      // 封面图 URL
 	Style           string                `json:"style"`           // 漫画风格
 	ImageBackend    string                `json:"imageBackend"`    // 生图后端
-	CaptionTextMode     string                `json:"captionTextMode"`     // 文案模式：none / top / bubble
+	CaptionTextMode string                `json:"captionTextMode"` // 文案模式：none / top / bubble
 	TitleOptions    *TitleOptionsResult   `json:"titleOptions"`    // 标题推荐列表（已解析）
 	StoryIdeation   *StoryIdeationResult  `json:"storyIdeation"`   // 故事构思（已解析）
 	Characters      []ComicCharacter      `json:"characters"`      // 角色列表（已解析）

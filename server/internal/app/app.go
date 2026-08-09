@@ -24,14 +24,15 @@ import (
 
 // App 应用程序容器
 type App struct {
-	Config        *config.Config
-	DB            *gorm.DB
-	RedisClient   *redis.Client
-	HealthHandler *handler.HealthHandler
-	UserHandler   *handler.UserHandler
-	ComicHandler  *handler.ComicHandler
-	StatHandler   *handler.StatHandler
-	UserService   *service.UserService
+	Config             *config.Config
+	DB                 *gorm.DB
+	RedisClient        *redis.Client
+	HealthHandler      *handler.HealthHandler
+	UserHandler        *handler.UserHandler
+	ComicHandler       *handler.ComicHandler
+	CustomComicHandler *handler.CustomComicHandler
+	StatHandler        *handler.StatHandler
+	UserService        *service.UserService
 }
 
 // New 创建并组装整个应用
@@ -48,6 +49,7 @@ func New(cfg *config.Config) (*App, error) {
 
 	userStore := store.NewUserStore(db)
 	comicStore := store.NewComicStore(db)
+	customComicStore := store.NewCustomComicStore(db)
 	statStore := store.NewStatStore(db)
 
 	userService := service.NewUserService(userStore)
@@ -98,21 +100,26 @@ func New(cfg *config.Config) (*App, error) {
 	var comicHandler *handler.ComicHandler
 	if llmErr == nil {
 		orchestrator := service.NewComicOrchestrator(
-			llm, promptBuilder, comicStore, imageSvc, composeSvc, publishSvc,
+			llm, promptBuilder, comicStore, imageSvc, composeSvc,
 		)
-		comicService := service.NewComicService(comicStore, orchestrator)
+		comicService := service.NewComicService(comicStore, userStore, orchestrator, publishSvc)
 		comicHandler = handler.NewComicHandler(comicService)
 	}
 
+	// 自定义创作不依赖 LLM 必配：无 LLM 时用提示词拆分兜底 + 占位/生图
+	customComicService := service.NewCustomComicService(customComicStore, userStore, localStore, generators, cosClient, llm)
+	customComicHandler := handler.NewCustomComicHandler(customComicService)
+
 	return &App{
-		Config:        cfg,
-		DB:            db,
-		RedisClient:   redisClient,
-		HealthHandler: healthHandler,
-		UserHandler:   userHandler,
-		ComicHandler:  comicHandler,
-		StatHandler:   statHandler,
-		UserService:   userService,
+		Config:             cfg,
+		DB:                 db,
+		RedisClient:        redisClient,
+		HealthHandler:      healthHandler,
+		UserHandler:        userHandler,
+		ComicHandler:       comicHandler,
+		CustomComicHandler: customComicHandler,
+		StatHandler:        statHandler,
+		UserService:        userService,
 	}, nil
 }
 
