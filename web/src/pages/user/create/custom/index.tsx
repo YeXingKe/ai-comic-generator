@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Alert, Button, Empty, Form, Image, Input, Radio, Select, Spin, message } from 'antd'
-import { DownloadOutlined, PictureOutlined, RocketOutlined, ReloadOutlined } from '@ant-design/icons'
+import { DownloadOutlined, PictureOutlined, RocketOutlined, ReloadOutlined, FireOutlined } from '@ant-design/icons'
 import { createCustomComic, downloadCustomComicZip, getCustomComic } from '@/api/comic'
+import { XhsPhonePreview } from '@/components/XhsPreview'
 import type { AspectRatio, CustomComicInfo, ImageBackend, PanelImageResult } from '@/types/api'
 import { resolveServerAssetUrl } from '@/utils/assetUrl'
 import './index.css'
@@ -40,6 +41,7 @@ function resolvePanels(panels: PanelImageResult[] | undefined): PanelImageResult
 }
 
 export default function ComicCustomCreatePage() {
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const queryTaskId = searchParams.get('taskId')?.trim() || ''
   const [form] = Form.useForm<FormValues>()
@@ -47,6 +49,7 @@ export default function ComicCustomCreatePage() {
   const [task, setTask] = useState<CustomComicInfo | null>(null)
   const [activePanelNo, setActivePanelNo] = useState(1)
   const [downloading, setDownloading] = useState(false)
+  const [xhsOpen, setXhsOpen] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const loadedQueryRef = useRef<string>('')
 
@@ -54,6 +57,14 @@ export default function ComicCustomCreatePage() {
   const activePanel = panels.find((p) => p.panelNo === activePanelNo) ?? panels[panels.length - 1]
   const isBusy = submitting || task?.status === 'PENDING' || task?.status === 'PROCESSING'
   const canDownload = panels.length > 0 && !!task?.taskId
+  const canXhsPreview = panels.length > 0
+  /** 仅创作页：已有终态任务时可重新生成 */
+  const canRegenerate = !!task && (task.status === 'COMPLETED' || task.status === 'FAILED') && !isBusy
+  const xhsInitialIndex = Math.max(
+    0,
+    panels.findIndex((p) => p.panelNo === activePanel?.panelNo),
+  )
+  const promptText = Form.useWatch('prompt', form) || task?.prompt || ''
 
   const stopPoll = () => {
     if (pollRef.current) {
@@ -167,8 +178,11 @@ export default function ComicCustomCreatePage() {
         panelCount: values.panelCount,
       })
       if (res.code === 0 && res.data?.taskId) {
+        const nextId = res.data.taskId
+        loadedQueryRef.current = nextId
+        navigate(`/create/custom?taskId=${encodeURIComponent(nextId)}`, { replace: true })
         message.success('已开始生成，请稍候')
-        startPoll(res.data.taskId)
+        startPoll(nextId)
         return
       }
       setSubmitting(false)
@@ -177,6 +191,10 @@ export default function ComicCustomCreatePage() {
       setSubmitting(false)
       message.error(err instanceof Error ? err.message : '创建失败')
     }
+  }
+
+  const handleRegenerate = () => {
+    void form.validateFields().then((values) => onSubmit(values))
   }
 
   return (
@@ -200,7 +218,7 @@ export default function ComicCustomCreatePage() {
               prompt: '',
             }}
             onFinish={(v) => void onSubmit(v)}
-            disabled={isBusy && task?.status !== 'FAILED'}
+            disabled={isBusy}
           >
             <Form.Item label="画幅比例" name="aspectRatio" rules={[{ required: true, message: '请选择画幅' }]}>
               <Radio.Group optionType="button" buttonStyle="solid" className="custom-create__aspect-group">
@@ -232,11 +250,11 @@ export default function ComicCustomCreatePage() {
             </Form.Item>
 
             <div className="custom-create__actions">
-              <Button type="primary" htmlType="submit" icon={<RocketOutlined />} loading={isBusy && task?.status !== 'FAILED'} block size="large">
-                {isBusy && task?.status !== 'FAILED' ? '生成中…' : '开始生成'}
+              <Button type="primary" htmlType="submit" icon={<RocketOutlined />} loading={isBusy} block size="large">
+                {isBusy ? '生成中…' : '开始生成'}
               </Button>
-              {task?.status === 'FAILED' && (
-                <Button icon={<ReloadOutlined />} onClick={() => form.submit()} block>
+              {canRegenerate && (
+                <Button icon={<ReloadOutlined />} onClick={handleRegenerate} block size="large">
                   重新生成
                 </Button>
               )}
@@ -268,16 +286,21 @@ export default function ComicCustomCreatePage() {
           <div className="custom-create__thumbs">
             <div className="custom-create__thumbs-bar">
               <div className="custom-create__thumbs-title">分镜缩略图</div>
-              <Button
-                type="default"
-                size="small"
-                icon={<DownloadOutlined />}
-                disabled={!canDownload}
-                loading={downloading}
-                onClick={() => void handleDownloadZip()}
-              >
-                一键下载
-              </Button>
+              <div className="custom-create__thumbs-actions">
+                <Button type="primary" size="small" danger icon={<FireOutlined />} disabled={!canXhsPreview} onClick={() => setXhsOpen(true)}>
+                  小红书排版
+                </Button>
+                <Button
+                  type="default"
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  disabled={!canDownload}
+                  loading={downloading}
+                  onClick={() => void handleDownloadZip()}
+                >
+                  一键下载
+                </Button>
+              </div>
             </div>
             {panels.length === 0 ? (
               <div className="custom-create__thumbs-empty">暂无分镜</div>
@@ -299,6 +322,14 @@ export default function ComicCustomCreatePage() {
           </div>
         </section>
       </div>
+
+      <XhsPhonePreview
+        open={xhsOpen}
+        onClose={() => setXhsOpen(false)}
+        images={panels.map((p) => ({ url: p.url, panelNo: p.panelNo }))}
+        prompt={promptText}
+        initialIndex={xhsInitialIndex >= 0 ? xhsInitialIndex : 0}
+      />
     </div>
   )
 }

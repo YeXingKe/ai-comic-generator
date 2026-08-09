@@ -261,7 +261,7 @@ export default function HistoryPage() {
         fixed: 'right',
         render: (_: unknown, record) => (
           <Button type="link" size="small" onClick={() => navigate(`/create/custom?taskId=${encodeURIComponent(record.taskId)}`)}>
-            查看
+            自定义创作
           </Button>
         ),
       },

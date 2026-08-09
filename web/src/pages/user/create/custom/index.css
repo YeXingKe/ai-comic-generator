@@ -134,6 +134,13 @@
   margin-bottom: 10px;
 }
 
+.custom-create__thumbs-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .custom-create__thumbs-title {
   margin: 0;
   font-weight: 600;
