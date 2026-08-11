@@ -25,6 +25,7 @@ import { COMIC_PHASE_LABEL, confirmComicTitle, createComic, getComic, startComic
 import type { ComicInfo, ComicPhase, ImageBackend, captionTextMode } from '@/types/api'
 import { resolveComicAssetUrls } from '@/utils/assetUrl'
 import { useLoginUserStore } from '@/stores/loginUser'
+import CreateShell from './CreateShell'
 import './index.css'
 
 /** 流水线五步（故事构思起，不含标题阶段与公众号发布） */
@@ -512,13 +513,9 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="comic-workshop">
-      <header className="comic-workshop__hero">
-        <h1>🎨 AI 漫画工坊</h1>
-        <p>标题推荐 + 五步智能体协作，从主题到成品漫画一键生成</p>
-      </header>
-
-      <div className="comic-workshop__workspace">
+    <CreateShell mode="auto">
+      <div className="comic-workshop">
+        <div className="comic-workshop__workspace">
         {/* 左侧：创作流程 */}
         <aside className="comic-workshop__flow">
           <div className="comic-workshop__section-head">
@@ -930,6 +927,7 @@ export default function CreatePage() {
         )}
 
       </section>
-    </div>
+      </div>
+    </CreateShell>
   )
 }

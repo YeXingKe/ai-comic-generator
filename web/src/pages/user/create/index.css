@@ -26,7 +26,7 @@
 
 .comic-workshop__workspace {
   display: grid;
-  grid-template-columns: 260px minmax(260px, 1fr) 480px;
+  grid-template-columns: 300px minmax(260px, 1fr) 380px;
   gap: 16px;
   min-height: 0;
   align-items: start;
@@ -599,9 +599,9 @@
 /* 预览区：生成中三栏布局 */
 .preview-body--generating {
   display: grid;
-  grid-template-columns: 360px 1fr 360px;
+  grid-template-columns: 280px 1fr 280px;
   gap: 14px;
-  height: 500px;
+  height: 280px;
   min-height: 0;
 }
 
@@ -970,11 +970,11 @@
 
 @media (max-width: 1200px) {
   .comic-workshop__workspace {
-    grid-template-columns: 240px minmax(220px, 1fr) 420px;
+    grid-template-columns: 280px minmax(220px, 1fr) 340px;
   }
   .preview-body--generating {
-    grid-template-columns: 280px 1fr 280px;
-    height: 420px;
+    grid-template-columns: 220px 1fr 220px;
+    height: 240px;
   }
 }
 

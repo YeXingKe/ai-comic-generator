@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Alert, Button, Empty, Form, Image, Input, Radio, Select, Spin, message } from 'antd'
+import { Alert, Button, Form, Image, Input, Radio, Select, Spin, message } from 'antd'
 import { DownloadOutlined, PictureOutlined, RocketOutlined, ReloadOutlined, FireOutlined } from '@ant-design/icons'
 import { createCustomComic, downloadCustomComicZip, getCustomComic } from '@/api/comic'
 import { XhsPhonePreview } from '@/components/XhsPreview'
 import type { AspectRatio, CustomComicInfo, ImageBackend, PanelImageResult } from '@/types/api'
 import { resolveServerAssetUrl } from '@/utils/assetUrl'
+import CreateShell from '../CreateShell'
 import './index.css'
 
 const ASPECT_OPTIONS: { value: AspectRatio; label: string }[] = [
@@ -65,6 +66,8 @@ export default function ComicCustomCreatePage() {
     panels.findIndex((p) => p.panelNo === activePanel?.panelNo),
   )
   const promptText = Form.useWatch('prompt', form) || task?.prompt || ''
+  const watchedAspectRatio = Form.useWatch('aspectRatio', form)
+  const aspectRatio = task?.aspectRatio ?? watchedAspectRatio ?? '16:9'
 
   const stopPoll = () => {
     if (pollRef.current) {
@@ -197,15 +200,14 @@ export default function ComicCustomCreatePage() {
     void form.validateFields().then((values) => onSubmit(values))
   }
 
-  return (
-    <div className="custom-create">
-      <header className="custom-create__header">
-        <div>
-          <h1>自定义创作</h1>
-          <p>配置画幅与模型，输入提示词，一次生成多分镜</p>
-        </div>
-      </header>
+  const previewMeta = task
+    ? panels.length > 0
+      ? `共 ${task.panelCount} 格 · 当前第 ${activePanel?.panelNo ?? 1} 格`
+      : `共 ${task.panelCount} 格 · 生成中`
+    : '填写左侧参数后开始生成'
 
+  return (
+    <CreateShell mode="custom">
       <div className="custom-create__body">
         <aside className="custom-create__form-panel">
           <Form
@@ -230,13 +232,15 @@ export default function ComicCustomCreatePage() {
               </Radio.Group>
             </Form.Item>
 
-            <Form.Item label="生图模型" name="imageBackend" rules={[{ required: true }]}>
-              <Select options={MODEL_OPTIONS} />
-            </Form.Item>
+            <div className="custom-create__form-row">
+              <Form.Item label="生图模型" name="imageBackend" rules={[{ required: true }]}>
+                <Select options={MODEL_OPTIONS} />
+              </Form.Item>
 
-            <Form.Item label="分镜格数" name="panelCount" rules={[{ required: true }]}>
-              <Select options={PANEL_OPTIONS} />
-            </Form.Item>
+              <Form.Item label="分镜格数" name="panelCount" rules={[{ required: true }]}>
+                <Select options={PANEL_OPTIONS} />
+              </Form.Item>
+            </div>
 
             <Form.Item
               label="提示词"
@@ -262,65 +266,78 @@ export default function ComicCustomCreatePage() {
           </Form>
         </aside>
 
-        <section className="custom-create__preview-panel">
-          <div className={`custom-create__stage custom-create__stage--${task?.aspectRatio?.replace(':', 'x') || '16x9'}`}>
-            {isBusy && !panels.length ? (
-              <div className="custom-create__stage-empty">
-                <Spin size="large" tip="正在拆分分镜并生图…" />
-              </div>
-            ) : activePanel ? (
-              <Image src={activePanel.url} alt={`分镜 ${activePanel.panelNo}`} className="custom-create__main-image" />
-            ) : (
-              <div className="custom-create__stage-empty">
-                <Empty image={<PictureOutlined style={{ fontSize: 48, color: 'var(--app-text-muted, #94a3b8)' }} />} description="生成后将在此展示分镜画面" />
-              </div>
-            )}
+        <header className="custom-create__toolbar">
+          <div className="custom-create__toolbar-main">
+            <h2>分镜预览</h2>
+            <span className="custom-create__preview-meta">{previewMeta}</span>
           </div>
+          <div className="custom-create__preview-actions">
+            <Button size="small" danger icon={<FireOutlined />} disabled={!canXhsPreview} onClick={() => setXhsOpen(true)}>
+              小红书排版
+            </Button>
+            <Button size="small" icon={<DownloadOutlined />} disabled={!canDownload} loading={downloading} onClick={() => void handleDownloadZip()}>
+              一键下载
+            </Button>
+          </div>
+        </header>
 
-          {task?.status === 'FAILED' && task.errorMessage && <Alert type="error" showIcon message="生成失败" description={task.errorMessage} style={{ marginTop: 12 }} />}
-
-          {task && (task.status === 'PROCESSING' || task.status === 'PENDING') && panels.length > 0 && (
-            <Alert type="info" showIcon message={`生成中 ${panels.length}/${task.panelCount}`} style={{ marginTop: 12 }} />
+        <section className="custom-create__preview">
+          {task?.status === 'FAILED' && task.errorMessage && (
+            <Alert type="error" showIcon message="生成失败" description={task.errorMessage} className="custom-create__preview-alert" />
           )}
 
-          <div className="custom-create__thumbs">
-            <div className="custom-create__thumbs-bar">
-              <div className="custom-create__thumbs-title">分镜缩略图</div>
-              <div className="custom-create__thumbs-actions">
-                <Button type="primary" size="small" danger icon={<FireOutlined />} disabled={!canXhsPreview} onClick={() => setXhsOpen(true)}>
-                  小红书排版
-                </Button>
-                <Button
-                  type="default"
-                  size="small"
-                  icon={<DownloadOutlined />}
-                  disabled={!canDownload}
-                  loading={downloading}
-                  onClick={() => void handleDownloadZip()}
-                >
-                  一键下载
-                </Button>
-              </div>
+          {task && (task.status === 'PROCESSING' || task.status === 'PENDING') && panels.length > 0 && (
+            <Alert type="info" showIcon message={`生成进度 ${panels.length} / ${task.panelCount}`} className="custom-create__preview-alert" />
+          )}
+
+          <div className="custom-create__canvas">
+            {activePanel && <span className="custom-create__canvas-badge">第 {activePanel.panelNo} 格</span>}
+            <span className="custom-create__canvas-ratio">{aspectRatio}</span>
+
+            <div className="custom-create__canvas-inner">
+              {isBusy && !panels.length ? (
+                <div className="custom-create__canvas-empty">
+                  <Spin size="large" />
+                  <p>
+                    <strong>正在生成分镜</strong>
+                    拆分脚本并逐格绘制，请稍候…
+                  </p>
+                </div>
+              ) : activePanel ? (
+                <Image src={activePanel.url} alt={`分镜 ${activePanel.panelNo}`} className="custom-create__main-image" preview={{ mask: '查看大图' }} />
+              ) : (
+                <div className="custom-create__canvas-empty">
+                  <PictureOutlined />
+                  <p>
+                    <strong>等待生成</strong>
+                    配置提示词与画幅后，分镜画面将在此居中预览
+                  </p>
+                </div>
+              )}
             </div>
-            {panels.length === 0 ? (
-              <div className="custom-create__thumbs-empty">暂无分镜</div>
-            ) : (
-              <div className="custom-create__thumbs-list">
-                {panels.map((panel) => (
-                  <button
-                    key={panel.panelNo}
-                    type="button"
-                    className={`custom-create__thumb${panel.panelNo === activePanel?.panelNo ? ' is-active' : ''}`}
-                    onClick={() => setActivePanelNo(panel.panelNo)}
-                  >
-                    <img src={panel.url} alt={`分镜 ${panel.panelNo}`} />
-                    <span>#{panel.panelNo}</span>
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </section>
+
+        <aside className="custom-create__list-panel">
+          <p className="custom-create__list-panel-title">分镜列表</p>
+          {panels.length === 0 ? (
+            <div className="custom-create__list-empty">生成完成后显示各格缩略图</div>
+          ) : (
+            <div className="custom-create__list">
+              {panels.map((panel) => (
+                <button
+                  key={panel.panelNo}
+                  type="button"
+                  className={`custom-create__list-item${panel.panelNo === activePanel?.panelNo ? ' is-active' : ''}`}
+                  onClick={() => setActivePanelNo(panel.panelNo)}
+                >
+                  <img src={panel.url} alt={`分镜 ${panel.panelNo}`} />
+                  <span>第 {panel.panelNo} 格</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </aside>
       </div>
 
       <XhsPhonePreview
@@ -330,6 +347,6 @@ export default function ComicCustomCreatePage() {
         prompt={promptText}
         initialIndex={xhsInitialIndex >= 0 ? xhsInitialIndex : 0}
       />
-    </div>
+    </CreateShell>
   )
 }

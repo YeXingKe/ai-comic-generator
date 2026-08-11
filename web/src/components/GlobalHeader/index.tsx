@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { MenuProps } from 'antd'
 import { Menu, Avatar, Button, Dropdown } from 'antd'
-import { HomeOutlined, EditOutlined, UserOutlined, HistoryOutlined, BarChartOutlined, LogoutOutlined, LockOutlined, ThunderboltOutlined, FormOutlined } from '@ant-design/icons'
+import { HomeOutlined, EditOutlined, UserOutlined, HistoryOutlined, BarChartOutlined, LogoutOutlined, LockOutlined } from '@ant-design/icons'
 import ThemeToggle from '../ThemeToggle'
 import { getVisibleNavItems } from '@/router/nav'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
@@ -11,9 +11,7 @@ import './index.css'
 
 const navIcons: Record<string, React.ReactNode> = {
   '/': <HomeOutlined />,
-  'create-menu': <EditOutlined />,
-  '/create': <ThunderboltOutlined />,
-  '/create/custom': <FormOutlined />,
+  '/create': <EditOutlined />,
   '/admin/users': <UserOutlined />,
   '/history': <HistoryOutlined />,
   '/admin/data': <BarChartOutlined />,

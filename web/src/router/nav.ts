@@ -16,13 +16,9 @@ export type NavItem = {
 export const NAV_ITEMS: NavItem[] = [
   { key: '/', label: '首页', path: '/', visible: () => true },
   {
-    key: 'create-menu',
+    key: '/create',
     label: '创作',
     path: '/create',
-    children: [
-      { key: '/create', label: '自动化创作', path: '/create' },
-      { key: '/create/custom', label: '自定义创作', path: '/create/custom' },
-    ],
     visible: ({ isLoggedIn }) => isLoggedIn,
   },
   {

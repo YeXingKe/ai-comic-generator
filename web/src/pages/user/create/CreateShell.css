@@ -1,0 +1,220 @@
+.create-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: calc(100vh - 64px);
+  background: var(--app-page-bg);
+  box-sizing: border-box;
+}
+
+.create-shell__top {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 18px 24px 4px;
+  border-bottom: 1px solid var(--app-surface-border, rgba(15, 23, 42, 0.08));
+  background: var(--app-surface, #fff);
+}
+
+.create-shell__header {
+  max-width: 720px;
+}
+
+.create-shell__header h1 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--app-text);
+  letter-spacing: 0.02em;
+}
+
+.create-shell__title-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 20px;
+  color: var(--color-primary, #6366f1);
+  line-height: 1;
+}
+
+.create-shell__title-icons .anticon {
+  opacity: 0.9;
+}
+
+.create-shell__title-icons .anticon:nth-child(2) {
+  opacity: 0.75;
+  transform: translateY(1px);
+}
+
+.create-shell__title-icons .anticon:nth-child(3) {
+  opacity: 0.85;
+}
+
+.create-shell__header p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--app-text-secondary);
+}
+
+.create-shell__tabs {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 14px;
+}
+
+.create-shell__tabs .ant-tabs-nav {
+  margin-bottom: 0 !important;
+}
+
+.create-shell__tabs .ant-tabs-tab {
+  padding: 10px 20px !important;
+  font-size: 14px;
+}
+
+.create-shell__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px 20px;
+}
+
+.create-shell .comic-workshop {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) minmax(200px, 26vh);
+  gap: 12px;
+  padding: 0;
+  background: transparent;
+}
+
+.create-shell .comic-workshop__workspace {
+  min-height: 0;
+  grid-template-columns: minmax(280px, 320px) minmax(320px, 1fr) minmax(340px, 400px);
+  align-items: stretch;
+}
+
+.create-shell .comic-workshop__flow,
+.create-shell .comic-workshop__config,
+.create-shell .comic-workshop__detail {
+  max-height: none;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.create-shell .comic-workshop__detail {
+  position: static;
+}
+
+.create-shell .comic-workshop__preview {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.create-shell .comic-workshop__preview .preview-body,
+.create-shell .comic-workshop__preview .preview-empty {
+  flex: 1;
+  min-height: 0;
+}
+
+.create-shell .preview-body--generating {
+  height: 100%;
+  min-height: 180px;
+  grid-template-columns: minmax(200px, 16vw) minmax(0, 1fr) minmax(200px, 16vw);
+}
+
+.create-shell .preview-panel-composed__img,
+.create-shell .preview-composed__img {
+  max-height: min(100%, calc(26vh - 72px));
+}
+
+/* —— 自定义创作 —— */
+.create-shell .custom-create__body {
+  flex: 1;
+  min-height: 0;
+}
+
+.create-shell .custom-create__form-panel,
+.create-shell .custom-create__preview,
+.create-shell .custom-create__list-panel {
+  max-height: calc(100vh - 200px);
+}
+
+.create-shell .custom-create__canvas {
+  min-height: 0;
+}
+
+@media (max-width: 992px) {
+  .create-shell__top,
+  .create-shell__body {
+    padding-inline: 16px;
+  }
+
+  .create-shell .comic-workshop {
+    grid-template-rows: auto auto;
+  }
+
+  .create-shell .comic-workshop__workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .create-shell .comic-workshop__flow,
+  .create-shell .comic-workshop__config,
+  .create-shell .comic-workshop__detail {
+    height: auto;
+    max-height: none;
+  }
+
+  .create-shell .preview-body--generating {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(180px, 28vh) auto;
+    height: auto;
+  }
+
+  .create-shell .custom-create__form-panel,
+  .create-shell .custom-create__preview,
+  .create-shell .custom-create__list-panel {
+    max-height: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .create-shell__top,
+  .create-shell__body {
+    padding-inline: 12px;
+  }
+
+  .create-shell__top {
+    padding-top: 14px;
+  }
+
+  .create-shell__header h1 {
+    font-size: 22px;
+  }
+
+  .create-shell__header p {
+    font-size: 12px;
+  }
+
+  .create-shell__tabs {
+    max-width: 100%;
+  }
+
+  .create-shell__tabs .ant-tabs-tab {
+    padding: 8px 14px !important;
+    font-size: 13px;
+  }
+}
