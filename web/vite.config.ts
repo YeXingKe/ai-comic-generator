@@ -43,6 +43,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  build: {
+    // 主包含 antd/echarts 等，默认 500kB 告警噪音大；仅调高阈值，不改变打包策略
+    chunkSizeWarningLimit: 3000,
+  },
   server: {
     port: 5173,
     proxy: {

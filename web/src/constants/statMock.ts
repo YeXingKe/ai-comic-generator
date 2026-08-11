@@ -7,6 +7,7 @@ export const STATUS_LABELS: Record<ComicStatus, string> = {
   PROCESSING: '生成中',
   AWAITING_CONFIRM: '待确认标题',
   TITLE_CONFIRMED: '标题已确认',
+  AWAITING_STORYBOARD: '待确认分镜',
   COMPLETED: '已完成',
   FAILED: '失败',
 }
