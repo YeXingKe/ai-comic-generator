@@ -20,6 +20,7 @@ function autoStatusTag(status?: string) {
   if (status === 'PROCESSING') return <Tag color="blue">生成中</Tag>
   if (status === 'AWAITING_CONFIRM') return <Tag color="gold">待确认标题</Tag>
   if (status === 'TITLE_CONFIRMED') return <Tag color="cyan">待开始</Tag>
+  if (status === 'AWAITING_STORYBOARD') return <Tag color="orange">待确认分镜</Tag>
   if (status === 'FAILED') return <Tag color="red">失败</Tag>
   return <Tag>等待中</Tag>
 }
@@ -188,11 +189,29 @@ export default function HistoryPage() {
         render: (_: unknown, record) => {
           const canPublish = record.status === 'COMPLETED'
           const published = record.publishResult?.status === 'PUBLISHED'
+          const canContinue =
+            record.status === 'AWAITING_CONFIRM' ||
+            record.status === 'TITLE_CONFIRMED' ||
+            record.status === 'AWAITING_STORYBOARD' ||
+            record.status === 'FAILED' ||
+            record.status === 'PROCESSING' ||
+            record.status === 'PENDING'
           return (
             <Space size={0}>
-              <Button type="link" size="small" onClick={() => navigate(`/comic/${record.taskId}`)}>
-                查看
-              </Button>
+              {canContinue ? (
+                <Button type="link" size="small" onClick={() => navigate(`/create?taskId=${encodeURIComponent(record.taskId)}`)}>
+                  {record.status === 'FAILED' ? '继续编辑' : '继续创作'}
+                </Button>
+              ) : (
+                <>
+                  <Button type="link" size="small" onClick={() => navigate(`/comic/${record.taskId}`)}>
+                    查看
+                  </Button>
+                  <Button type="link" size="small" onClick={() => navigate(`/create?taskId=${encodeURIComponent(record.taskId)}`)}>
+                    编辑
+                  </Button>
+                </>
+              )}
               {canPublish && (
                 <Button type="link" size="small" loading={publishingTaskId === record.taskId} onClick={() => handlePublish(record)}>
                   {published ? '重新发布' : '发布'}

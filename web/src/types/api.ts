@@ -157,7 +157,7 @@ export interface ArticleVO {
 }
 
 /** 漫画任务状态 */
-export type ComicStatus = 'PENDING' | 'PROCESSING' | 'AWAITING_CONFIRM' | 'TITLE_CONFIRMED' | 'COMPLETED' | 'FAILED'
+export type ComicStatus = 'PENDING' | 'PROCESSING' | 'AWAITING_CONFIRM' | 'TITLE_CONFIRMED' | 'AWAITING_STORYBOARD' | 'COMPLETED' | 'FAILED'
 
 /** 漫画流水线阶段 */
 export type ComicPhase = 'PENDING' | 'TITLE_GENERATION' | 'TITLE_SELECTING' | 'STORY_IDEATION' | 'CHARACTER_DESIGN' | 'STORYBOARD_SCRIPT' | 'IMAGE_GENERATION' | 'LAYOUT_COMPOSE' | 'WECHAT_PUBLISH'
@@ -190,6 +190,8 @@ export interface ComicCharacter {
   name: string
   role: string
   appearance: string
+  /** 外貌短锚点，每格生图强制复用 */
+  visualAnchor?: string
   personality: string
   avatarUrl?: string
 }
@@ -248,6 +250,7 @@ export interface ComicInfo {
   style: string
   imageBackend: ImageBackend
   captionTextMode: captionTextMode
+  panelCount?: number
   titleOptions?: TitleOptionsResult | null
   storyIdeation?: StoryIdeationResult | null
   characters?: ComicCharacter[]
@@ -268,6 +271,7 @@ export interface CreateComicRequest {
   style?: string
   imageBackend?: ImageBackend
   captionTextMode?: captionTextMode
+  panelCount?: number
 }
 
 /** 自定义创作画幅（2:3 贴合小红书竖版） */
@@ -321,6 +325,23 @@ export interface ConfirmTitleRequest {
 
 export interface StartComicRequest {
   taskId: string
+}
+
+export interface ConfirmStoryboardRequest {
+  taskId: string
+  storyboard: StoryboardPanel[]
+}
+
+export interface RetryComicRequest {
+  taskId: string
+}
+
+export interface RegeneratePanelRequest {
+  taskId: string
+  panelNo: number
+  scene?: string
+  dialogue?: string[]
+  narration?: string
 }
 
 export interface PublishComicRequest {

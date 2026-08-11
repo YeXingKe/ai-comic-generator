@@ -14,6 +14,7 @@ export function resolveServerAssetUrl(url?: string | null): string {
 export function resolveComicAssetUrls<
   T extends {
     coverImage?: string | null
+    characters?: { avatarUrl?: string }[]
     panelImages?: { url: string }[]
     composedLayout?: {
       previewUrl: string
@@ -25,6 +26,10 @@ export function resolveComicAssetUrls<
   return {
     ...data,
     coverImage: data.coverImage ? resolveServerAssetUrl(data.coverImage) : data.coverImage,
+    characters: data.characters?.map((c) => ({
+      ...c,
+      avatarUrl: c.avatarUrl ? resolveServerAssetUrl(c.avatarUrl) : c.avatarUrl,
+    })),
     panelImages: data.panelImages?.map((img) => ({
       ...img,
       url: resolveServerAssetUrl(img.url),

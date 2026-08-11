@@ -778,6 +778,41 @@
   max-width: 400px;
 }
 
+.storyboard-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: min(52vh, 560px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.storyboard-edit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--app-surface-border);
+  background: var(--app-page-bg);
+}
+
+.storyboard-edit-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--app-text);
+}
+
+.storyboard-edit-card label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-text-secondary);
+}
+
 /* 步骤详情内容 */
 .step-detail {
   font-size: 13px;
@@ -821,14 +856,36 @@
   font-weight: 400;
 }
 .step-detail__character {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
   padding: 10px 12px;
   background: var(--app-page-bg);
   border-radius: 8px;
   margin-bottom: 8px;
 }
+.step-detail__avatar {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--app-surface-border);
+  background: #e2e8f0;
+}
+.step-detail__character-body {
+  min-width: 0;
+  flex: 1;
+}
 .step-detail__character p {
   margin: 4px 0 0;
   font-size: 12px;
+}
+.step-detail__anchor {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 500;
 }
 .step-detail__role {
   margin-left: 6px;

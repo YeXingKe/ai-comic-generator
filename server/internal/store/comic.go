@@ -116,6 +116,29 @@ func (s *ComicStore) MarkTitleConfirmed(state *model.ComicState) error {
 	return s.db.Model(&model.Comic{}).Where("taskId = ?", state.TaskID).Updates(updates).Error
 }
 
+// MarkAwaitingStoryboardConfirm 分镜脚本完成，等待用户确认/编辑
+func (s *ComicStore) MarkAwaitingStoryboardConfirm(state *model.ComicState) error {
+	updates := map[string]interface{}{
+		"status": model.ComicStatusAwaitingStoryboard,
+		"phase":  model.ComicPhaseStoryboardScript,
+	}
+	if state.Storyboard != nil {
+		updates["storyboard"] = toJSON(state.Storyboard)
+	}
+	return s.db.Model(&model.Comic{}).Where("taskId = ? AND isDelete = 0", state.TaskID).Updates(updates).Error
+}
+
+// ClearFailure 清除失败标记，准备重试
+func (s *ComicStore) ClearFailure(taskID, status, phase string) error {
+	return s.db.Model(&model.Comic{}).
+		Where("taskId = ? AND isDelete = 0", taskID).
+		Updates(map[string]interface{}{
+			"status":       status,
+			"phase":        phase,
+			"errorMessage": gorm.Expr("NULL"),
+		}).Error
+}
+
 // BuildStateFromComic 从数据库实体恢复流水线内存态
 func (s *ComicStore) BuildStateFromComic(c *model.Comic) *model.ComicState {
 	state := &model.ComicState{
@@ -125,7 +148,11 @@ func (s *ComicStore) BuildStateFromComic(c *model.Comic) *model.ComicState {
 		Style:           c.Style,
 		ImageBackend:    c.ImageBackend,
 		CaptionTextMode: c.CaptionTextMode,
+		PanelCount:      c.PanelCount,
 		Phase:           c.Phase,
+	}
+	if c.PanelCount <= 0 {
+		state.PanelCount = 4
 	}
 	if c.UserDescription != nil {
 		state.UserDescription = *c.UserDescription

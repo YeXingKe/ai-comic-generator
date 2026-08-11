@@ -11,7 +11,7 @@ import (
 	"github.com/tmc/langchaingo/llms"
 )
 
-const defaultPanelCount = 4
+const defaultPanelCount = 4 // 仅作 PanelCount<=0 时的兜底
 
 // ScriptAgent 分镜脚本 Agent（流水线第 3 步，qwen-plus）
 type ScriptAgent struct {
@@ -36,11 +36,16 @@ func (a *ScriptAgent) Execute(ctx context.Context, state *model.ComicState) erro
 		return fmt.Errorf("characters empty")
 	}
 
+	panelCount := state.PanelCount
+	if panelCount <= 0 {
+		panelCount = defaultPanelCount
+	}
+
 	storyJSON, _ := json.Marshal(state.StoryIdeation)
 	charJSON, _ := json.Marshal(state.Characters)
 
 	prompt := a.promptBuilder.BuildStoryboardScript(
-		string(storyJSON), string(charJSON), state.Style, state.UserDescription, state.CaptionTextMode, defaultPanelCount,
+		string(storyJSON), string(charJSON), state.Style, state.UserDescription, state.CaptionTextMode, panelCount,
 	)
 	content, err := llms.GenerateFromSinglePrompt(ctx, a.llm, prompt)
 	if err != nil {

@@ -132,8 +132,16 @@ export default function ComicDetailPage() {
               <h3 style={{ marginBottom: 12 }}>角色设定</h3>
               <ul>
                 {detail.characters.map((c) => (
-                  <li key={c.name}>
-                    <strong>{c.name}</strong>（{c.role}）：{c.appearance}，{c.personality}
+                  <li key={c.name} style={{ marginBottom: 12, display: 'flex', gap: 12, listStyle: 'none' }}>
+                    {c.avatarUrl ? (
+                      <img src={c.avatarUrl} alt={c.name} style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8 }} />
+                    ) : null}
+                    <div>
+                      <strong>{c.name}</strong>（{c.role}）
+                      {c.visualAnchor ? <div style={{ color: '#6366f1', fontSize: 12 }}>锚点：{c.visualAnchor}</div> : null}
+                      <div>{c.appearance}</div>
+                      <div style={{ color: '#64748b' }}>{c.personality}</div>
+                    </div>
                   </li>
                 ))}
               </ul>

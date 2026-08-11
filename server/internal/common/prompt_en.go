@@ -105,10 +105,11 @@ Requirements:
 2. May include 0-1 antagonist and 1-2 supporting characters
 3. Name should be memorable and culturally appropriate
 4. Appearance should detail physical features, clothing, color scheme, signature props for consistency across panels (80-120 words)
-5. Personality should summarize character traits and speech patterns in 2-3 sentences for dialogue writing
-6. avatarUrl should be empty string "" (image generated in later steps)
-7. Character appearance must align with comic style (cartoon/chibi/realistic/anthropomorphic animal)
-8. Characters should have visual distinction (different hairstyles, outfits, body types)
+5. visualAnchor MUST be a reusable short appearance signature (15-40 words, English keywords preferred), e.g. "green frog, round face, yellow hoodie, round glasses"; it will be forced into every panel prompt — do NOT include actions, expressions, or scenes
+6. Personality should summarize character traits and speech patterns in 2-3 sentences for dialogue writing
+7. avatarUrl should be empty string "" (lookbook portrait generated in a later step)
+8. Character appearance must align with comic style (cartoon/chibi/realistic/anthropomorphic animal)
+9. Characters should have visual distinction (different hairstyles, outfits, body types)
 
 Return JSON array format directly, without markdown code blocks or other explanatory text:
 [
@@ -116,6 +117,7 @@ Return JSON array format directly, without markdown code blocks or other explana
     "name": "Character name",
     "role": "protagonist",
     "appearance": "Detailed appearance and outfit description",
+    "visualAnchor": "species/body, hair/fur color, 1-2 signature clothes or props",
     "personality": "Personality traits and speech patterns",
     "avatarUrl": ""
   },
@@ -123,6 +125,7 @@ Return JSON array format directly, without markdown code blocks or other explana
     "name": "Character name",
     "role": "supporting",
     "appearance": "Detailed appearance and outfit description",
+    "visualAnchor": "species/body, hair/fur color, 1-2 signature clothes or props",
     "personality": "Personality traits and speech patterns",
     "avatarUrl": ""
   }
@@ -151,9 +154,9 @@ Requirements:
 4. dialogue is array of character lines, each no more than 20 words, matching character personality; dialogueEn is corresponding English translation array, format exactly matching dialogue; when no dialogue, both return empty arrays []
 5. narration is narrator text, empty string "" if none
 6. camera specifies shot type: close-up / medium shot / wide shot / bird's eye / low angle / over-shoulder, etc.
-7. imagePrompt must be English keyword-style short phrases (not long paragraphs), total length under 180 characters; include: character appearance keywords, actions, scene, lighting, style keywords; must specify horizontal 16:9 cinematic widescreen comic panel
+7. imagePrompt must be English keyword-style short phrases (not long paragraphs), total length under 180 characters; **must start by reusing each appearing character's visualAnchor**, then actions, scene, lighting, style keywords; must specify horizontal 16:9 cinematic widescreen comic panel
 8. imagePrompt describes only visual elements, **MUST NOT** include any text/dialogue/speech bubbles; {captionCompositionHint}
-9. Character appearance and dialogue must match character design, do not add undesigned characters
+9. Character appearance and dialogue must match character design, do not add undesigned characters; the same character's appearance keywords across panels must stay consistent with visualAnchor
 10. pageCount fill 1 (single page 4-6 panels) or actual page count
 
 Return JSON format directly, without markdown code blocks or other explanatory text:

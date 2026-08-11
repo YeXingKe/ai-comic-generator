@@ -13,7 +13,8 @@ type Comic struct {
 	CoverImage      *string `gorm:"column:coverImage" json:"coverImage"`                       // 封面图 URL（排版合成后写入）
 	Style           string  `gorm:"column:style;default:cartoon" json:"style"`                 // 漫画风格：cartoon / realistic / chibi / animal，默认 cartoon
 	ImageBackend    string  `gorm:"column:imageBackend;default:hunyuan" json:"imageBackend"`   // 生图后端：hunyuan / openai_image_1k / openai_image_4k，用户创建时选定
-	CaptionTextMode     string  `gorm:"column:captionTextMode;default:top" json:"captionTextMode"`     // 文案模式：none不叠加 / top顶部字幕（默认）/ bubble对话气泡
+	CaptionTextMode string  `gorm:"column:captionTextMode;default:top" json:"captionTextMode"` // 文案模式：none不叠加 / top顶部字幕（默认）/ bubble对话气泡
+	PanelCount      int     `gorm:"column:panelCount;default:4" json:"panelCount"`             // 分镜格数：4 / 6 / 8
 
 	// 六步产物：数据库以 JSON 字符串存储，返回 API 时由 ToComicInfo 解析为结构体
 	TitleOptions   *string `gorm:"column:titleOptions;type:json" json:"titleOptions"`     // 0. 标题推荐列表（JSON）
@@ -40,12 +41,13 @@ func (Comic) TableName() string {
 
 // ComicStatus 漫画任务总状态常量
 const (
-	ComicStatusPending         = "PENDING"          // 等待开始
-	ComicStatusProcessing      = "PROCESSING"       // 生成进行中
-	ComicStatusAwaitingConfirm = "AWAITING_CONFIRM" // 等待用户确认（如标题选择）
-	ComicStatusTitleConfirmed  = "TITLE_CONFIRMED"  // 标题已确认，等待用户启动流水线
-	ComicStatusCompleted       = "COMPLETED"        // 全部步骤完成
-	ComicStatusFailed          = "FAILED"           // 某步骤失败，任务终止
+	ComicStatusPending            = "PENDING"             // 等待开始
+	ComicStatusProcessing         = "PROCESSING"          // 生成进行中
+	ComicStatusAwaitingConfirm    = "AWAITING_CONFIRM"    // 等待用户确认标题
+	ComicStatusTitleConfirmed     = "TITLE_CONFIRMED"     // 标题已确认，等待用户启动流水线
+	ComicStatusAwaitingStoryboard = "AWAITING_STORYBOARD" // 分镜已生成，等待用户确认/编辑
+	ComicStatusCompleted          = "COMPLETED"           // 全部步骤完成
+	ComicStatusFailed             = "FAILED"              // 某步骤失败，任务终止
 )
 
 // ComicPhase 漫画生成流水线阶段（标题推荐 + 五步创作 + 可选发布 + 初始态）
@@ -86,11 +88,12 @@ type StoryIdeationResult struct {
 
 // ComicCharacter 单个角色的设定信息
 type ComicCharacter struct {
-	Name        string `json:"name"`        // 角色名称
-	Role        string `json:"role"`        // 角色类型：protagonist 主角 / antagonist 反派 / supporting 配角
-	Appearance  string `json:"appearance"`  // 外貌描述（供后续生图 Prompt 使用）
-	Personality string `json:"personality"` // 性格特征
-	AvatarURL   string `json:"avatarUrl"`   // 角色立绘 URL（角色设定阶段生成，可为空）
+	Name         string `json:"name"`                   // 角色名称
+	Role         string `json:"role"`                   // 角色类型：protagonist 主角 / antagonist 反派 / supporting 配角
+	Appearance   string `json:"appearance"`             // 外貌详细描述（供分镜与定妆照）
+	VisualAnchor string `json:"visualAnchor,omitempty"` // 外貌短锚点（15-40 字，每格生图强制复用）
+	Personality  string `json:"personality"`            // 性格特征
+	AvatarURL    string `json:"avatarUrl"`              // 定妆照 URL（角色设定后生成）
 }
 
 // StoryboardPanel 分镜脚本中的单格（一格漫画）
@@ -152,6 +155,7 @@ type ComicInfo struct {
 	Style           string                `json:"style"`           // 漫画风格
 	ImageBackend    string                `json:"imageBackend"`    // 生图后端
 	CaptionTextMode string                `json:"captionTextMode"` // 文案模式：none / top / bubble
+	PanelCount      int                   `json:"panelCount"`      // 分镜格数
 	TitleOptions    *TitleOptionsResult   `json:"titleOptions"`    // 标题推荐列表（已解析）
 	StoryIdeation   *StoryIdeationResult  `json:"storyIdeation"`   // 故事构思（已解析）
 	Characters      []ComicCharacter      `json:"characters"`      // 角色列表（已解析）
@@ -183,6 +187,7 @@ func (c *Comic) ToComicInfo() *ComicInfo {
 		Style:           c.Style,
 		ImageBackend:    c.ImageBackend,
 		CaptionTextMode: c.CaptionTextMode,
+		PanelCount:      c.PanelCount,
 		Status:          c.Status,
 		Phase:           c.Phase,
 		ErrorMessage:    c.ErrorMessage,
@@ -232,7 +237,8 @@ type ComicState struct {
 	UserDescription string                `json:"userDescription"` // 用户描述（编排时用 string，空则为 ""）
 	Style           string                `json:"style"`           // 漫画风格
 	ImageBackend    string                `json:"imageBackend"`    // 生图后端：hunyuan / openai_image_1k / openai_image_4k
-	CaptionTextMode     string                `json:"captionTextMode"`     // 文案模式：none / top / bubble
+	CaptionTextMode string                `json:"captionTextMode"` // 文案模式：none / top / bubble
+	PanelCount      int                   `json:"panelCount"`      // 分镜格数
 	PromptLang      string                `json:"promptLang"`      // Prompt 语言：zh（通义千问）/ en（GPT）
 	Phase           string                `json:"phase"`           // 当前执行到的阶段
 	SelectedTitle   string                `json:"selectedTitle"`   // 用户确认的标题

@@ -3,6 +3,7 @@ import type {
   BaseResponse,
   ComicInfo,
   ComicPageResult,
+  ConfirmStoryboardRequest,
   ConfirmTitleRequest,
   CreateComicRequest,
   CreateCustomComicRequest,
@@ -12,6 +13,8 @@ import type {
   PublishResult,
   QueryComicRequest,
   QueryCustomComicRequest,
+  RegeneratePanelRequest,
+  RetryComicRequest,
   StartComicRequest,
 } from '@/types/api'
 
@@ -68,6 +71,18 @@ export async function confirmComicTitle(body: ConfirmTitleRequest) {
 
 export async function startComicPipeline(body: StartComicRequest) {
   return unwrap(await request.post<BaseResponse<null>>('/comic/start', body))
+}
+
+export async function confirmComicStoryboard(body: ConfirmStoryboardRequest) {
+  return unwrap(await request.post<BaseResponse<null>>('/comic/confirm-storyboard', body))
+}
+
+export async function retryComic(body: RetryComicRequest) {
+  return unwrap(await request.post<BaseResponse<null>>('/comic/retry', body))
+}
+
+export async function regenerateComicPanel(body: RegeneratePanelRequest) {
+  return unwrap(await request.post<BaseResponse<ComicInfo>>('/comic/regenerate-panel', body))
 }
 
 export async function publishComic(body: PublishComicRequest) {

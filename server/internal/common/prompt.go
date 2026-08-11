@@ -110,10 +110,11 @@ const CharacterDesignPrompt = `你是一位专业漫画角色设计师，擅长�
 2. 可有 0-1 名反派（antagonist）和 1-2 名配角（supporting）
 3. name 使用中文角色名，简短好记
 4. appearance 详细描述外貌、服装、配色、标志性道具，便于后续分镜与生图保持一致（80-120 字）
-5. personality 用 2-3 句话概括性格与说话习惯，便于撰写台词
-6. avatarUrl 暂时留空字符串 ""（图片由后续步骤生成）
-7. 角色外貌描述需与漫画风格一致（卡通/Q 版/写实/动物拟人）
-8. 各角色之间要有视觉区分度（发型、服装、体型不要雷同）
+5. visualAnchor 必须是可复用的外貌短锚点（中英均可，建议英文关键词，15-40 字），格式示例："green frog, round face, yellow hoodie, round glasses"；每格生图将强制复用，勿写动作/表情/场景
+6. personality 用 2-3 句话概括性格与说话习惯，便于撰写台词
+7. avatarUrl 暂时留空字符串 ""（定妆照由后续步骤生成）
+8. 角色外貌描述需与漫画风格一致（卡通/Q 版/写实/动物拟人）
+9. 各角色之间要有视觉区分度（发型、服装、体型不要雷同）
 
 请直接返回 JSON 数组格式，不要有 markdown 代码块或其他说明文字：
 [
@@ -121,6 +122,7 @@ const CharacterDesignPrompt = `你是一位专业漫画角色设计师，擅长�
     "name": "角色名",
     "role": "protagonist",
     "appearance": "外貌与服装详细描述",
+    "visualAnchor": "species/body, hair/fur color, 1-2 signature clothes or props",
     "personality": "性格与说话习惯",
     "avatarUrl": ""
   },
@@ -128,6 +130,7 @@ const CharacterDesignPrompt = `你是一位专业漫画角色设计师，擅长�
     "name": "角色名",
     "role": "supporting",
     "appearance": "外貌与服装详细描述",
+    "visualAnchor": "species/body, hair/fur color, 1-2 signature clothes or props",
     "personality": "性格与说话习惯",
     "avatarUrl": ""
   }
@@ -156,9 +159,9 @@ const StoryboardScriptPrompt = `你是一位经验丰富的漫画分镜师，擅
 4. dialogue 为中文台词数组，每句不超过 20 字，符合角色 personality；dialogueEn 为对应英文翻译数组，格式与 dialogue 完全对应；无台词时两者均返回空数组 []
 5. narration 旁白，无则留空字符串 ""
 6. camera 标明镜头：特写 / 中景 / 全景 / 俯视 / 仰视 / 过肩等
-7. imagePrompt 必须为英文关键词式短句（非长段落），总长不超过 180 个英文字符；包含：角色外貌关键词、动作、场景、光影、风格词；必须注明 horizontal 16:9 cinematic widescreen comic panel
+7. imagePrompt 必须为英文关键词式短句（非长段落），总长不超过 180 个英文字符；**开头必须复用各出场角色的 visualAnchor**，再写动作、场景、光影、风格词；必须注明 horizontal 16:9 cinematic widescreen comic panel
 8. imagePrompt 只描述纯画面，**禁止**写入任何文字/台词/speech bubble；{captionCompositionHint}
-9. 角色外貌与 dialogue 须与角色设定一致，勿凭空新增未设定角色
+9. 角色外貌与 dialogue 须与角色设定一致，勿凭空新增未设定角色；同一角色在不同格的外貌关键词必须与 visualAnchor 保持一致
 10. pageCount 填写 1（单页四格/六格）或实际页数
 
 请直接返回 JSON 格式，不要有 markdown 代码块或其他说明文字：
@@ -440,7 +443,13 @@ func BuildPanelImageEnhancePrompt(style, scene, characters, imagePrompt, dialogu
 func BuildDirectPanelImagePrompt(style, scene, characters, imagePrompt, dialogue, narration, captionTextMode string) string {
 	_ = dialogue
 	_ = narration
-	parts := make([]string, 0, 14)
+	// 角色锚点优先占据额度，场景/分镜描述次之
+	charPart := strings.TrimSpace(characters)
+	if charPart != "" && !strings.HasPrefix(strings.ToLower(charPart), "same characters") {
+		charPart = "same characters always: " + charPart
+	}
+
+	parts := make([]string, 0, 12)
 	switch style {
 	case ComicStyleAnimal:
 		parts = append(parts,
@@ -473,18 +482,17 @@ func BuildDirectPanelImagePrompt(style, scene, characters, imagePrompt, dialogue
 		"no speech bubble",
 		"no caption box",
 		"no watermark",
+		"no deformed hands",
 	)
 	if imagePrompt != "" {
-		parts = append(parts, TruncateRunes(SanitizeHunyuanImagePrompt(imagePrompt), 80))
+		parts = append(parts, TruncateRunes(SanitizeHunyuanImagePrompt(imagePrompt), 70))
 	}
 	if scene != "" {
-		parts = append(parts, "scene: "+TruncateRunes(scene, 40))
+		parts = append(parts, "scene: "+TruncateRunes(scene, 36))
 	}
-	if characters != "" {
-		parts = append(parts, "characters: "+TruncateRunes(characters, 40))
-	}
-	parts = append(parts, "no deformed hands, high quality illustration")
-	return TruncateHunyuanPrompt(strings.Join(parts, ", "))
+	parts = append(parts, "high quality illustration")
+	body := strings.Join(parts, ", ")
+	return ForceInjectCharacterAnchors(body, charPart)
 }
 
 // getCaptionCompositionHint 根据文案模式返回生图构图要求提示（注入 imagePrompt 模板）

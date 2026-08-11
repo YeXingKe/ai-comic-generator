@@ -64,48 +64,16 @@ func (s *ImageService) GeneratePanels(ctx context.Context, state *model.ComicSta
 		return err
 	}
 
-	charRef, _ := buildCharacterRef(state.Characters)
+	charRef := common.BuildCharacterAnchorRef(state.Characters)
 	results := make([]model.PanelImageResult, 0, len(state.Storyboard.Panels))
 	generator := s.resolveGenerator(state.ImageBackend)
 
 	for _, panel := range state.Storyboard.Panels {
-		dest := s.store.PanelPath(state.TaskID, panel.PanelNo)
-		dialogue := common.FormatPanelDialogue(panel.Dialogue)
-		narration := strings.TrimSpace(panel.Narration)
-		hyPrompt := s.buildPanelPrompt(ctx, state.Style, panel.Scene, charRef, panel.ImagePrompt, dialogue, narration, state.CaptionTextMode)
-
-		var genErr error
-		if generator != nil {
-			genErr = generator.Generate(ctx, hyPrompt, dest)
-			if genErr == nil {
-				if err := OverlayCaption(dest, dialogue, narration, state.CaptionTextMode); err != nil {
-					log.Printf("overlay panel caption failed taskId=%s panel=%d: %v", state.TaskID, panel.PanelNo, err)
-				}
-			}
-		} else {
-			log.Printf("image generator disabled, use placeholder panel: taskId=%s panel=%d", state.TaskID, panel.PanelNo)
-			genErr = renderPlaceholderPanel(dest, panel.PanelNo, panel.Scene, dialogue, narration)
-		}
+		result, genErr := s.generateOnePanel(ctx, state, panel, charRef, generator)
 		if genErr != nil {
-			return fmt.Errorf("panel %d: %w", panel.PanelNo, genErr)
+			return genErr
 		}
-
-		url := s.store.PublicURL(state.TaskID, fmt.Sprintf("panel_%d.png", panel.PanelNo))
-		if s.cos.Enabled() {
-			cosKey := fmt.Sprintf("comics/%s/panel_%d.png", state.TaskID, panel.PanelNo)
-			cosURL, err := s.cos.UploadFile(ctx, cosKey, dest)
-			if err != nil {
-				log.Printf("cos upload panel failed taskId=%s panel=%d: %v", state.TaskID, panel.PanelNo, err)
-			} else {
-				url = cosURL
-			}
-		}
-		results = append(results, model.PanelImageResult{
-			PanelNo:     panel.PanelNo,
-			URL:         url,
-			Method:      panelImageMethod(generator != nil),
-			ImagePrompt: hyPrompt,
-		})
+		results = append(results, result)
 	}
 
 	state.PanelImages = results
@@ -113,22 +81,149 @@ func (s *ImageService) GeneratePanels(ctx context.Context, state *model.ComicSta
 	return nil
 }
 
-// buildPanelPrompt 优先经 LLM 增强（画面不含文字，台词由程序叠加），失败则直接拼装英文 Prompt
+// GenerateSinglePanel 仅重绘指定分镜格，并更新 state.PanelImages 中对应项
+func (s *ImageService) GenerateSinglePanel(ctx context.Context, state *model.ComicState, panelNo int) error {
+	if state.Storyboard == nil {
+		return fmt.Errorf("storyboard empty")
+	}
+	var panel *model.StoryboardPanel
+	for i := range state.Storyboard.Panels {
+		if state.Storyboard.Panels[i].PanelNo == panelNo {
+			panel = &state.Storyboard.Panels[i]
+			break
+		}
+	}
+	if panel == nil {
+		return fmt.Errorf("panel %d not found", panelNo)
+	}
+	if err := s.store.EnsureTaskDir(state.TaskID); err != nil {
+		return err
+	}
+
+	charRef := common.BuildCharacterAnchorRef(state.Characters)
+	generator := s.resolveGenerator(state.ImageBackend)
+	result, err := s.generateOnePanel(ctx, state, *panel, charRef, generator)
+	if err != nil {
+		return err
+	}
+
+	replaced := false
+	for i := range state.PanelImages {
+		if state.PanelImages[i].PanelNo == panelNo {
+			state.PanelImages[i] = result
+			replaced = true
+			break
+		}
+	}
+	if !replaced {
+		state.PanelImages = append(state.PanelImages, result)
+	}
+	state.Phase = model.ComicPhaseImageGeneration
+	return nil
+}
+
+func (s *ImageService) generateOnePanel(ctx context.Context, state *model.ComicState, panel model.StoryboardPanel, charRef string, generator ImageGenerator) (model.PanelImageResult, error) {
+	dest := s.store.PanelPath(state.TaskID, panel.PanelNo)
+	dialogue := common.FormatPanelDialogue(panel.Dialogue)
+	narration := strings.TrimSpace(panel.Narration)
+	hyPrompt := s.buildPanelPrompt(ctx, state.Style, panel.Scene, charRef, panel.ImagePrompt, dialogue, narration, state.CaptionTextMode)
+
+	var genErr error
+	if generator != nil {
+		genErr = generator.Generate(ctx, hyPrompt, dest)
+		if genErr == nil {
+			if err := OverlayCaption(dest, dialogue, narration, state.CaptionTextMode); err != nil {
+				log.Printf("overlay panel caption failed taskId=%s panel=%d: %v", state.TaskID, panel.PanelNo, err)
+			}
+		}
+	} else {
+		log.Printf("image generator disabled, use placeholder panel: taskId=%s panel=%d", state.TaskID, panel.PanelNo)
+		genErr = renderPlaceholderPanel(dest, panel.PanelNo, panel.Scene, dialogue, narration)
+	}
+	if genErr != nil {
+		return model.PanelImageResult{}, fmt.Errorf("panel %d: %w", panel.PanelNo, genErr)
+	}
+
+	url := s.store.PublicURL(state.TaskID, fmt.Sprintf("panel_%d.png", panel.PanelNo))
+	if s.cos.Enabled() {
+		cosKey := fmt.Sprintf("comics/%s/panel_%d.png", state.TaskID, panel.PanelNo)
+		cosURL, err := s.cos.UploadFile(ctx, cosKey, dest)
+		if err != nil {
+			log.Printf("cos upload panel failed taskId=%s panel=%d: %v", state.TaskID, panel.PanelNo, err)
+		} else {
+			url = cosURL
+		}
+	}
+	return model.PanelImageResult{
+		PanelNo:     panel.PanelNo,
+		URL:         url,
+		Method:      panelImageMethod(generator != nil),
+		ImagePrompt: hyPrompt,
+	}, nil
+}
+
+// GenerateCharacterAvatars 为角色生成定妆照并写回 avatarUrl
+func (s *ImageService) GenerateCharacterAvatars(ctx context.Context, state *model.ComicState) error {
+	if len(state.Characters) == 0 {
+		return fmt.Errorf("characters empty")
+	}
+	common.NormalizeCharacterAnchors(state.Characters)
+	if err := s.store.EnsureTaskDir(state.TaskID); err != nil {
+		return err
+	}
+
+	generator := s.resolveGenerator(state.ImageBackend)
+	for i := range state.Characters {
+		dest := s.store.AvatarPath(state.TaskID, i)
+		prompt := common.BuildLookbookPrompt(state.Style, state.Characters[i])
+
+		var genErr error
+		if generator != nil {
+			genErr = generator.Generate(ctx, prompt, dest)
+		} else {
+			log.Printf("image generator disabled, use placeholder avatar: taskId=%s char=%s", state.TaskID, state.Characters[i].Name)
+			genErr = renderPlaceholderPanel(dest, i+1, state.Characters[i].Name+" lookbook", common.CharacterVisualAnchor(state.Characters[i]), "")
+		}
+		if genErr != nil {
+			return fmt.Errorf("avatar %s: %w", state.Characters[i].Name, genErr)
+		}
+
+		url := s.store.PublicURL(state.TaskID, fmt.Sprintf("avatar_%d.png", i+1))
+		if s.cos.Enabled() {
+			cosKey := fmt.Sprintf("comics/%s/avatar_%d.png", state.TaskID, i+1)
+			cosURL, err := s.cos.UploadFile(ctx, cosKey, dest)
+			if err != nil {
+				log.Printf("cos upload avatar failed taskId=%s char=%s: %v", state.TaskID, state.Characters[i].Name, err)
+			} else {
+				url = cosURL
+			}
+		}
+		state.Characters[i].AvatarURL = url
+	}
+	return nil
+}
+
+// buildPanelPrompt 优先经 LLM 增强（画面纯绘，台词由程序叠加），失败则直接拼装英文 Prompt
 func (s *ImageService) buildPanelPrompt(ctx context.Context, style, scene, charRef, imagePrompt, dialogue, narration, captionTextMode string) string {
 	base := imagePrompt
 	if base == "" {
 		base = scene
 	}
 	meta := s.promptBuilder.BuildPanelImageEnhance(style, scene, charRef, base, dialogue, narration, captionTextMode)
+	var prompt string
 	if s.llm != nil {
 		content, err := llms.GenerateFromSinglePrompt(ctx, s.llm, meta)
 		if err != nil {
 			log.Printf("panel prompt llm enhance failed, use direct prompt: %v", err)
 		} else if trimmed := strings.TrimSpace(content); trimmed != "" {
-			return common.TruncateHunyuanPrompt(common.SanitizeHunyuanImagePrompt(trimmed))
+			prompt = common.SanitizeHunyuanImagePrompt(trimmed)
 		}
 	}
-	return common.TruncateHunyuanPrompt(common.BuildDirectPanelImagePrompt(style, scene, charRef, base, dialogue, narration, captionTextMode))
+	if prompt == "" {
+		prompt = common.BuildDirectPanelImagePrompt(style, scene, charRef, base, dialogue, narration, captionTextMode)
+	}
+	// 无论 LLM 是否增强，最终强制保留角色短锚点
+	return common.ForceInjectCharacterAnchors(prompt, charRef)
 }
 
 func panelImageMethod(hunyuanOn bool) string {
@@ -136,17 +231,6 @@ func panelImageMethod(hunyuanOn bool) string {
 		return "AI_GENERATE"
 	}
 	return "PLACEHOLDER"
-}
-
-func buildCharacterRef(chars []model.ComicCharacter) (string, error) {
-	if len(chars) == 0 {
-		return "", nil
-	}
-	parts := make([]string, 0, len(chars))
-	for _, c := range chars {
-		parts = append(parts, fmt.Sprintf("%s: %s", c.Name, c.Appearance))
-	}
-	return strings.Join(parts, "; "), nil
 }
 
 func renderPlaceholderPanel(path string, _ int, scene, dialogue, narration string) error {

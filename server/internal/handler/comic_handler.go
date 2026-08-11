@@ -84,6 +84,70 @@ func (h *ComicHandler) Start(c *gin.Context) {
 	c.JSON(http.StatusOK, common.Success(true))
 }
 
+// ConfirmStoryboard 确认/编辑分镜后启动生图
+func (h *ComicHandler) ConfirmStoryboard(c *gin.Context) {
+	loginUser, ok := middleware.GetLoginUserFromContext(c)
+	if !ok {
+		c.JSON(http.StatusOK, common.Error(common.ErrNotLogin))
+		return
+	}
+
+	var req model.ConfirmStoryboardRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, common.Error(common.ErrParams))
+		return
+	}
+
+	if err := h.svc.ConfirmStoryboard(loginUser.ID, &req, isAdminUser(loginUser)); err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, common.Success(true))
+}
+
+// Retry 失败任务从当前步骤重试
+func (h *ComicHandler) Retry(c *gin.Context) {
+	loginUser, ok := middleware.GetLoginUserFromContext(c)
+	if !ok {
+		c.JSON(http.StatusOK, common.Error(common.ErrNotLogin))
+		return
+	}
+
+	var req model.RetryComicRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, common.Error(common.ErrParams))
+		return
+	}
+
+	if err := h.svc.RetryFailed(loginUser.ID, &req, isAdminUser(loginUser)); err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, common.Success(true))
+}
+
+// RegeneratePanel 修改单格后重绘并重排版
+func (h *ComicHandler) RegeneratePanel(c *gin.Context) {
+	loginUser, ok := middleware.GetLoginUserFromContext(c)
+	if !ok {
+		c.JSON(http.StatusOK, common.Error(common.ErrNotLogin))
+		return
+	}
+
+	var req model.RegeneratePanelRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, common.Error(common.ErrParams))
+		return
+	}
+
+	info, err := h.svc.RegeneratePanel(loginUser.ID, &req, isAdminUser(loginUser))
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, common.Success(info))
+}
+
 // Publish 将已完成作品发布至微信公众号
 func (h *ComicHandler) Publish(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)

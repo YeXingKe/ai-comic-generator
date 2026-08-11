@@ -48,6 +48,7 @@ func (a *CharacterAgent) Execute(ctx context.Context, state *model.ComicState) e
 	if len(characters) == 0 {
 		return fmt.Errorf("characters empty")
 	}
+	common.NormalizeCharacterAnchors(characters)
 
 	state.Characters = characters
 	state.Phase = model.ComicPhaseCharacterDesign

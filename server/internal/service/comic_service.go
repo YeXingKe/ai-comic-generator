@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strings"
 
@@ -38,6 +39,13 @@ func (s *ComicService) Create(userID int64, req *model.CreateComicRequest) (stri
 	if captionTextMode == "" {
 		captionTextMode = common.CaptionTextModeTop
 	}
+	panelCount := req.PanelCount
+	if panelCount <= 0 {
+		panelCount = 4
+	}
+	if panelCount != 4 && panelCount != 6 && panelCount != 8 {
+		return "", common.ErrParams.WithMessage("格数仅支持 4 / 6 / 8")
+	}
 
 	comic := &model.Comic{
 		TaskID:          taskID,
@@ -46,6 +54,7 @@ func (s *ComicService) Create(userID int64, req *model.CreateComicRequest) (stri
 		Style:           style,
 		ImageBackend:    imageBackend,
 		CaptionTextMode: captionTextMode,
+		PanelCount:      panelCount,
 		Status:          model.ComicStatusPending,
 		Phase:           model.ComicPhasePending,
 	}
@@ -63,6 +72,7 @@ func (s *ComicService) Create(userID int64, req *model.CreateComicRequest) (stri
 		Style:           style,
 		ImageBackend:    imageBackend,
 		CaptionTextMode: captionTextMode,
+		PanelCount:      panelCount,
 		Phase:           model.ComicPhasePending,
 	}
 	if req.UserDescription != nil {
@@ -133,6 +143,149 @@ func (s *ComicService) StartPipeline(userID int64, req *model.StartComicRequest,
 	}()
 
 	return nil
+}
+
+// ConfirmStoryboard 确认/编辑分镜后启动生图与排版
+func (s *ComicService) ConfirmStoryboard(userID int64, req *model.ConfirmStoryboardRequest, isAdmin bool) error {
+	comic, err := s.comicStore.GetByTaskID(req.TaskID)
+	if err != nil {
+		return common.ErrNotFound
+	}
+	if !isAdmin && comic.UserID != userID {
+		return common.ErrNoAuth
+	}
+	if comic.Status != model.ComicStatusAwaitingStoryboard {
+		return common.ErrOperation.WithMessage("当前任务不在分镜确认阶段")
+	}
+	if len(req.Storyboard) == 0 {
+		return common.ErrParams.WithMessage("分镜不能为空")
+	}
+
+	state := s.comicStore.BuildStateFromComic(comic)
+	panels := make([]model.StoryboardPanel, len(req.Storyboard))
+	copy(panels, req.Storyboard)
+	for i := range panels {
+		if panels[i].PanelNo <= 0 {
+			panels[i].PanelNo = i + 1
+		}
+		panels[i].Scene = strings.TrimSpace(panels[i].Scene)
+		panels[i].Narration = strings.TrimSpace(panels[i].Narration)
+		if panels[i].Scene == "" {
+			return common.ErrParams.WithMessage(fmt.Sprintf("第 %d 格场景描述不能为空", panels[i].PanelNo))
+		}
+	}
+	pageCount := 1
+	if state.Storyboard != nil && state.Storyboard.PageCount > 0 {
+		pageCount = state.Storyboard.PageCount
+	}
+	state.Storyboard = &model.StoryboardResult{PageCount: pageCount, Panels: panels}
+	if err := s.comicStore.SyncState(state); err != nil {
+		return common.ErrSystem
+	}
+	if err := s.comicStore.UpdatePhase(req.TaskID, model.ComicStatusProcessing, model.ComicPhaseImageGeneration); err != nil {
+		return common.ErrSystem
+	}
+
+	go func() {
+		ctx := context.Background()
+		if err := s.orchestrator.RunFromImages(ctx, state); err != nil {
+			log.Printf("comic image pipeline failed taskId=%s err=%v", req.TaskID, err)
+		}
+	}()
+	return nil
+}
+
+// RetryFailed 失败任务从当前步骤重试
+func (s *ComicService) RetryFailed(userID int64, req *model.RetryComicRequest, isAdmin bool) error {
+	comic, err := s.comicStore.GetByTaskID(req.TaskID)
+	if err != nil {
+		return common.ErrNotFound
+	}
+	if !isAdmin && comic.UserID != userID {
+		return common.ErrNoAuth
+	}
+	if comic.Status != model.ComicStatusFailed {
+		return common.ErrOperation.WithMessage("仅失败任务可重试")
+	}
+
+	fromPhase := comic.Phase
+	if fromPhase == "" || fromPhase == model.ComicPhasePending {
+		fromPhase = model.ComicPhaseTitleGeneration
+	}
+
+	state := s.comicStore.BuildStateFromComic(comic)
+	if err := s.comicStore.ClearFailure(req.TaskID, model.ComicStatusProcessing, fromPhase); err != nil {
+		return common.ErrSystem
+	}
+
+	go func() {
+		ctx := context.Background()
+		if err := s.orchestrator.RetryFromPhase(ctx, state, fromPhase); err != nil {
+			log.Printf("comic retry failed taskId=%s phase=%s err=%v", req.TaskID, fromPhase, err)
+		}
+	}()
+	return nil
+}
+
+// RegeneratePanel 修改单格场景/台词后重新生图并重排版
+func (s *ComicService) RegeneratePanel(userID int64, req *model.RegeneratePanelRequest, isAdmin bool) (*model.ComicInfo, error) {
+	comic, err := s.comicStore.GetByTaskID(req.TaskID)
+	if err != nil {
+		return nil, common.ErrNotFound
+	}
+	if !isAdmin && comic.UserID != userID {
+		return nil, common.ErrNoAuth
+	}
+	if comic.Status != model.ComicStatusCompleted && comic.Status != model.ComicStatusAwaitingStoryboard {
+		return nil, common.ErrOperation.WithMessage("当前状态不支持单格重绘")
+	}
+	if comic.Status == model.ComicStatusAwaitingStoryboard {
+		return nil, common.ErrOperation.WithMessage("请先在分镜确认中编辑并确认分镜")
+	}
+
+	state := s.comicStore.BuildStateFromComic(comic)
+	if state.Storyboard == nil || len(state.Storyboard.Panels) == 0 {
+		return nil, common.ErrOperation.WithMessage("分镜脚本不存在")
+	}
+
+	found := false
+	for i := range state.Storyboard.Panels {
+		p := &state.Storyboard.Panels[i]
+		if p.PanelNo != req.PanelNo {
+			continue
+		}
+		found = true
+		if req.Scene != nil {
+			p.Scene = strings.TrimSpace(*req.Scene)
+		}
+		if req.Dialogue != nil {
+			p.Dialogue = req.Dialogue
+		}
+		if req.Narration != nil {
+			p.Narration = strings.TrimSpace(*req.Narration)
+		}
+		if p.Scene == "" {
+			return nil, common.ErrParams.WithMessage("场景描述不能为空")
+		}
+		break
+	}
+	if !found {
+		return nil, common.ErrParams.WithMessage("分镜格不存在")
+	}
+
+	ctx := context.Background()
+	if err := s.orchestrator.imageService.GenerateSinglePanel(ctx, state, req.PanelNo); err != nil {
+		return nil, common.ErrOperation.WithMessage("单格重绘失败")
+	}
+	if err := s.orchestrator.composeService.Compose(ctx, state); err != nil {
+		return nil, common.ErrOperation.WithMessage("排版合成失败")
+	}
+	if err := s.comicStore.SyncState(state); err != nil {
+		return nil, common.ErrSystem
+	}
+	_ = s.comicStore.MarkCompleted(req.TaskID)
+
+	return s.GetForUser(req.TaskID, userID, isAdmin)
 }
 
 // Publish 将已完成作品发布至微信公众号（历史列表手动触发）

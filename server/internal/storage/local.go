@@ -34,6 +34,10 @@ func (l *Local) PanelPath(taskID string, panelNo int) string {
 	return filepath.Join(l.TaskDir(taskID), fmt.Sprintf("panel_%d.png", panelNo))
 }
 
+func (l *Local) AvatarPath(taskID string, index int) string {
+	return filepath.Join(l.TaskDir(taskID), fmt.Sprintf("avatar_%d.png", index+1))
+}
+
 func (l *Local) CustomPanelPath(taskID string, panelNo int) string {
 	return filepath.Join(l.CustomTaskDir(taskID), fmt.Sprintf("panel_%d.png", panelNo))
 }

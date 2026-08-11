@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import type { UploadProps } from 'antd'
-import { Image, Spin, Input, Button, Select, Radio, Checkbox, Upload, Alert, Steps, Tooltip, message } from 'antd'
+import { Image, Spin, Input, Button, Select, Radio, Alert, Steps, Tooltip, message } from 'antd'
 import {
   CheckOutlined,
   FontSizeOutlined,
@@ -12,7 +11,6 @@ import {
   LayoutOutlined,
   FileTextOutlined,
   BulbOutlined,
-  PaperClipOutlined,
   RocketOutlined,
   DownloadOutlined,
   EyeOutlined,
@@ -21,8 +19,17 @@ import {
   CloseCircleOutlined,
   ReloadOutlined,
 } from '@ant-design/icons'
-import { COMIC_PHASE_LABEL, confirmComicTitle, createComic, getComic, startComicPipeline } from '@/api/comic'
-import type { ComicInfo, ComicPhase, ImageBackend, captionTextMode } from '@/types/api'
+import {
+  COMIC_PHASE_LABEL,
+  confirmComicStoryboard,
+  confirmComicTitle,
+  createComic,
+  getComic,
+  regenerateComicPanel,
+  retryComic,
+  startComicPipeline,
+} from '@/api/comic'
+import type { ComicInfo, ComicPhase, ImageBackend, StoryboardPanel, captionTextMode } from '@/types/api'
 import { resolveComicAssetUrls } from '@/utils/assetUrl'
 import { useLoginUserStore } from '@/stores/loginUser'
 import CreateShell from './CreateShell'
@@ -95,6 +102,10 @@ function getStepStatus(index: number, comic: ComicInfo | null, creating: boolean
     if (index === 0) return 'completed'
     return 'pending'
   }
+  if (comic.status === 'AWAITING_STORYBOARD') {
+    if (index <= 3) return index < 3 ? 'completed' : 'active'
+    return 'pending'
+  }
   const current = phaseToStepIndex(comic.phase)
   if (current < 0) return creating && index === 0 ? 'active' : 'pending'
   if (index < current) return 'completed'
@@ -102,15 +113,9 @@ function getStepStatus(index: number, comic: ComicInfo | null, creating: boolean
   return 'pending'
 }
 
-function buildUserDescription(tone: string, panelCount: number, colorMode: string, keepConsistency: boolean, outputFormat: string): string {
+function buildUserDescription(tone: string): string {
   const parts: string[] = []
   if (tone) parts.push(`基调：${tone}`)
-  parts.push(`格数：${panelCount}`)
-  if (colorMode === 'bw') parts.push('色彩：黑白')
-  else parts.push('色彩：全彩')
-  if (keepConsistency) parts.push('保持角色一致性')
-  if (outputFormat === 'single') parts.push('输出：单张')
-  else parts.push('输出：长图')
   return parts.join('，')
 }
 
@@ -119,6 +124,7 @@ function getActiveStepIndex(comic: ComicInfo | null, creating: boolean): number 
   if (!comic) return 0
   if (comic.status === 'AWAITING_CONFIRM') return 0
   if (comic.status === 'TITLE_CONFIRMED') return 0
+  if (comic.status === 'AWAITING_STORYBOARD') return 3
   if (comic.status === 'COMPLETED') return AGENT_STEPS.length - 1
   const idx = phaseToStepIndex(comic.phase)
   return idx >= 0 ? idx : 0
@@ -225,10 +231,14 @@ function renderStepDetailContent(stepIndex: number, comic: ComicInfo | null, cre
           <ul className="step-detail step-detail--characters">
             {comic.characters.map((c) => (
               <li key={c.name} className="step-detail__character">
-                <strong>{c.name}</strong>
-                <span className="step-detail__role">{c.role}</span>
-                <p>{c.appearance}</p>
-                <p className="step-detail__muted">{c.personality}</p>
+                {c.avatarUrl ? <img className="step-detail__avatar" src={c.avatarUrl} alt={c.name} /> : null}
+                <div className="step-detail__character-body">
+                  <strong>{c.name}</strong>
+                  <span className="step-detail__role">{c.role}</span>
+                  {c.visualAnchor ? <p className="step-detail__anchor">锚点：{c.visualAnchor}</p> : null}
+                  <p>{c.appearance}</p>
+                  <p className="step-detail__muted">{c.personality}</p>
+                </div>
               </li>
             ))}
           </ul>
@@ -238,11 +248,11 @@ function renderStepDetailContent(stepIndex: number, comic: ComicInfo | null, cre
         return (
           <div className="step-detail step-detail--waiting">
             <Spin size="small" />
-            <p>AI 正在设计角色外貌与性格…</p>
+            <p>AI 正在设计角色外貌，并生成定妆照…</p>
           </div>
         )
       }
-      return <p className="step-detail__empty">该步骤尚未完成，完成后将展示各角色设定。</p>
+      return <p className="step-detail__empty">该步骤尚未完成，完成后将展示各角色设定与定妆照。</p>
     case 'STORYBOARD_SCRIPT':
       if (comic.storyboard?.panels?.length) {
         return (
@@ -323,35 +333,45 @@ export default function CreatePage() {
   const [tone, setTone] = useState('幽默')
   const [panelCount, setPanelCount] = useState(4)
   const [artStyle, setArtStyle] = useState('animal')
-  const [colorMode, setColorMode] = useState<'color' | 'bw'>('color')
   const [engine, setEngine] = useState<ImageBackend>('hunyuan')
   const [captionTextMode, setcaptionTextMode] = useState<captionTextMode>('top')
-  const [keepConsistency, setKeepConsistency] = useState(true)
-  const [outputFormat, setOutputFormat] = useState<'long' | 'single'>('long')
 
   const [creating, setCreating] = useState(false)
   const [confirmingTitle, setConfirmingTitle] = useState(false)
+  const [confirmingStoryboard, setConfirmingStoryboard] = useState(false)
   const [startingPipeline, setStartingPipeline] = useState(false)
-  const [taskId, setTaskId] = useState('')
+  const [retrying, setRetrying] = useState(false)
+  const [regeneratingPanelNo, setRegeneratingPanelNo] = useState<number | null>(null)
+  const [taskId, setTaskId] = useState(() => searchParams.get('taskId')?.trim() || '')
   const [comic, setComic] = useState<ComicInfo | null>(null)
   const [selectedStep, setSelectedStep] = useState<number | null>(null)
   const [selectedPanelIndex, setSelectedPanelIndex] = useState(0)
+  const [editablePanels, setEditablePanels] = useState<StoryboardPanel[]>([])
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const titleInitRef = useRef(false)
+  const loadedTaskRef = useRef('')
 
   const isAwaitingTitle = comic?.status === 'AWAITING_CONFIRM'
   const isTitleConfirmed = comic?.status === 'TITLE_CONFIRMED'
-  const isGeneratingTitles = !!taskId && !isAwaitingTitle && !isTitleConfirmed && (!comic || comic.status === 'PENDING' || (comic.status === 'PROCESSING' && comic.phase === 'TITLE_GENERATION'))
+  const isAwaitingStoryboard = comic?.status === 'AWAITING_STORYBOARD'
+  const isGeneratingTitles = !!taskId && !isAwaitingTitle && !isTitleConfirmed && !isAwaitingStoryboard && (!comic || comic.status === 'PENDING' || (comic.status === 'PROCESSING' && comic.phase === 'TITLE_GENERATION'))
   const isPipelineRunning = comic?.status === 'PROCESSING' && !isGeneratingTitles
-  const isBusy = creating || isAwaitingTitle || isTitleConfirmed || isGeneratingTitles || isPipelineRunning
+  const isBusy = creating || isAwaitingTitle || isTitleConfirmed || isAwaitingStoryboard || isGeneratingTitles || isPipelineRunning
   const isRunning = isGeneratingTitles || isPipelineRunning
 
-  // 中间卡片三步骤：0-参数配置 1-标题选择 2-开始生成漫画
+  // 中间卡片步骤：0 参数 → 1 标题 → 2 故事/分镜 → 3 画面
   const workspaceStep = (() => {
-    if (comic?.status === 'FAILED') return 2
+    if (!comic && !creating) return 0
     if (isAwaitingTitle) return 1
-    if (isTitleConfirmed || isPipelineRunning || comic?.status === 'COMPLETED') return 2
+    if (isTitleConfirmed) return 2
+    if (isAwaitingStoryboard) return 2
+    if (isPipelineRunning) {
+      if (comic?.phase === 'IMAGE_GENERATION' || comic?.phase === 'LAYOUT_COMPOSE') return 3
+      return 2
+    }
+    if (comic?.status === 'COMPLETED' || comic?.status === 'FAILED') return 3
+    if (isGeneratingTitles || creating) return 0
     return 0
   })()
 
@@ -360,6 +380,11 @@ export default function CreatePage() {
     if (res.code === 0 && res.data) {
       const data = resolveComicAssetUrls(res.data)
       setComic(data)
+      if (data.panelCount) setPanelCount(data.panelCount)
+      if (data.style) setArtStyle(data.style)
+      if (data.imageBackend) setEngine(data.imageBackend)
+      if (data.captionTextMode) setcaptionTextMode(data.captionTextMode)
+      if (data.topic) setTopic(data.topic)
       if (data.status === 'AWAITING_CONFIRM' && data.titleOptions?.options?.length) {
         if (!titleInitRef.current) {
           titleInitRef.current = true
@@ -370,15 +395,33 @@ export default function CreatePage() {
       if (data.title && data.status !== 'AWAITING_CONFIRM') {
         setPendingTitle(data.title)
       }
+      if (data.status === 'AWAITING_STORYBOARD' && data.storyboard?.panels?.length) {
+        setEditablePanels(data.storyboard.panels.map((p) => ({ ...p, dialogue: [...(p.dialogue || [])] })))
+      }
+      if (data.status === 'COMPLETED' && data.storyboard?.panels?.length) {
+        setEditablePanels((prev) =>
+          prev.length ? prev : data.storyboard!.panels.map((p) => ({ ...p, dialogue: [...(p.dialogue || [])] })),
+        )
+      }
       return data
     }
     return null
   }, [])
 
+  // 历史页「继续编辑」带 taskId 进入
+  useEffect(() => {
+    const id = searchParams.get('taskId')?.trim() || ''
+    if (!id || loadedTaskRef.current === id) return
+    loadedTaskRef.current = id
+    setTaskId(id)
+    setCreating(true)
+    void fetchComic(id).finally(() => setCreating(false))
+  }, [searchParams, fetchComic])
+
   useEffect(() => {
     if (!taskId) return
     const terminal = comic?.status === 'COMPLETED' || comic?.status === 'FAILED'
-    const paused = isAwaitingTitle || isTitleConfirmed
+    const paused = isAwaitingTitle || isTitleConfirmed || isAwaitingStoryboard
     if (terminal || paused) return
     const poll = () => void fetchComic(taskId)
     poll()
@@ -386,7 +429,7 @@ export default function CreatePage() {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current)
     }
-  }, [taskId, comic?.status, isAwaitingTitle, isTitleConfirmed, fetchComic])
+  }, [taskId, comic?.status, isAwaitingTitle, isTitleConfirmed, isAwaitingStoryboard, fetchComic])
 
   useEffect(() => {
     if (comic?.status === 'COMPLETED' || comic?.status === 'FAILED') {
@@ -413,16 +456,20 @@ export default function CreatePage() {
     titleInitRef.current = false
 
     try {
-      const userDescription = buildUserDescription(tone, panelCount, colorMode, keepConsistency, outputFormat)
+      const userDescription = buildUserDescription(tone)
       const res = await createComic({
         topic: trimmed,
         style: artStyle,
-        userDescription,
+        userDescription: userDescription || undefined,
         imageBackend: engine,
         captionTextMode,
+        panelCount,
       })
       if (res.code === 0 && res.data?.taskId) {
-        setTaskId(res.data.taskId)
+        const nextId = res.data.taskId
+        loadedTaskRef.current = nextId
+        setTaskId(nextId)
+        navigate(`/create?taskId=${encodeURIComponent(nextId)}`, { replace: true })
         message.success('正在生成标题推荐，请稍候…')
         return
       }
@@ -485,6 +532,78 @@ export default function CreatePage() {
     }
   }
 
+  const handleConfirmStoryboard = async () => {
+    if (!taskId || editablePanels.length === 0) return
+    for (const p of editablePanels) {
+      if (!p.scene.trim()) {
+        message.warning(`第 ${p.panelNo} 格场景描述不能为空`)
+        return
+      }
+    }
+    setConfirmingStoryboard(true)
+    try {
+      const res = await confirmComicStoryboard({ taskId, storyboard: editablePanels })
+      if (res.code !== 0) {
+        message.error(res.message || '确认分镜失败')
+        return
+      }
+      message.success('分镜已确认，开始生成画面…')
+      await fetchComic(taskId)
+    } catch {
+      message.error('确认分镜失败，请稍后重试')
+    } finally {
+      setConfirmingStoryboard(false)
+    }
+  }
+
+  const handleRetry = async () => {
+    if (!taskId) return
+    setRetrying(true)
+    try {
+      const res = await retryComic({ taskId })
+      if (res.code !== 0) {
+        message.error(res.message || '重试失败')
+        return
+      }
+      message.success('已从失败步骤重新开始')
+      await fetchComic(taskId)
+    } catch {
+      message.error('重试失败，请稍后重试')
+    } finally {
+      setRetrying(false)
+    }
+  }
+
+  const handleRegeneratePanel = async (panelNo: number) => {
+    if (!taskId || !comic?.storyboard?.panels) return
+    const panel = editablePanels.find((p) => p.panelNo === panelNo) || comic.storyboard.panels.find((p) => p.panelNo === panelNo)
+    if (!panel) return
+    setRegeneratingPanelNo(panelNo)
+    try {
+      const res = await regenerateComicPanel({
+        taskId,
+        panelNo,
+        scene: panel.scene,
+        dialogue: panel.dialogue,
+        narration: panel.narration,
+      })
+      if (res.code !== 0 || !res.data) {
+        message.error(res.message || '单格重绘失败')
+        return
+      }
+      setComic(resolveComicAssetUrls(res.data))
+      message.success(`第 ${panelNo} 格已重绘`)
+    } catch {
+      message.error('单格重绘失败')
+    } finally {
+      setRegeneratingPanelNo(null)
+    }
+  }
+
+  const updateEditablePanel = (panelNo: number, patch: Partial<StoryboardPanel>) => {
+    setEditablePanels((prev) => prev.map((p) => (p.panelNo === panelNo ? { ...p, ...patch } : p)))
+  }
+
   const handleStepClick = (index: number) => {
     if (!comic && !creating) return
     setSelectedStep(index)
@@ -502,15 +621,6 @@ export default function CreatePage() {
   const hasPreviewContent = (comic?.storyboard?.panels?.length ?? 0) > 0 || previewPanels.length > 0 || !!previewComposed
   const selectedPanelNo = comic?.storyboard?.panels?.[selectedPanelIndex]?.panelNo
   const selectedPanelImage = previewPanels.find((p) => p.panelNo === selectedPanelNo)
-
-  const uploadProps: UploadProps = {
-    beforeUpload: () => {
-      message.info('角色参考图上传功能即将上线')
-      return false
-    },
-    showUploadList: false,
-    maxCount: 1,
-  }
 
   return (
     <CreateShell mode="auto">
@@ -576,11 +686,12 @@ export default function CreatePage() {
               current={workspaceStep}
               size="small"
               type="panel"
-              style={{maxWidth:960}}
+              style={{ maxWidth: 960 }}
               items={[
                 { title: '参数配置', icon: <EditOutlined /> },
                 { title: '标题选择', icon: <FontSizeOutlined /> },
-                { title: '开始生成漫画', icon: <RocketOutlined /> },
+                { title: '分镜确认', icon: <OrderedListOutlined /> },
+                { title: '生成画面', icon: <RocketOutlined /> },
               ]}
             />
             <div className="config-card__actions">
@@ -588,7 +699,6 @@ export default function CreatePage() {
                 <span className="config-card__quota-label">剩余次数</span>
                 <span className="config-card__quota-value">{loginUser.quota}</span>
               </div>
-              <Button type="primary" size="small" onClick={() => message.info('充值功能即将上线')}>充值</Button>
             </div>
           </div>
 
@@ -628,33 +738,6 @@ export default function CreatePage() {
                         <Radio.Button key={opt.value} value={opt.value}>{opt.label}</Radio.Button>
                       ))}
                     </Radio.Group>
-                  </div>
-                  <div className="config-field">
-                    <label>色彩</label>
-                    <Radio.Group value={colorMode} onChange={(e) => setColorMode(e.target.value)} disabled={isBusy} className="config-radio-group">
-                      <Radio.Button value="color">全彩</Radio.Button>
-                      <Radio.Button value="bw">黑白</Radio.Button>
-                    </Radio.Group>
-                  </div>
-                  <div className="config-field">
-                    <label>输出</label>
-                    <Radio.Group value={outputFormat} onChange={(e) => setOutputFormat(e.target.value)} disabled={isBusy} className="config-radio-group">
-                      <Radio.Button value="long">长图</Radio.Button>
-                      <Radio.Button value="single">单张</Radio.Button>
-                    </Radio.Group>
-                  </div>
-                </div>
-
-                <div className="config-row config-row--inline">
-                  <div className="config-field">
-                    <label>角色参考</label>
-                    <Upload {...uploadProps} disabled={isBusy}>
-                      <Button icon={<PaperClipOutlined />} disabled={isBusy}>上传图片</Button>
-                    </Upload>
-                  </div>
-                  <div className="config-field config-field--checkboxes">
-                    <label>选项</label>
-                    <Checkbox checked={keepConsistency} onChange={(e) => setKeepConsistency(e.target.checked)} disabled={isBusy}>保持角色一致性</Checkbox>
                   </div>
                 </div>
 
@@ -722,7 +805,7 @@ export default function CreatePage() {
               </div>
             ) : null}
 
-            {/* Step 2: 开始生成 */}
+            {/* Step 2: 启动故事流水线 / 分镜确认 */}
             {workspaceStep === 2 && (
               <div className="config-form">
                 {isTitleConfirmed && (
@@ -731,18 +814,80 @@ export default function CreatePage() {
                       type="success"
                       showIcon
                       message="标题已确认"
-                      description={`《${pendingTitle || comic?.title}》已锁定。`}
+                      description={`《${pendingTitle || comic?.title}》已锁定，下一步将生成故事、角色与分镜。`}
                       className="config-alert"
                     />
-                    {!isPipelineRunning && (
-                      <Button type="primary" size="large" block icon={<RocketOutlined />} loading={startingPipeline} onClick={handleStartPipeline} className="config-submit">
-                        开始生成漫画
-                      </Button>
-                    )}
+                    <Button type="primary" size="large" block icon={<RocketOutlined />} loading={startingPipeline} onClick={handleStartPipeline} className="config-submit">
+                      开始生成分镜
+                    </Button>
                   </>
                 )}
 
-                {isPipelineRunning && (
+                {isPipelineRunning && ['STORY_IDEATION', 'CHARACTER_DESIGN', 'STORYBOARD_SCRIPT'].includes(comic?.phase || '') && (
+                  <Alert
+                    type="info"
+                    showIcon
+                    message="AI 创作进行中"
+                    description={`当前阶段：${COMIC_PHASE_LABEL[comic?.phase ?? ''] ?? comic?.phase ?? '初始化中'}`}
+                    className="config-alert"
+                  />
+                )}
+
+                {isAwaitingStoryboard && (
+                  <>
+                    <h3 className="title-select-panel__head">确认分镜脚本</h3>
+                    <p className="title-select-panel__hint">可修改场景描述与台词，确认后开始生图</p>
+                    <div className="storyboard-edit-list">
+                      {editablePanels.map((panel) => (
+                        <div key={panel.panelNo} className="storyboard-edit-card">
+                          <div className="storyboard-edit-card__head">第 {panel.panelNo} 格</div>
+                          <label>场景</label>
+                          <Input.TextArea
+                            rows={2}
+                            value={panel.scene}
+                            onChange={(e) => updateEditablePanel(panel.panelNo, { scene: e.target.value })}
+                          />
+                          <label>台词（用 / 分隔多句）</label>
+                          <Input
+                            value={(panel.dialogue || []).join(' / ')}
+                            onChange={(e) =>
+                              updateEditablePanel(panel.panelNo, {
+                                dialogue: e.target.value
+                                  .split('/')
+                                  .map((s) => s.trim())
+                                  .filter(Boolean),
+                              })
+                            }
+                          />
+                          <label>旁白</label>
+                          <Input
+                            value={panel.narration || ''}
+                            onChange={(e) => updateEditablePanel(panel.panelNo, { narration: e.target.value })}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      type="primary"
+                      size="large"
+                      block
+                      icon={<CheckOutlined />}
+                      loading={confirmingStoryboard}
+                      onClick={handleConfirmStoryboard}
+                      disabled={editablePanels.length === 0}
+                      className="config-submit"
+                    >
+                      确认分镜并生成画面
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: 生图进度 / 完成 / 失败 */}
+            {workspaceStep === 3 && (
+              <div className="config-form">
+                {isPipelineRunning && ['IMAGE_GENERATION', 'LAYOUT_COMPOSE'].includes(comic?.phase || '') && (
                   <Alert
                     type="info"
                     showIcon
@@ -753,17 +898,82 @@ export default function CreatePage() {
                 )}
 
                 {completed && (
-                  <Alert
-                    type="success"
-                    showIcon
-                    message="创作完成"
-                    description={`《${pendingTitle || comic?.title}》已生成，请在下方预览区查看成品。可前往创作历史发布至公众号。`}
-                    className="config-alert"
-                  />
+                  <>
+                    <Alert
+                      type="success"
+                      showIcon
+                      message="创作完成"
+                      description={`《${pendingTitle || comic?.title}》已生成。可在下方预览，或修改单格后重绘。`}
+                      className="config-alert"
+                    />
+                    {comic?.storyboard?.panels?.length ? (
+                      <div className="storyboard-edit-list">
+                        {(editablePanels.length ? editablePanels : comic.storyboard.panels).map((panel) => (
+                          <div key={panel.panelNo} className="storyboard-edit-card">
+                            <div className="storyboard-edit-card__head">
+                              <span>第 {panel.panelNo} 格</span>
+                              <Button
+                                size="small"
+                                icon={<ReloadOutlined />}
+                                loading={regeneratingPanelNo === panel.panelNo}
+                                onClick={() => void handleRegeneratePanel(panel.panelNo)}
+                              >
+                                重绘此格
+                              </Button>
+                            </div>
+                            <label>场景</label>
+                            <Input.TextArea
+                              rows={2}
+                              value={panel.scene}
+                              onChange={(e) => {
+                                if (!editablePanels.length && comic.storyboard?.panels) {
+                                  setEditablePanels(
+                                    comic.storyboard.panels.map((p) =>
+                                      p.panelNo === panel.panelNo
+                                        ? { ...p, dialogue: [...(p.dialogue || [])], scene: e.target.value }
+                                        : { ...p, dialogue: [...(p.dialogue || [])] },
+                                    ),
+                                  )
+                                  return
+                                }
+                                updateEditablePanel(panel.panelNo, { scene: e.target.value })
+                              }}
+                            />
+                            <label>台词</label>
+                            <Input
+                              value={(panel.dialogue || []).join(' / ')}
+                              onChange={(e) => {
+                                const dialogue = e.target.value
+                                  .split('/')
+                                  .map((s) => s.trim())
+                                  .filter(Boolean)
+                                if (!editablePanels.length && comic.storyboard?.panels) {
+                                  setEditablePanels(
+                                    comic.storyboard.panels.map((p) =>
+                                      p.panelNo === panel.panelNo
+                                        ? { ...p, dialogue }
+                                        : { ...p, dialogue: [...(p.dialogue || [])] },
+                                    ),
+                                  )
+                                  return
+                                }
+                                updateEditablePanel(panel.panelNo, { dialogue })
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </>
                 )}
 
                 {comic?.status === 'FAILED' && (
-                  <Alert type="error" message={comic.errorMessage || '创作失败'} showIcon className="config-alert" />
+                  <>
+                    <Alert type="error" message={comic.errorMessage || '创作失败'} showIcon className="config-alert" />
+                    <Button type="primary" size="large" block icon={<ReloadOutlined />} loading={retrying} onClick={handleRetry} className="config-submit">
+                      从当前步骤重试
+                    </Button>
+                  </>
                 )}
               </div>
             )}

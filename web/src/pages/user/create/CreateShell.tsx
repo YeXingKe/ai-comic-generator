@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom'
 import { Tabs } from 'antd'
-import { EditOutlined, PictureOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import './CreateShell.css'
 
 export type CreateMode = 'auto' | 'custom'
