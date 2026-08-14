@@ -45,6 +45,13 @@ type RedisConfig struct {
 type SessionConfig struct {
 	Secret string `mapstructure:"secret"`
 	MaxAge int    `mapstructure:"max_age"`
+	Secure   bool   `mapstructure:"secure"`
+    SameSite string `mapstructure:"same_site"` // "lax" | "strict" | "none"
+}
+
+
+type CORSConfig struct {
+    AllowOrigins []string `mapstructure:"allow_origins"`
 }
 
 type LogConfig struct {

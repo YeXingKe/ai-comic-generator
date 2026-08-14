@@ -24,7 +24,7 @@ func main() {
 	defer application.Close()
 
 	r := gin.Default()
-	r.Use(middleware.CORS())
+	r.Use(middleware.CORS(cfg))
 	if err := middleware.SetupSession(r, cfg); err != nil {
 		log.Fatalf("setup session: %v", err)
 	}
@@ -59,7 +59,7 @@ func main() {
 		user := api.Group("/user")
 		{
 			user.POST("/register", application.UserHandler.Register)
-			user.POST("/encrypt/password", application.UserHandler.EncryptPassword)
+			// user.POST("/encrypt/password", application.UserHandler.EncryptPassword)
 			user.POST("/login", application.UserHandler.Login)
 			user.GET("/info", application.UserHandler.GetLoginUser)
 			user.POST("/logout", application.UserHandler.Logout)

@@ -20,6 +20,12 @@ redis:
 session:
   secret: "mason"
   max_age: 2592000
+  secure: false
+  same_site: "lax"
+  
+cors:
+  allow_origins:
+    - "http://localhost:5173"
 
 log:
   level: info

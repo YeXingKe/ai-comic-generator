@@ -50,7 +50,7 @@ func (s *UserService) Register(req *model.RegisterRequest) (int64, error) {
 	now := time.Now()  // 当前时间作为编辑时间
 	user := &model.User{ // 组装新用户实体
 		UserAccount:  req.UserAccount,                                    // 登录账号
-		UserPassword: encryptPassword(req.UserPassword, common.PasswordSalt), // MD5 加密密码
+		UserPassword: hashPassword(req.UserPassword), 
 		UserName:     &userName,                                          // 默认昵称
 		UserRole:     string(model.RoleUser),                             // 默认普通用户角色
 		EditTime:     &now,                                               // 编辑时间
@@ -75,7 +75,7 @@ func (s *UserService) Login(req *model.LoginRequest, session sessions.Session) (
 		return nil, common.ErrParams.WithMessage("密码长度过短") // 密码太短
 	}
 
-	user, err := s.store.GetByAccountAndPassword(req.UserAccount, encryptPassword(req.UserPassword, common.PasswordSalt)) // 按账号+加密密码查询
+	user, err := s.store.GetByAccountAndPassword(req.UserAccount, hashPassword(req.UserPassword)) // 按账号+加密密码查询
 	if err != nil { // 查询失败
 		if errors.Is(err, gorm.ErrRecordNotFound) { // 无匹配记录
 			return nil, common.ErrParams.WithMessage("用户不存在或密码错误") // 统一提示，不暴露具体原因
@@ -114,6 +114,13 @@ func (s *UserService) GetLoginUser(session sessions.Session) (*model.User, error
 			return nil, common.ErrNotLogin // 视为未登录
 		}
 		return nil, common.ErrSystem // 系统错误
+	}
+
+	if user.Status == 0 {
+		session.Delete(common.UserLoginState)
+		_ = session.Save()
+		return nil, common.ErrParams.WithMessage("账号已被禁用，请联系管理员")
+		// 或返回 ErrNotLogin；若希望前端统一跳登录，用 40100 更顺
 	}
 
 	return user, nil // 返回完整用户实体
@@ -174,7 +181,7 @@ func (s *UserService) UpdatePassword(session sessions.Session, req *model.Update
 		return err // 返回错误
 	}
 
-	_, err = s.store.GetByAccountAndPassword(user.UserAccount, encryptPassword(req.OldPassword, common.PasswordSalt)) // 校验原密码
+	_, err = s.verifyPassword(user, req.OldPassword) // 校验原密码
 	if err != nil { // 校验失败
 		if errors.Is(err, gorm.ErrRecordNotFound) { // 原密码不匹配
 			return common.ErrParams.WithMessage("原密码错误") // 提示原密码错误
@@ -182,7 +189,7 @@ func (s *UserService) UpdatePassword(session sessions.Session, req *model.Update
 		return common.ErrSystem // 系统错误
 	}
 
-	if err := s.store.UpdatePassword(user.ID, encryptPassword(req.NewPassword, common.PasswordSalt)); err != nil { // 写入新密码
+	if err := s.store.UpdatePassword(user.ID, hashPassword(req.NewPassword)); err != nil { // 写入新密码
 		return common.ErrOperation // 更新失败
 	}
 	return nil // 修改成功
@@ -198,7 +205,7 @@ func (s *UserService) EncryptPassword(password, salt string) (*model.EncryptPass
 	}
 
 	return &model.EncryptPasswordResponse{ // 返回加密结果
-		EncryptedPassword: encryptPassword(password, salt), // MD5 哈希值
+		EncryptedPassword: hashPassword(password), // MD5 哈希值
 		Salt:              salt,                            // 实际使用的盐值
 	}, nil
 }
@@ -208,7 +215,7 @@ func (s *UserService) Create(req *model.AddUserRequest) (int64, error) {
 	now := time.Now() // 当前时间
 	user := &model.User{ // 组装用户实体
 		UserAccount:  req.UserAccount,                                              // 登录账号
-		UserPassword: encryptPassword(common.DefaultPassword, common.PasswordSalt), // 默认密码加密
+		UserPassword: hashPassword(common.DefaultPassword), // 默认密码加密
 		UserName:     req.UserName,                                                 // 昵称
 		UserAvatar:   req.UserAvatar,                                               // 头像
 		UserProfile:  req.UserProfile,                                              // 简介
@@ -320,4 +327,26 @@ func (s *UserService) ListByPage(req *model.QueryUserRequest) (*model.PageResult
 func encryptPassword(password, salt string) string {
 	hash := md5.Sum([]byte(password + salt)) // 计算 MD5 字节数组
 	return hex.EncodeToString(hash[:])       // 转为 32 位十六进制字符串
+}
+
+// 新密码一律 bcrypt
+func hashPassword(plain string) (string, error) {
+    b, err := bcrypt.GenerateFromPassword([]byte(plain), bcrypt.DefaultCost) // ≥10
+    return string(b), err
+}
+
+// 校验；若是旧 MD5 则升级为 bcrypt
+func (s *UserService) verifyPassword(user *model.User, plain string) bool {
+    stored := user.UserPassword
+    if strings.HasPrefix(stored, "$2a$") || strings.HasPrefix(stored, "$2b$") || strings.HasPrefix(stored, "$2y$") {
+        return bcrypt.CompareHashAndPassword([]byte(stored), []byte(plain)) == nil
+    }
+    // 旧：MD5(password + salt)
+    if stored == encryptPassword(plain, common.PasswordSalt) {
+        if newHash, err := hashPassword(plain); err == nil {
+            _ = s.store.UpdatePassword(user.ID, newHash) // 失败只打日志，仍允许本次登录
+        }
+        return true
+    }
+    return false
 }

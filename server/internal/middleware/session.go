@@ -5,6 +5,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 // SetupSession 配置 Session 中间件：一次性完成 Session 配置
@@ -24,11 +25,22 @@ func SetupSession(r *gin.Engine, cfg *config.Config) error {
 		return err
 	}
 
+	sameSite := http.SameSiteLaxMode
+	switch strings.ToLower(cfg.Session.SameSite) {
+	case "strict":
+		sameSite = http.SameSiteStrictMode
+	case "none":
+		sameSite = http.SameSiteNoneMode // 需配合 Secure=true
+	}
+
+
 	// 设置 Session 选项
 	store.Options(sessions.Options{
 		MaxAge:   cfg.Session.MaxAge,
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   cfg.Session.Secure,
+		SameSite: sameSite,
 	})
 
 	// 使用 Session 中间件
