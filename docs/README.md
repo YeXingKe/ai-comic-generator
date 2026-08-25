@@ -2,6 +2,19 @@
 
 项目产品与技术方案文档。**请自行按文档实现；鉴权优先于支付。**
 
+## 入门：Go 后端总览（小白）
+
+| 文档 | 说明 |
+|------|------|
+| [server-overview.md](./server-overview.md) | 产品介绍 + 技术实现方案（流水线、分层、API、配置降级） |
+| [../server/README.md](../server/README.md) | `server/` 目录速查与启动 |
+
+## 需求变更：合成版式
+
+| 文档 | 说明 |
+|------|------|
+| [prd-compose-layout.md](./prd-compose-layout.md) | 分格 16:9 合成：1～3 竖排、4/6/8 两列、黑框模板（待开发） |
+
 ## 优先：鉴权
 
 | 文档 | 说明 |
@@ -21,7 +34,8 @@
 ```text
 1. 按 tech-auth.md 完成鉴权 P0 并自测验收
 2. （可选）鉴权 P1
-3. 按 tech-recharge.md 做 mock 支付 → 前端页面 → 真渠道
+3. 按 prd-compose-layout.md 改 Compose 版式（可与鉴权并行）
+4. 按 tech-recharge.md 做 mock 支付 → 前端页面 → 真渠道
 ```
 
 环境搭建与仓库约定见 [`AGENTS.md`](../AGENTS.md)。
