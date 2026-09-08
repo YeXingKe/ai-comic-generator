@@ -69,18 +69,6 @@ type DeleteRequest struct {
 	ID int64 `json:"id" binding:"required,gt=0" example:"1"` // 要删除的记录主键 ID（用户或文章）
 }
 
-// EncryptPasswordRequest 密码加密请求（用于生成可写入数据库的密码哈希）
-type EncryptPasswordRequest struct {
-	Password string `json:"password" binding:"required" example:"12345678"` // 明文密码
-	Salt     string `json:"salt" example:"mason"`                           // 盐值，不传则使用系统默认盐值
-}
-
-// EncryptPasswordResponse 密码加密响应
-type EncryptPasswordResponse struct {
-	EncryptedPassword string `json:"encryptedPassword" example:"e10adc3949ba59abbe56e057f20f883e"` // MD5(密码+盐值)
-	Salt              string `json:"salt" example:"mason"`                                         // 实际使用的盐值
-}
-
 // PageResult 分页结果
 type PageResult struct {
 	Total    int64       `json:"total" example:"100"`    // 符合条件的总条数

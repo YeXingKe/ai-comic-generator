@@ -18,8 +18,8 @@ redis:
   password: ""
 
 session:
-  secret: "mason"
-  max_age: 2592000
+  secret: "change-me-to-a-long-random-string"
+  max_age: 604800
   secure: false
   same_site: "lax"
   

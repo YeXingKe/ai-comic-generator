@@ -1,16 +1,18 @@
 package service // 用户业务层：注册、登录、Session、资料与管理员 CRUD
 
 import (
-	"crypto/md5"   // 密码 MD5 哈希
-	"encoding/hex" // 将哈希字节转为十六进制字符串
-	"errors"       // 判断 gorm.ErrRecordNotFound
-	"time"         // 记录编辑时间、VIP 时间
-
-	"github.com/ai-comic-generator/server/internal/common" // 常量、业务错误
-	"github.com/ai-comic-generator/server/internal/model"  // 用户实体与请求模型
-	"github.com/ai-comic-generator/server/internal/store"  // 用户数据访问层
-	"github.com/gin-contrib/sessions"                    // Session 读写（登录态）
-	"gorm.io/gorm"                                         // 判断记录不存在错误
+	"crypto/md5"
+	"encoding/hex"
+	"errors"
+	"log"
+	"strings"
+	"time"
+	"github.com/ai-comic-generator/server/internal/common"
+	"github.com/ai-comic-generator/server/internal/model"
+	"github.com/ai-comic-generator/server/internal/store"
+	"github.com/gin-contrib/sessions"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 // UserService 用户服务
@@ -46,21 +48,23 @@ func (s *UserService) Register(req *model.RegisterRequest) (int64, error) {
 		return 0, common.ErrParams.WithMessage("账号重复") // 拒绝重复注册
 	}
 
-	userName := "无名" // 默认昵称
-	now := time.Now()  // 当前时间作为编辑时间
-	user := &model.User{ // 组装新用户实体
-		UserAccount:  req.UserAccount,                                    // 登录账号
-		UserPassword: hashPassword(req.UserPassword), 
-		UserName:     &userName,                                          // 默认昵称
-		UserRole:     string(model.RoleUser),                             // 默认普通用户角色
-		EditTime:     &now,                                               // 编辑时间
+	hashed, err := hashPassword(req.UserPassword)
+	if err != nil {
+		return 0, common.ErrSystem
 	}
-
-	if err := s.store.Create(user); err != nil { // 写入数据库
-		return 0, common.ErrOperation.WithMessage("注册失败，数据库错误") // 创建失败
+	userName := "无名"
+	now := time.Now()
+	user := &model.User{
+		UserAccount:  req.UserAccount,
+		UserPassword: hashed,
+		UserName:     &userName,
+		UserRole:     string(model.RoleUser),
+		EditTime:     &now,
 	}
-
-	return user.ID, nil // 返回新用户 ID
+	if err := s.store.Create(user); err != nil {
+		return 0, common.ErrOperation.WithMessage("注册失败，数据库错误")
+	}
+	return user.ID, nil
 }
 
 // Login 用户登录，成功后将用户 ID 写入 Session
@@ -75,25 +79,24 @@ func (s *UserService) Login(req *model.LoginRequest, session sessions.Session) (
 		return nil, common.ErrParams.WithMessage("密码长度过短") // 密码太短
 	}
 
-	user, err := s.store.GetByAccountAndPassword(req.UserAccount, hashPassword(req.UserPassword)) // 按账号+加密密码查询
-	if err != nil { // 查询失败
-		if errors.Is(err, gorm.ErrRecordNotFound) { // 无匹配记录
-			return nil, common.ErrParams.WithMessage("用户不存在或密码错误") // 统一提示，不暴露具体原因
+	user, err := s.store.GetByAccount(req.UserAccount)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.ErrParams.WithMessage("用户不存在或密码错误")
 		}
-		return nil, common.ErrSystem // 其他数据库错误
+		return nil, common.ErrSystem
 	}
-
-	// 检查用户状态
+	if !s.verifyPassword(user, req.UserPassword) {
+		return nil, common.ErrParams.WithMessage("用户不存在或密码错误")
+	}
 	if user.Status == 0 {
 		return nil, common.ErrParams.WithMessage("账号已被禁用，请联系管理员")
 	}
-
-	session.Set(common.UserLoginState, user.ID) // 将用户 ID 写入 Session
-	if err := session.Save(); err != nil { // 持久化 Session 到 Redis/Cookie
-		return nil, common.ErrSystem // 保存失败
+	session.Set(common.UserLoginState, user.ID)
+	if err := session.Save(); err != nil {
+		return nil, common.ErrSystem
 	}
-
-	return user.ToLoginUser(), nil // 返回登录用户信息（不含密码）
+	return user.ToLoginUser(), nil
 }
 
 // GetLoginUser 从 Session 读取用户 ID 并查询完整用户实体
@@ -119,8 +122,7 @@ func (s *UserService) GetLoginUser(session sessions.Session) (*model.User, error
 	if user.Status == 0 {
 		session.Delete(common.UserLoginState)
 		_ = session.Save()
-		return nil, common.ErrParams.WithMessage("账号已被禁用，请联系管理员")
-		// 或返回 ErrNotLogin；若希望前端统一跳登录，用 40100 更顺
+		return nil, common.ErrNotLogin.WithMessage("账号已被禁用，请联系管理员")
 	}
 
 	return user, nil // 返回完整用户实体
@@ -181,46 +183,35 @@ func (s *UserService) UpdatePassword(session sessions.Session, req *model.Update
 		return err // 返回错误
 	}
 
-	_, err = s.verifyPassword(user, req.OldPassword) // 校验原密码
-	if err != nil { // 校验失败
-		if errors.Is(err, gorm.ErrRecordNotFound) { // 原密码不匹配
-			return common.ErrParams.WithMessage("原密码错误") // 提示原密码错误
-		}
-		return common.ErrSystem // 系统错误
+	if !s.verifyPassword(user, req.OldPassword) {
+		return common.ErrParams.WithMessage("原密码错误")
 	}
-
-	if err := s.store.UpdatePassword(user.ID, hashPassword(req.NewPassword)); err != nil { // 写入新密码
-		return common.ErrOperation // 更新失败
+	hashed, err := hashPassword(req.NewPassword)
+	if err != nil {
+		return common.ErrSystem
 	}
+	if err := s.store.UpdatePassword(user.ID, hashed); err != nil {
+		return common.ErrOperation
+	}
+	return nil
 	return nil // 修改成功
-}
-
-// EncryptPassword 根据明文密码与盐值生成数据库存储用的密码哈希（管理员工具接口）
-func (s *UserService) EncryptPassword(password, salt string) (*model.EncryptPasswordResponse, error) {
-	if password == "" { // 密码不能为空
-		return nil, common.ErrParams.WithMessage("密码不能为空") // 参数错误
-	}
-	if salt == "" { // 未传盐值
-		salt = common.PasswordSalt // 使用系统默认盐值
-	}
-
-	return &model.EncryptPasswordResponse{ // 返回加密结果
-		EncryptedPassword: hashPassword(password), // MD5 哈希值
-		Salt:              salt,                            // 实际使用的盐值
-	}, nil
 }
 
 // Create 管理员创建用户（默认密码 12345678）
 func (s *UserService) Create(req *model.AddUserRequest) (int64, error) {
-	now := time.Now() // 当前时间
-	user := &model.User{ // 组装用户实体
-		UserAccount:  req.UserAccount,                                              // 登录账号
-		UserPassword: hashPassword(common.DefaultPassword), // 默认密码加密
-		UserName:     req.UserName,                                                 // 昵称
-		UserAvatar:   req.UserAvatar,                                               // 头像
-		UserProfile:  req.UserProfile,                                              // 简介
-		UserRole:     req.UserRole,                                                 // 角色
-		EditTime:     &now,                                                         // 编辑时间
+	hashed, err := hashPassword(common.DefaultPassword)
+	if err != nil {
+		return 0, common.ErrSystem
+	}
+	now := time.Now()
+	user := &model.User{
+		UserAccount:  req.UserAccount,
+		UserPassword: hashed,
+		UserName:     req.UserName,
+		UserAvatar:   req.UserAvatar,
+		UserProfile:  req.UserProfile,
+		UserRole:     req.UserRole,
+		EditTime:     &now,
 	}
 	if req.Quota != nil { // 指定了额度
 		user.Quota = *req.Quota // 写入额度
@@ -323,30 +314,35 @@ func (s *UserService) ListByPage(req *model.QueryUserRequest) (*model.PageResult
 	}, nil
 }
 
-// encryptPassword 使用盐值加密密码：MD5(密码 + 盐值)
+
 func encryptPassword(password, salt string) string {
-	hash := md5.Sum([]byte(password + salt)) // 计算 MD5 字节数组
-	return hex.EncodeToString(hash[:])       // 转为 32 位十六进制字符串
+	hash := md5.Sum([]byte(password + salt))
+	return hex.EncodeToString(hash[:])
 }
 
-// 新密码一律 bcrypt
+// hashPassword 新密码一律 bcrypt
 func hashPassword(plain string) (string, error) {
-    b, err := bcrypt.GenerateFromPassword([]byte(plain), bcrypt.DefaultCost) // ≥10
-    return string(b), err
+	// DefaultCost  Go 库里定义的默认计算成本（cost）常量，数值一般是 10，越高越安全
+	b, err := bcrypt.GenerateFromPassword([]byte(plain), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
 
-// 校验；若是旧 MD5 则升级为 bcrypt
+// verifyPassword 校验密码；旧 MD5 匹配成功则升级为 bcrypt
 func (s *UserService) verifyPassword(user *model.User, plain string) bool {
-    stored := user.UserPassword
-    if strings.HasPrefix(stored, "$2a$") || strings.HasPrefix(stored, "$2b$") || strings.HasPrefix(stored, "$2y$") {
-        return bcrypt.CompareHashAndPassword([]byte(stored), []byte(plain)) == nil
-    }
-    // 旧：MD5(password + salt)
-    if stored == encryptPassword(plain, common.PasswordSalt) {
-        if newHash, err := hashPassword(plain); err == nil {
-            _ = s.store.UpdatePassword(user.ID, newHash) // 失败只打日志，仍允许本次登录
-        }
-        return true
-    }
-    return false
+	stored := user.UserPassword
+	if strings.HasPrefix(stored, "$2a$") || strings.HasPrefix(stored, "$2b$") || strings.HasPrefix(stored, "$2y$") {
+		return bcrypt.CompareHashAndPassword([]byte(stored), []byte(plain)) == nil
+	}
+	if stored == encryptPassword(plain, common.PasswordSalt) {
+		if newHash, err := hashPassword(plain); err == nil {
+			if err := s.store.UpdatePassword(user.ID, newHash); err != nil {
+				log.Printf("upgrade password to bcrypt failed, userId=%d: %v", user.ID, err)
+			}
+		}
+		return true
+	}
+	return false
 }
