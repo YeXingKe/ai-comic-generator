@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import dayjs, { type Dayjs } from 'dayjs'
-import { Form, Button, Input, Modal, Select, DatePicker, InputNumber, Space, message, Switch } from 'antd'
+import { Form, Button, Input, Modal, Select, InputNumber, Space, message, Switch } from 'antd'
 import { addUser, updateUser } from '@/api/user'
 import type { UserInfo, UserRole } from '@/types/api'
 
@@ -20,19 +19,12 @@ type UserFormValues = {
   userAvatar?: string
   userProfile?: string
   userRole: UserRole
-  quota: number
+  points: number
   status: number
-  vipTime?: Dayjs | null
-}
-
-function resolveVipTime(role: UserRole, vipTime?: Dayjs | null): string | null {
-  if (role !== 'vip') return null
-  return (vipTime ?? dayjs()).toISOString()
 }
 
 const ROLE_OPTIONS = [
   { label: '管理员', value: 'admin' as const },
-  { label: 'VIP', value: 'vip' as const },
   { label: '普通用户', value: 'user' as const },
 ]
 
@@ -55,8 +47,6 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
   const isEdit = mode === 'edit'
   const [form] = Form.useForm<UserFormValues>()
   const [submitting, setSubmitting] = useState(false)
-  const userRole = Form.useWatch('userRole', form)
-  const isVip = userRole === 'vip'
 
   useEffect(() => {
     if (!open) return
@@ -65,14 +55,13 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
         userName: user.userName ?? undefined,
         userAvatar: user.userAvatar ?? undefined,
         userProfile: user.userProfile ?? undefined,
-        userRole: user.userRole,
-        quota: user.quota,
+        userRole: user.userRole === 'admin' ? 'admin' : 'user',
+        points: user.points,
         status: user.status,
-        vipTime: user.vipTime ? dayjs(user.vipTime) : user.userRole === 'vip' ? dayjs() : undefined,
       })
       return
     }
-    form.setFieldsValue({ userRole: 'user', quota: 5 })
+    form.setFieldsValue({ userRole: 'user', points: 100, status: 1 })
   }, [open, isEdit, user, form])
 
   const handleClose = () => {
@@ -87,13 +76,12 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
         if (!user) return
         const res = await updateUser({
           id: user.id,
-          status: user.status ? 1 : 0,
+          status: values.status ? 1 : 0,
           userName: values.userName?.trim() || null,
           userAvatar: values.userAvatar?.trim() || null,
           userProfile: values.userProfile?.trim() || null,
           userRole: values.userRole,
-          quota: values.quota,
-          vipTime: resolveVipTime(values.userRole, values.vipTime),
+          points: values.points,
         })
         if (res.code === 0) {
           message.success('用户信息已更新')
@@ -112,8 +100,7 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
         userAvatar: values.userAvatar?.trim() || null,
         userProfile: values.userProfile?.trim() || null,
         userRole: values.userRole,
-        quota: values.quota,
-        vipTime: resolveVipTime(values.userRole, values.vipTime),
+        points: values.points,
       })
       if (res.code === 0) {
         message.success('用户创建成功，默认密码为 12345678')
@@ -152,8 +139,8 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
         <Form.Item name="userName" label="用户名">
           <Input placeholder="请输入用户名" allowClear maxLength={32} />
         </Form.Item>
-        <Form.Item name="status" label="账号状态">
-          <Switch defaultChecked />
+        <Form.Item name="status" label="账号状态" valuePropName="checked" getValueFromEvent={(checked: boolean) => (checked ? 1 : 0)} getValueProps={(v) => ({ checked: v === 1 })}>
+          <Switch />
         </Form.Item>
         <Form.Item name="userAvatar" label="头像 URL" rules={[avatarUrlRule()]}>
           <Input placeholder="https://example.com/avatar.png" allowClear />
@@ -164,29 +151,11 @@ export default function UserFormModal({ open, mode, user, onClose, onSuccess }: 
         </Form.Item>
 
         <Form.Item name="userRole" label="角色" rules={[{ required: true, message: '请选择角色' }]}>
-          <Select
-            options={ROLE_OPTIONS}
-            placeholder="选择角色"
-            onChange={(role: UserRole) => {
-              if (role === 'vip') {
-                if (!form.getFieldValue('vipTime')) {
-                  form.setFieldValue('vipTime', dayjs())
-                }
-                return
-              }
-              form.setFieldValue('vipTime', undefined)
-            }}
-          />
+          <Select options={ROLE_OPTIONS} placeholder="选择角色" />
         </Form.Item>
 
-        {isVip && (
-          <Form.Item name="vipTime" label="VIP 开通时间" rules={[{ required: true, message: '请选择 VIP 开通时间' }]}>
-            <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="选择 VIP 开通时间" style={{ width: '100%' }} />
-          </Form.Item>
-        )}
-
-        <Form.Item name="quota" label="可用额度" rules={[{ required: true, message: '请输入可用额度' }]}>
-          <InputNumber min={0} precision={0} placeholder="可用文章生成次数" style={{ width: '100%' }} />
+        <Form.Item name="points" label="积分" rules={[{ required: true, message: '请输入积分' }]}>
+          <InputNumber min={0} precision={0} placeholder="用户积分" style={{ width: '100%' }} />
         </Form.Item>
 
         {!isEdit && (

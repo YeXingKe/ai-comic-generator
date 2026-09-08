@@ -4,9 +4,13 @@ package common
 const (
 	UserLoginState      = "userLoginState" // Session 中存储用户 ID 的键
 	LoginUserContextKey = "loginUser"      // AuthCheck 中间件写入 gin.Context 的键
-	AdminRole           = "admin"
-	UserRole            = "user"
-	VIPRole             = "vip"
+	AdminRole = "admin"
+	UserRole  = "user"
+)
+
+// 积分相关
+const (
+	DefaultPoints = 100 // 新用户默认积分
 )
 
 // 密码相关常量

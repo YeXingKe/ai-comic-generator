@@ -84,7 +84,7 @@ export default function StaticPage() {
             <DistributionPie data={data?.styleDistribution ?? []} theme={theme} loading={loading} rose />
           </ChartCard>
 
-          <ChartCard title="用户角色分布" subtitle="普通 / VIP / 管理员">
+          <ChartCard title="用户角色分布" subtitle="普通用户 / 管理员">
             <DistributionPie data={data?.roleDistribution ?? []} theme={theme} loading={loading} centerLabel="用户" />
           </ChartCard>
 

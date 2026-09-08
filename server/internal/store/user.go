@@ -1,8 +1,6 @@
 package store
 
 import (
-	"time"
-
 	"github.com/ai-comic-generator/server/internal/model"
 	"gorm.io/gorm"
 )
@@ -74,14 +72,14 @@ func (s *UserStore) GetByAccountAndPassword(account, password string) (*model.Us
 	return &user, nil
 }
 
-// UpdateQuota 更新用户可用额度
-func (s *UserStore) UpdateQuota(id int64, quota int) error {
-	return s.db.Model(&model.User{}).Scopes(NotDeleted).Where("id = ?", id).Update("quota", quota).Error
+// UpdatePoints 更新用户积分
+func (s *UserStore) UpdatePoints(id int64, points int) error {
+	return s.db.Model(&model.User{}).Scopes(NotDeleted).Where("id = ?", id).Update("points", points).Error
 }
 
-// UpdateVipTime 更新 VIP 开通时间（传 nil 表示清空）
-func (s *UserStore) UpdateVipTime(id int64, vipTime *time.Time) error {
-	return s.db.Model(&model.User{}).Scopes(NotDeleted).Where("id = ?", id).Update("vipTime", vipTime).Error
+// UpdateStatus 更新用户启用状态
+func (s *UserStore) UpdateStatus(id int64, status int) error {
+	return s.db.Model(&model.User{}).Scopes(NotDeleted).Where("id = ?", id).Update("status", status).Error
 }
 
 // Update 更新用户
@@ -166,30 +164,26 @@ func (s *UserStore) BuildQuery(id *int64, userAccount, userName, userProfile, us
 	return query
 }
 
-// DecrementQuota 原子扣减用户配额
-// 使用 quota > 0 条件确保并发安全，避免超扣
-// 返回影响行数：1表示成功，0表示配额不足
-func (s *UserStore) DecrementQuota(userID int64) (int64, error) {
-	result := s.db.Exec("UPDATE user SET quota = quota - 1 WHERE id = ? AND quota > 0", userID)
+// DecrementPoints 原子扣减用户积分（默认扣 1）
+// 使用 points > 0 条件确保并发安全，避免超扣
+// 返回影响行数：1 表示成功，0 表示积分不足
+func (s *UserStore) DecrementPoints(userID int64) (int64, error) {
+	return s.DecrementPointsBy(userID, 1)
+}
+
+// DecrementPointsBy 原子扣减指定积分
+func (s *UserStore) DecrementPointsBy(userID int64, amount int) (int64, error) {
+	if amount <= 0 {
+		return 0, nil
+	}
+	result := s.db.Exec("UPDATE user SET points = points - ? WHERE id = ? AND points >= ?", amount, userID, amount)
 	return result.RowsAffected, result.Error
 }
 
-// UpgradeToVIP 升级用户为 VIP
-func (s *UserStore) UpgradeToVIP(userID int64) error {
-	now := time.Now()
-	updates := map[string]interface{}{
-		"vipTime":  now,
-		"userRole": "vip",
+// AddPoints 原子增加用户积分
+func (s *UserStore) AddPoints(userID int64, amount int) error {
+	if amount == 0 {
+		return nil
 	}
-	return s.db.Model(&model.User{}).Where("id = ?", userID).Updates(updates).Error
-}
-
-// RevokeVIP 撤销用户 VIP 身份
-func (s *UserStore) RevokeVIP(userID int64, defaultQuota int) error {
-	updates := map[string]interface{}{
-		"vipTime":  nil,
-		"userRole": "user",
-		"quota":    defaultQuota,
-	}
-	return s.db.Model(&model.User{}).Where("id = ?", userID).Updates(updates).Error
+	return s.db.Exec("UPDATE user SET points = points + ? WHERE id = ?", amount, userID).Error
 }

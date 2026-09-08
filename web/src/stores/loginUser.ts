@@ -14,7 +14,7 @@ const emptyUser: LoginUser = {
   id: 0,
   userAccount: '',
   userRole: 'user',
-  quota: 0,
+  points: 0,
   createTime: '',
   updateTime: '',
 }

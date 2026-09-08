@@ -182,7 +182,7 @@ var styleLabels = map[string]string{
 }
 
 var roleLabels = map[string]string{
-	"user": "普通用户", "admin": "管理员", "vip": "VIP用户",
+	"user": "普通用户", "admin": "管理员",
 }
 
 var publishLabels = map[string]string{

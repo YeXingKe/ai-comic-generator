@@ -83,7 +83,7 @@
 | 普通用户 / VIP | 创作、查自己的任务、改资料；VIP/管理员设计上可不扣额度 |
 | 管理员 | 用户 CRUD、改额度、看数据看板 `/stat/dashboard` |
 
-额度字段是 `quota`（剩余次数）。管理端可改；支付充值见独立 PRD（尚未必接）。
+积分字段是 `points`。管理端可改；支付充值见独立 PRD（尚未必接）。角色仅 `user` / `admin`，无 VIP。
 
 ### 1.4 核心产品能力一览
 
@@ -285,7 +285,7 @@ Prompt 集中在 `internal/common/prompt.go`（中文）与 `prompt_en.go`（英
 
 - 角色：`user` / `admin` / `vip`  
 - `status`：启用/禁用  
-- `quota`：剩余创作额度（store 已有 `DecrementQuota` 原子扣减；是否在创建/开始时调用以当前代码为准，接支付前建议打通）  
+- `points`：用户积分（store 已有 `DecrementPoints` / `AddPoints`；创作扣积分建议在 create/start 打通）  
 - 启动时可 `EnsureAdmin` 保证默认管理员存在（文档与 AGENTS：`admin` / `admin123456`，以实际实现为准）
 
 ### 4.3 用户相关 API

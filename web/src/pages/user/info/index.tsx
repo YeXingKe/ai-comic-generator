@@ -3,7 +3,7 @@ import { Form, Button, Input, Avatar, Card, message } from 'antd'
 import { UserOutlined } from '@ant-design/icons'
 import { updateProfile } from '@/api/user'
 import { useLoginUserStore } from '@/stores/loginUser'
-import { formatUserTime, roleLabel } from '@/utils/userTableHelpers'
+import { roleLabel } from '@/utils/userTableHelpers'
 import '@/styles/pageShell.css'
 import './index.css'
 
@@ -101,15 +101,9 @@ export default function UserInfoPage() {
               <Input value={roleLabel(loginUser.userRole)} disabled />
             </Form.Item>
 
-            <Form.Item label="剩余额度">
-              <Input value={String(loginUser.quota)} disabled />
+            <Form.Item label="积分">
+              <Input value={String(loginUser.points)} disabled />
             </Form.Item>
-
-            {loginUser.userRole === 'vip' && loginUser.vipTime && (
-              <Form.Item label="VIP 开通时间">
-                <Input value={formatUserTime(loginUser.vipTime)} disabled />
-              </Form.Item>
-            )}
 
             <Form.Item name="userName" label="用户名">
               <Input placeholder="请输入用户名" allowClear maxLength={32} />

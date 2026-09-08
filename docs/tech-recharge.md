@@ -2,9 +2,9 @@
 
 > 版本：v1.0  
 > 日期：2026-08-14  
-> 关联产品文档：[`prd-recharge.md`](./prd-recharge.md)  
+> 关联技术方案文档：[`tech-recharge.md`](./tech-recharge.md)  
 > 前置：建议先完成 [`tech-auth.md`](./tech-auth.md) **P0**  
-> 实现方式：自行按文档落地
+> 说明：用户侧为**积分制**（`points`），不再区分 VIP；充值发货统一加积分。
 
 ---
 
@@ -15,15 +15,16 @@
 ```text
 web: /user/recharge, /admin/payments
   → PaymentHandler：下单 / 查单 / 我的订单 / 管理端分页
-  → 回调 notify：验签 → 幂等发货（加 quota / 升 VIP）
+  → 回调 notify：验签 → 幂等发货（增加 points）
 ```
 
 ### 1.2 原则
 
 1. 发货只信回调或服务端查单  
-2. 发货幂等（`PENDING → PAID` 影响行 = 1 才加额度）  
-3. 复用现有 `quota` / `UpgradeToVIP` / `DecrementQuota`  
+2. 发货幂等（`PENDING → PAID` 影响行 = 1 才加积分）  
+3. 复用 `points` / `AddPoints` / `DecrementPoints`  
 4. 先 `mock` 后真渠道  
+5. **无 VIP 商品类型**；套餐均为积分包
 
 ---
 
@@ -33,8 +34,8 @@ web: /user/recharge, /admin/payments
 
 | 字段 | 说明 |
 |------|------|
-| name / sku / type | `quota` \| `vip` |
-| quota_amount / vip_days | 权益 |
+| name / sku / type | `points`（积分包） |
+| points_amount | 到账积分 |
 | price | 分 |
 | status / sort | 上下架与排序 |
 
@@ -43,7 +44,7 @@ web: /user/recharge, /admin/payments
 | 字段 | 说明 |
 |------|------|
 | order_no / user_id / product_id | |
-| 商品快照字段 | name/type/quota/vip_days/amount |
+| 商品快照字段 | name/type/points_amount/amount |
 | channel | `mock` / `wechat` / `alipay` |
 | status | `PENDING`/`PAID`/`CLOSED`/`REFUNDED` |
 | transaction_id / pay_time | 渠道信息 |
@@ -157,6 +158,6 @@ payment:
 
 | 能力 | 路径 |
 |------|------|
-| DecrementQuota / UpgradeToVIP | `server/internal/store/user.go` |
+| DecrementPoints / AddPoints | `server/internal/store/user.go` |
 | 创作页额度 | `web/src/pages/user/create/index.tsx` |
 | 路由注册 | `server/cmd/server/main.go` |

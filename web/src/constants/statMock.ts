@@ -29,7 +29,6 @@ export const PHASE_LABELS: Record<ComicPhase, string> = {
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   user: '普通用户',
-  vip: 'VIP',
   admin: '管理员',
 }
 
@@ -120,8 +119,7 @@ export function buildMockDashboard(range: StatRange): StatDashboard {
   ]
 
   const roleDistribution: StatBucket[] = [
-    { key: 'user', label: ROLE_LABELS.user, value: 298 },
-    { key: 'vip', label: ROLE_LABELS.vip, value: 41 },
+    { key: 'user', label: ROLE_LABELS.user, value: 339 },
     { key: 'admin', label: ROLE_LABELS.admin, value: 3 },
   ]
 

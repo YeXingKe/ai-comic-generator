@@ -8,7 +8,7 @@ create database if not exists ai_comic_generator CHARACTER SET utf8mb4 COLLATE u
 -- 切换库
 use ai_comic_generator;
 
--- 用户表（基础字段，quota 和 vipTime 由增量脚本添加）
+-- 用户表
 create table if not exists user
 (
     id           bigint auto_increment comment 'id' primary key,
@@ -19,6 +19,7 @@ create table if not exists user
     userProfile  varchar(512)                           null comment '用户简介',
     userRole     varchar(256) default 'user'            not null comment '用户角色：user/admin',
     status       tinyint      default 1                 not null comment '用户状态：1 启用，0 禁用',
+    points       int          default 100               not null comment '积分',
     editTime     datetime     default CURRENT_TIMESTAMP not null comment '编辑时间',
     createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',

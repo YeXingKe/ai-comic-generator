@@ -32,6 +32,11 @@ export function buildUserTableColumns(options: { onEdit: (user: UserInfo) => voi
       render: (role: UserRole) => <Tag color={roleColor(role)}>{roleLabel(role)}</Tag>,
     },
     {
+      title: '积分',
+      dataIndex: 'points',
+      width: 88,
+    },
+    {
       title: '注册时间',
       dataIndex: 'createTime',
       width: 170,

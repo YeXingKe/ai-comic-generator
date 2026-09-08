@@ -696,8 +696,8 @@ export default function CreatePage() {
             />
             <div className="config-card__actions">
               <div className="config-card__quota">
-                <span className="config-card__quota-label">剩余次数</span>
-                <span className="config-card__quota-value">{loginUser.quota}</span>
+                <span className="config-card__quota-label">积分</span>
+                <span className="config-card__quota-value">{loginUser.points}</span>
               </div>
             </div>
           </div>

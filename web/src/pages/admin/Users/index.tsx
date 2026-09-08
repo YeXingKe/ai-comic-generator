@@ -122,7 +122,6 @@ export default function AdminUsersPage() {
               style={{ width: 140 }}
               options={[
                 { label: '管理员', value: 'admin' },
-                { label: 'VIP', value: 'vip' },
                 { label: '普通用户', value: 'user' },
               ]}
             />

@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 // RegisterRequest 用户注册请求
 type RegisterRequest struct {
 	UserAccount   string `json:"userAccount" binding:"required,min=4" example:"zhangsan"`   // 登录账号，至少 4 位
@@ -17,24 +15,24 @@ type LoginRequest struct {
 
 // AddUserRequest 创建用户请求（管理员）
 type AddUserRequest struct {
-	UserAccount string  `json:"userAccount" binding:"required" example:"newuser"` // 登录账号
-	UserName    *string `json:"userName" example:"新用户"`                              // 用户昵称（可选）
-	UserAvatar  *string `json:"userAvatar" example:"https://example.com/avatar.png"` // 头像 URL（可选）
-	UserProfile *string `json:"userProfile" example:"个人简介"`                          // 个人简介（可选）
-	UserRole    string     `json:"userRole" example:"user" enums:"user,admin,vip"`      // 用户角色：user / admin / vip
-	Quota       *int       `json:"quota" example:"5"`                                     // 可用额度（可选，不传则使用库表默认值）
-	VipTime     *time.Time `json:"vipTime" example:"2026-01-01T12:00:00+08:00"`         // VIP 开通时间（角色为 vip 时可选）
+	UserAccount string  `json:"userAccount" binding:"required" example:"newuser"`          // 登录账号
+	UserName    *string `json:"userName" example:"新用户"`                                     // 用户昵称（可选）
+	UserAvatar  *string `json:"userAvatar" example:"https://example.com/avatar.png"`      // 头像 URL（可选）
+	UserProfile *string `json:"userProfile" example:"个人简介"`                               // 个人简介（可选）
+	UserRole    string  `json:"userRole" example:"user" enums:"user,admin"`               // 用户角色：user / admin
+	Points      *int    `json:"points" example:"100"`                                     // 积分（可选，不传则使用库表默认值）
+	Status      *int    `json:"status" example:"1"`                                       // 状态（可选）
 }
 
 // UpdateUserRequest 更新用户请求（管理员）
 type UpdateUserRequest struct {
-	ID          int64   `json:"id" binding:"required" example:"1"`                     // 用户主键 ID
-	UserName    *string `json:"userName" example:"新昵称"`                                // 用户昵称（可选，传 null 表示不更新）
-	UserAvatar  *string `json:"userAvatar" example:"https://example.com/avatar.png"`   // 头像 URL（可选）
-	UserProfile *string `json:"userProfile" example:"更新后的简介"`                          // 个人简介（可选）
-	UserRole    *string    `json:"userRole" example:"vip" enums:"user,admin,vip"`         // 用户角色（可选）
-	Quota       *int       `json:"quota" example:"10"`                                    // 可用额度（可选）
-	VipTime     *time.Time `json:"vipTime" example:"2026-01-01T12:00:00+08:00"`         // VIP 开通时间（可选，非 vip 传 null 可清空）
+	ID          int64   `json:"id" binding:"required" example:"1"`                   // 用户主键 ID
+	UserName    *string `json:"userName" example:"新昵称"`                              // 用户昵称（可选）
+	UserAvatar  *string `json:"userAvatar" example:"https://example.com/avatar.png"` // 头像 URL（可选）
+	UserProfile *string `json:"userProfile" example:"更新后的简介"`                       // 个人简介（可选）
+	UserRole    *string `json:"userRole" example:"user" enums:"user,admin"`          // 用户角色（可选）
+	Points      *int    `json:"points" example:"100"`                                // 积分（可选）
+	Status      *int    `json:"status" example:"1"`                                  // 状态（可选）
 }
 
 // QueryUserRequest 查询用户请求

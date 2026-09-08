@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/ai-comic-generator/server/internal/config"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 // SetupSession 配置 Session 中间件：一次性完成 Session 配置

@@ -59,6 +59,7 @@ func (s *UserService) Register(req *model.RegisterRequest) (int64, error) {
 		UserPassword: hashed,
 		UserName:     &userName,
 		UserRole:     string(model.RoleUser),
+		Points:       common.DefaultPoints,
 		EditTime:     &now,
 	}
 	if err := s.store.Create(user); err != nil {
@@ -203,6 +204,14 @@ func (s *UserService) Create(req *model.AddUserRequest) (int64, error) {
 	if err != nil {
 		return 0, common.ErrSystem
 	}
+	role := req.UserRole
+	if role == "" {
+		role = string(model.RoleUser)
+	}
+	if !model.UserRole(role).IsValid() {
+		return 0, common.ErrParams.WithMessage("无效的用户角色")
+	}
+
 	now := time.Now()
 	user := &model.User{
 		UserAccount:  req.UserAccount,
@@ -210,68 +219,66 @@ func (s *UserService) Create(req *model.AddUserRequest) (int64, error) {
 		UserName:     req.UserName,
 		UserAvatar:   req.UserAvatar,
 		UserProfile:  req.UserProfile,
-		UserRole:     req.UserRole,
+		UserRole:     role,
+		Points:       common.DefaultPoints,
+		Status:       1,
 		EditTime:     &now,
 	}
-	if req.Quota != nil { // 指定了额度
-		user.Quota = *req.Quota // 写入额度
+	if req.Points != nil {
+		user.Points = *req.Points
 	}
-	if req.UserRole == string(model.RoleVIP) { // 创建为 VIP 用户
-		if req.VipTime != nil { // 指定了 VIP 到期时间
-			user.VipTime = req.VipTime // 使用指定时间
-		} else { // 未指定
-			user.VipTime = &now // 默认从当前时间起算
-		}
+	if req.Status != nil {
+		user.Status = *req.Status
 	}
 
-	if err := s.store.Create(user); err != nil { // 写入数据库
-		return 0, common.ErrOperation // 创建失败
+	if err := s.store.Create(user); err != nil {
+		return 0, common.ErrOperation
 	}
-	return user.ID, nil // 返回新用户 ID
+	return user.ID, nil
 }
 
 // GetByID 根据 ID 获取用户（供中间件、Handler 等使用）
 func (s *UserService) GetByID(id int64) (*model.User, error) {
-	user, err := s.store.GetByID(id) // 查库
-	if err != nil { // 查询失败
-		if errors.Is(err, gorm.ErrRecordNotFound) { // 不存在
-			return nil, common.ErrNotFound // 未找到
+	user, err := s.store.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.ErrNotFound
 		}
-		return nil, common.ErrSystem // 系统错误
+		return nil, common.ErrSystem
 	}
-	return user, nil // 返回用户实体
+	return user, nil
 }
 
-// Update 管理员更新用户信息（含角色、额度、VIP 时间）
+// Update 管理员更新用户信息（含角色、积分、状态）
 func (s *UserService) Update(req *model.UpdateUserRequest) error {
-	user := &model.User{ // 基础更新字段
-		ID:          req.ID,          // 目标用户 ID
-		UserName:    req.UserName,    // 昵称
-		UserAvatar:  req.UserAvatar,  // 头像
-		UserProfile: req.UserProfile, // 简介
-	}
-	if req.UserRole != nil { // 要改角色
-		user.UserRole = *req.UserRole // 写入新角色
+	if req.UserRole != nil && !model.UserRole(*req.UserRole).IsValid() {
+		return common.ErrParams.WithMessage("无效的用户角色")
 	}
 
-	if err := s.store.Update(user); err != nil { // 更新基础字段
-		return common.ErrOperation // 失败
+	user := &model.User{
+		ID:          req.ID,
+		UserName:    req.UserName,
+		UserAvatar:  req.UserAvatar,
+		UserProfile: req.UserProfile,
 	}
-	if req.Quota != nil { // 要改额度
-		if err := s.store.UpdateQuota(req.ID, *req.Quota); err != nil { // 单独更新额度列
-			return common.ErrOperation // 失败
+	if req.UserRole != nil {
+		user.UserRole = *req.UserRole
+	}
+
+	if err := s.store.Update(user); err != nil {
+		return common.ErrOperation
+	}
+	if req.Points != nil {
+		if err := s.store.UpdatePoints(req.ID, *req.Points); err != nil {
+			return common.ErrOperation
 		}
 	}
-	if req.UserRole != nil && *req.UserRole != string(model.RoleVIP) { // 改为非 VIP
-		if err := s.store.UpdateVipTime(req.ID, nil); err != nil { // 清空 VIP 时间
-			return common.ErrOperation // 失败
-		}
-	} else if req.VipTime != nil { // 指定了 VIP 时间
-		if err := s.store.UpdateVipTime(req.ID, req.VipTime); err != nil { // 更新 VIP 时间
-			return common.ErrOperation // 失败
+	if req.Status != nil {
+		if err := s.store.UpdateStatus(req.ID, *req.Status); err != nil {
+			return common.ErrOperation
 		}
 	}
-	return nil // 全部更新成功
+	return nil
 }
 
 // Delete 软删除用户

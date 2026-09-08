@@ -6,7 +6,7 @@ export interface BaseResponse<T = unknown> {
 }
 
 /** 用户角色，对应后端 model.UserRole */
-export type UserRole = 'user' | 'admin' | 'vip'
+export type UserRole = 'user' | 'admin'
 
 /**
  * 登录用户信息，对应后端 model.LoginUser
@@ -17,13 +17,12 @@ export interface LoginUser {
   id: number
   userAccount: string
   userRole: UserRole
-  quota: number
+  points: number
   createTime: string
   updateTime: string
   userName?: string | null
   userAvatar?: string | null
   userProfile?: string | null
-  vipTime?: string | null
   editTime?: string | null
 }
 
@@ -34,14 +33,13 @@ export interface UserInfo {
   id: number
   userAccount: string
   userRole: UserRole
-  quota: number
+  points: number
   status: number
   createTime: string
   updateTime: string
   userName?: string | null
   userAvatar?: string | null
   userProfile?: string | null
-  vipTime?: string | null
   editTime?: string | null
 }
 
@@ -78,9 +76,8 @@ export interface LoginRequest {
 export interface AddUserRequest {
   userAccount: string
   userRole?: UserRole
-  quota?: number | null
+  points?: number | null
   status: number
-  vipTime?: string | null
   userName?: string | null
   userAvatar?: string | null
   userProfile?: string | null
@@ -98,8 +95,7 @@ export interface UpdateUserRequest {
   userProfile?: string | null
   userRole?: UserRole | null
   status: number
-  quota?: number | null
-  vipTime?: string | null
+  points?: number | null
 }
 
 /**
@@ -367,7 +363,6 @@ export interface ComicPageResult {
 export const USER_ROLE = {
   USER: 'user',
   ADMIN: 'admin',
-  VIP: 'vip',
 } as const satisfies Record<string, UserRole>
 
 /* ── 数据统计（管理端 Dashboard） ── */
