@@ -117,7 +117,7 @@ ssh -i C:\Users\Administrator\.ssh\ai-comic deploy@comic.wszhu.top "echo 'SSH �
 | **Checkout code**        | 拉取 GitHub 上的最新代码            | 网络问题                                  |
 | **Setup Node.js**        | 安装 Node 18 环境                   | 官方源问题                                |
 | **Setup Go**             | 安装 Go 1.24 环境                   | 官方源问题                                |
-| **Build web**            | 前端编译：`npm ci && npm run build` | TypeScript 类型检查失败、npm 依赖下载失败 |
+| **Build web**            | 前端编译：`pnpm install --frozen-lockfile && pnpm run build` | TypeScript 类型检查失败、pnpm 依赖下载失败 |
 | **Build server**         | 后端编译：`go build`                | Go 编译失败、依赖下载失败                 |
 | **Setup SSH**            | 配置 SSH 密钥和已知主机             | 密钥不匹配                                |
 | **Upload web artifacts** | rsync 上传前端产物                  | 目标路径权限不足、网络连接问题            |

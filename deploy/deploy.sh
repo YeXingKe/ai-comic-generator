@@ -2,7 +2,7 @@
 # ai-comic-generator 一键部署脚本（在宝塔服务器上执行）
 #
 # 用途：git pull 最新代码 → 构建前端 → 构建后端 → 重启 systemd 服务 → 健康检查
-# 前置：服务器已装 Go 1.24+、Node 18+/npm，已 clone 本仓库，已放好 server/config.yaml，
+# 前置：服务器已装 Go 1.24+、Node 18+/pnpm，已 clone 本仓库，已放好 server/config.yaml，
 #       已 systemctl enable 好 deploy/ai-comic-server.service（见 deploy/README.md）
 #
 # 用法：
@@ -45,7 +45,7 @@ die() { printf '\033[31m[deploy][error]\033[0m %s\n' "$*" >&2; exit 1; }
 # ---- 0. 前置检查 ----
 [ -f server/config.yaml ] || die "缺少 server/config.yaml，请先从 config.yaml.example 复制并填写"
 command -v go >/dev/null || die "未找到 go，请先安装 Go 1.24+"
-command -v npm >/dev/null || die "未找到 npm，请先安装 Node.js"
+command -v pnpm >/dev/null || die "未找到 pnpm，请先安装：corepack enable"
 
 # ---- 1. 拉取代码 ----
 if [ "$NO_PULL" -eq 0 ]; then
@@ -60,12 +60,8 @@ fi
 if [ "$SKIP_WEB" -eq 0 ]; then
   log "构建前端 (web/)"
   cd "${ROOT_DIR}/web"
-  if [ -f package-lock.json ]; then
-    npm ci
-  else
-    npm install
-  fi
-  npm run build            # 内含 vite build + tsc -b，产物 web/dist/
+  pnpm install --frozen-lockfile
+  pnpm run build            # 内含 vite build + tsc -b，产物 web/dist/
   cd "${ROOT_DIR}"
   log "前端产物已更新：web/dist/"
 fi

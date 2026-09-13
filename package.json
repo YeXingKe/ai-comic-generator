@@ -9,7 +9,10 @@
     "server": "cd server && go run ./cmd/server/main.go",
     "build:web": "npm run build --prefix web",
     "build:server": "go build -C server -o ../bin/server ./cmd/server/main.go",
-    "install:web": "npm install --prefix web",
+    "install:web": "pnpm --dir web install",
+    "sync:deps": "node scripts/sync-deps.mjs",
+    "sync:go": "node scripts/sync-deps.mjs --only go",
+    "sync:web": "node scripts/sync-deps.mjs --only web,root",
     "prepare": "husky",
     "commitlint": "commitlint"
   },

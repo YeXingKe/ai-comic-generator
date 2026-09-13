@@ -186,12 +186,12 @@ bash deploy/deploy.sh
 脚本会自动做这几件事，不需要你手动分步执行：
 
 1. `git fetch` + `git reset --hard origin/main`，把服务器代码强制对齐远端最新分支（**注意**：这一步会丢弃服务器本地任何改动，所以线上代码只应该通过 git push 更新，别直接在服务器上改文件）
-2. `npm ci && npm run build` 构建前端产物到 `web/dist/`
+2. `pnpm install --frozen-lockfile && pnpm run build` 构建前端产物到 `web/dist/`
 3. `go build` 编译后端到 `server/bin/server`
 4. `systemctl restart ai-comic-server` 重启后端进程
 5. 反复 curl `/api/health`（最多等 10 秒）确认新版本已经跑起来
 
-看到 `[deploy] 部署成功，后端已就绪 ✅` 说明这次更新上线成功。如果中途某一步报错（比如前端 `npm run build` 类型检查没过），脚本会在那一步直接停下并退出，不会继续往后执行——此时线上还在运行上一次成功部署的旧版本，不会因为这次失败变得不可用，你可以慢慢排查再重跑。
+看到 `[deploy] 部署成功，后端已就绪 ✅` 说明这次更新上线成功。如果中途某一步报错（比如前端 `pnpm run build` 类型检查没过），脚本会在那一步直接停下并退出，不会继续往后执行——此时线上还在运行上一次成功部署的旧版本，不会因为这次失败变得不可用，你可以慢慢排查再重跑。
 
 常用参数（只改了一端时用，能省点构建时间）：
 
@@ -239,7 +239,7 @@ curl http://127.0.0.1:8080/api/health              # 后端本机健康检查，
 - **浏览器打开域名是空白/404，刷新非首页路径直接 404**：Nginx 缺 SPA 回退配置，检查站点配置文件里有没有 `location / { try_files $uri $uri/ /index.html; }` 这一段（对照 `deploy/nginx.conf.example`）。
 - **能登录，但生成漫画一直失败或没反应**：先确认 `server/config.yaml` 里 `ai.dashscope.api_key` 填了且没过期/欠费；再看 `journalctl` 里有没有调用通义千问接口报错的日志，常见是 key 无效或服务器出不了公网。
 - **漫画图片显示不出来（一直转圈或裂图）**：检查 Nginx 的 `/static/comics/` 反代规则是不是也配了；再确认 `storage.base_path`（默认 `server/data/comics`）这个目录存在，并且对运行后端的用户（`ai-comic-server.service` 里配的 `User=www`）有读写权限，权限不对可以 `chown -R www:www server/data`。
-- **部署脚本卡在 `npm ci` 或 `go mod download` 很久没反应**：大概率是网络问题。前端确认 npm 源（可换成淘宝镜像 `npm config set registry https://registry.npmmirror.com`），后端确认第 2 步的 `GOPROXY` 已经设成 `https://goproxy.cn,direct`。
+- **部署脚本卡在 `pnpm install` 或 `go mod download` 很久没反应**：大概率是网络问题。前端确认 pnpm 源（可换成淘宝镜像 `pnpm config set registry https://registry.npmmirror.com`），后端确认第 2 步的 `GOPROXY` 已经设成 `https://goproxy.cn,direct`。
 - **`systemctl restart` 之后过几秒服务又变回 `failed`**：说明程序启动后很快崩溃，通常还是配置问题（比如 `config.yaml` 格式错误、字段缩进错了）。看 journalctl 日志里进程退出前打的最后几行，一般会直接指出是哪个配置项解析失败。
 
 ### 上线前最后检查一遍（安全相关）

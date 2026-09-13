@@ -1,0 +1,2 @@
+# git pull --rebase / rebase 完成后：前后端依赖有更新则自动安装
+node scripts/sync-deps.mjs

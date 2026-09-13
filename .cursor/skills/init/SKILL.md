@@ -55,8 +55,8 @@ cp server/config.yaml.example server/config.yaml
 在仓库根目录：
 
 ```bash
-npm install
-npm run install:web
+pnpm install
+pnpm run install:web
 cd server && go mod tidy
 ```
 

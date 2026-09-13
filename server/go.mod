@@ -12,6 +12,7 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/aiart v1.3.83
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.3.128
+	github.com/tencentyun/cos-go-sdk-v5 v0.7.75
 	github.com/tmc/langchaingo v0.1.14
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.12
@@ -21,7 +22,6 @@ require (
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/mozillazg/go-httpheader v0.2.1 // indirect
-	github.com/tencentyun/cos-go-sdk-v5 v0.7.75 // indirect
 )
 
 require (
@@ -71,7 +71,7 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/crypto v0.55.0
 	golang.org/x/exp v0.0.0-20240808152545-0cdaa3abc0fa // indirect
 	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
 	golang.org/x/net v0.57.0 // indirect
