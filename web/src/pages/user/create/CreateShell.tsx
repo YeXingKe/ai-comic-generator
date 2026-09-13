@@ -6,7 +6,7 @@ export type CreateMode = 'auto' | 'custom'
 
 const MODE_SUBTITLE: Record<CreateMode, string> = {
   auto: 'AI 智能体流水线：从主题与标题推荐，到分镜脚本、成稿与排版合成，一键生成完整漫画',
-  custom: '自由配置画幅、模型与提示词，一次生成多格分镜，支持小红书排版与打包下载',
+  custom: '自由配置画幅、模型与提示词，可上传角色参考图锁定人物外貌，一次生成多格分镜',
 }
 
 type CreateShellProps = {

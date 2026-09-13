@@ -52,6 +52,7 @@ func main() {
 			custom.GET("/get", comicAuth, application.CustomComicHandler.Get)
 			custom.POST("/page", comicAuth, application.CustomComicHandler.ListPage)
 			custom.GET("/download", comicAuth, application.CustomComicHandler.DownloadZip)
+			custom.POST("/regenerate-panel", comicAuth, application.CustomComicHandler.RegeneratePanel)
 		}
 
 		r.Static(application.Config.Storage.PublicURL, application.Config.Storage.BasePath)

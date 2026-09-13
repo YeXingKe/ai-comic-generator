@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Alert, Button, Form, Image, Input, Radio, Select, Spin, message } from 'antd'
-import { DownloadOutlined, PictureOutlined, RocketOutlined, ReloadOutlined, FireOutlined } from '@ant-design/icons'
-import { createCustomComic, downloadCustomComicZip, getCustomComic } from '@/api/comic'
+import { Alert, Button, Form, Image, Input, Radio, Select, Spin, Upload, message } from 'antd'
+import type { UploadFile } from 'antd'
+import {
+  DownloadOutlined,
+  PictureOutlined,
+  RocketOutlined,
+  ReloadOutlined,
+  FireOutlined,
+  PlusOutlined,
+} from '@ant-design/icons'
+import { createCustomComic, downloadCustomComicZip, getCustomComic, regenerateCustomPanel } from '@/api/comic'
 import { XhsPhonePreview } from '@/components/XhsPreview'
-import type { AspectRatio, CustomComicInfo, ImageBackend, PanelImageResult } from '@/types/api'
+import type { AspectRatio, CustomComicInfo, ImageBackend, PanelImageResult, ReferenceImage } from '@/types/api'
 import { resolveServerAssetUrl } from '@/utils/assetUrl'
 import CreateShell from '../CreateShell'
 import './index.css'
@@ -23,11 +31,15 @@ const MODEL_OPTIONS: { value: ImageBackend; label: string }[] = [
 ]
 
 const PANEL_OPTIONS = [
+  { value: 1, label: '1 格' },
   { value: 2, label: '2 格' },
   { value: 4, label: '4 格' },
   { value: 6, label: '6 格' },
   { value: 8, label: '8 格' },
 ]
+
+const REF_IMAGE_MAX = 6
+const REF_IMAGE_MAX_MB = 5
 
 type FormValues = {
   prompt: string
@@ -41,6 +53,21 @@ function resolvePanels(panels: PanelImageResult[] | undefined): PanelImageResult
   return panels.map((p) => ({ ...p, url: resolveServerAssetUrl(p.url) }))
 }
 
+function resolveRefs(refs: ReferenceImage[] | undefined): ReferenceImage[] {
+  if (!refs?.length) return []
+  return refs.map((r) => ({ ...r, url: resolveServerAssetUrl(r.url) }))
+}
+
+function collectRefFiles(fileList: UploadFile[]): File[] {
+  const files: File[] = []
+  for (const item of fileList) {
+    if (item.originFileObj) {
+      files.push(item.originFileObj as File)
+    }
+  }
+  return files
+}
+
 export default function ComicCustomCreatePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -50,14 +77,22 @@ export default function ComicCustomCreatePage() {
   const [task, setTask] = useState<CustomComicInfo | null>(null)
   const [activePanelNo, setActivePanelNo] = useState(1)
   const [downloading, setDownloading] = useState(false)
+  const [downloadingPanel, setDownloadingPanel] = useState(false)
+  const [regeneratingPanel, setRegeneratingPanel] = useState(false)
+  const [panelPromptDraft, setPanelPromptDraft] = useState('')
   const [xhsOpen, setXhsOpen] = useState(false)
+  const [refFileList, setRefFileList] = useState<UploadFile[]>([])
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const loadedQueryRef = useRef<string>('')
 
   const panels = resolvePanels(task?.panelImages)
+  const taskRefs = resolveRefs(task?.referenceImages)
   const activePanel = panels.find((p) => p.panelNo === activePanelNo) ?? panels[panels.length - 1]
-  const isBusy = submitting || task?.status === 'PENDING' || task?.status === 'PROCESSING'
+  const isBusy = submitting || task?.status === 'PENDING' || task?.status === 'PROCESSING' || regeneratingPanel
   const canDownload = panels.length > 0 && !!task?.taskId
+  const canDownloadPanel = !!activePanel?.url
+  const canRegeneratePanel =
+    !!task?.taskId && !!activePanel && (task.status === 'COMPLETED' || task.status === 'FAILED') && !submitting && !regeneratingPanel
   const canXhsPreview = panels.length > 0
   /** 仅创作页：已有终态任务时可重新生成 */
   const canRegenerate = !!task && (task.status === 'COMPLETED' || task.status === 'FAILED') && !isBusy
@@ -77,6 +112,11 @@ export default function ComicCustomCreatePage() {
   }
 
   useEffect(() => () => stopPoll(), [])
+
+  // 切换当前格时同步可编辑的生图提示
+  useEffect(() => {
+    setPanelPromptDraft(activePanel?.imagePrompt || '')
+  }, [activePanel?.panelNo, activePanel?.imagePrompt])
 
   const startPoll = (taskId: string, opts?: { silentComplete?: boolean }) => {
     stopPoll()
@@ -139,6 +179,7 @@ export default function ComicCustomCreatePage() {
           imageBackend: info.imageBackend,
           panelCount: info.panelCount,
         })
+        setRefFileList([])
         if (info.panelImages?.length) {
           setActivePanelNo(info.panelImages[0].panelNo)
         }
@@ -168,18 +209,69 @@ export default function ComicCustomCreatePage() {
     }
   }
 
+  const handleDownloadPanel = async () => {
+    if (!activePanel?.url || downloadingPanel) return
+    setDownloadingPanel(true)
+    const filename = `panel_${activePanel.panelNo}.png`
+    try {
+      const res = await fetch(activePanel.url, { credentials: 'include' })
+      if (!res.ok) throw new Error(`下载失败 (${res.status})`)
+      const blob = await res.blob()
+      const objectUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = objectUrl
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(objectUrl)
+      message.success(`已下载第 ${activePanel.panelNo} 格`)
+    } catch {
+      // COS 等跨域场景可能无法 fetch，退化为新开标签
+      window.open(activePanel.url, '_blank', 'noopener,noreferrer')
+      message.info('已在新标签打开图片，可右键另存为')
+    } finally {
+      setDownloadingPanel(false)
+    }
+  }
+
+  const handleRegeneratePanel = async () => {
+    if (!task?.taskId || !activePanel || !canRegeneratePanel) return
+    setRegeneratingPanel(true)
+    try {
+      const res = await regenerateCustomPanel({
+        taskId: task.taskId,
+        panelNo: activePanel.panelNo,
+        prompt: panelPromptDraft.trim() || undefined,
+      })
+      if (res.code === 0 && res.data) {
+        setTask(res.data)
+        message.success(`第 ${activePanel.panelNo} 格已重绘`)
+        return
+      }
+      message.error(res.message || '重绘失败')
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : '重绘失败')
+    } finally {
+      setRegeneratingPanel(false)
+    }
+  }
+
   const onSubmit = async (values: FormValues) => {
     stopPoll()
     setSubmitting(true)
     setTask(null)
     setActivePanelNo(1)
     try {
-      const res = await createCustomComic({
-        prompt: values.prompt.trim(),
-        aspectRatio: values.aspectRatio,
-        imageBackend: values.imageBackend,
-        panelCount: values.panelCount,
-      })
+      const res = await createCustomComic(
+        {
+          prompt: values.prompt.trim(),
+          aspectRatio: values.aspectRatio,
+          imageBackend: values.imageBackend,
+          panelCount: values.panelCount,
+        },
+        collectRefFiles(refFileList),
+      )
       if (res.code === 0 && res.data?.taskId) {
         const nextId = res.data.taskId
         loadedQueryRef.current = nextId
@@ -243,6 +335,57 @@ export default function ComicCustomCreatePage() {
             </div>
 
             <Form.Item
+              label="角色参考图"
+              extra={`可选，最多 ${REF_IMAGE_MAX} 张角色设定图（单张 ≤ ${REF_IMAGE_MAX_MB}MB）。请上传角色立绘/三视图/设定图，用于锁定人物外貌；不要上传场景或构图参考。OpenAI 会按角色图一致性生图，混元会在提示词中强化角色外貌。`}
+            >
+              <Upload
+                listType="picture-card"
+                fileList={refFileList}
+                accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
+                multiple
+                maxCount={REF_IMAGE_MAX}
+                disabled={isBusy}
+                beforeUpload={(file) => {
+                  const okType = /image\/(jpeg|png|webp)/i.test(file.type) || /\.(jpe?g|png|webp)$/i.test(file.name)
+                  if (!okType) {
+                    message.error('角色参考图仅支持 jpg / png / webp')
+                    return Upload.LIST_IGNORE
+                  }
+                  if (file.size > REF_IMAGE_MAX_MB * 1024 * 1024) {
+                    message.error(`单张角色参考图不能超过 ${REF_IMAGE_MAX_MB}MB`)
+                    return Upload.LIST_IGNORE
+                  }
+                  return false
+                }}
+                onChange={({ fileList }) => setRefFileList(fileList.slice(0, REF_IMAGE_MAX))}
+              >
+                {refFileList.length >= REF_IMAGE_MAX ? null : (
+                  <div className="custom-create__ref-upload-btn">
+                    <PlusOutlined />
+                    <div>上传</div>
+                  </div>
+                )}
+              </Upload>
+              {!refFileList.length && taskRefs.length > 0 && (
+                <div className="custom-create__task-refs">
+                  <span className="custom-create__task-refs-label">本次任务角色参考图</span>
+                  <div className="custom-create__task-refs-list">
+                    {taskRefs.map((ref) => (
+                      <Image
+                        key={`${ref.index}-${ref.url}`}
+                        src={ref.url}
+                        alt={ref.name || `角色参考 ${ref.index}`}
+                        width={64}
+                        height={64}
+                        style={{ objectFit: 'cover', borderRadius: 8 }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Form.Item>
+
+            <Form.Item
               label="提示词"
               name="prompt"
               rules={[
@@ -250,7 +393,12 @@ export default function ComicCustomCreatePage() {
                 { min: 4, message: '提示词至少 4 个字' },
               ]}
             >
-              <Input.TextArea rows={8} placeholder="描述你想要的漫画故事，例如：一只戴眼镜的橘猫在咖啡馆写代码，遇到灵感枯竭又突然顿悟…" maxLength={800} showCount />
+              <Input.TextArea
+                rows={8}
+                placeholder="描述你想要的漫画故事，例如：一只戴眼镜的橘猫在咖啡馆写代码，遇到灵感枯竭又突然顿悟…"
+                maxLength={1000}
+                showCount
+              />
             </Form.Item>
 
             <div className="custom-create__actions">
@@ -275,8 +423,32 @@ export default function ComicCustomCreatePage() {
             <Button size="small" danger icon={<FireOutlined />} disabled={!canXhsPreview} onClick={() => setXhsOpen(true)}>
               小红书排版
             </Button>
-            <Button size="small" icon={<DownloadOutlined />} disabled={!canDownload} loading={downloading} onClick={() => void handleDownloadZip()}>
-              一键下载
+            <Button
+              size="small"
+              icon={<ReloadOutlined />}
+              disabled={!canRegeneratePanel}
+              loading={regeneratingPanel}
+              onClick={() => void handleRegeneratePanel()}
+            >
+              重绘当前
+            </Button>
+            <Button
+              size="small"
+              icon={<DownloadOutlined />}
+              disabled={!canDownloadPanel}
+              loading={downloadingPanel}
+              onClick={() => void handleDownloadPanel()}
+            >
+              下载当前
+            </Button>
+            <Button
+              size="small"
+              icon={<DownloadOutlined />}
+              disabled={!canDownload}
+              loading={downloading}
+              onClick={() => void handleDownloadZip()}
+            >
+              打包下载
             </Button>
           </div>
         </header>
@@ -316,6 +488,22 @@ export default function ComicCustomCreatePage() {
               )}
             </div>
           </div>
+
+          {activePanel && (
+            <div className="custom-create__prompt-box">
+              <div className="custom-create__prompt-box-head">
+                <span>第 {activePanel.panelNo} 格 · 实际生图提示</span>
+                <span className="custom-create__prompt-box-hint">可改后点「重绘当前」；有「第N张：」大纲时系统会优先按原文拆格</span>
+              </div>
+              <Input.TextArea
+                value={panelPromptDraft}
+                onChange={(e) => setPanelPromptDraft(e.target.value)}
+                rows={4}
+                disabled={regeneratingPanel || submitting}
+                placeholder="该格送入生图模型的提示词"
+              />
+            </div>
+          )}
         </section>
 
         <aside className="custom-create__list-panel">

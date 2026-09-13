@@ -13,6 +13,7 @@ type Config struct {
 	Database DatabaseConfig `mapstructure:"database"`
 	Redis    RedisConfig    `mapstructure:"redis"`
 	Session  SessionConfig  `mapstructure:"session"`
+	CORS     CORSConfig     `mapstructure:"cors"`
 	Log      LogConfig      `mapstructure:"log"`
 	AI       AIConfig       `mapstructure:"ai"`
 	Storage  StorageConfig  `mapstructure:"storage"`
@@ -148,6 +149,12 @@ func LoadConfig(configPath string) (*Config, error) {
 }
 
 func applyDefaults(cfg *Config) {
+	if len(cfg.CORS.AllowOrigins) == 0 {
+		cfg.CORS.AllowOrigins = []string{"http://localhost:5173"}
+	}
+	if cfg.Session.SameSite == "" {
+		cfg.Session.SameSite = "lax"
+	}
 	if cfg.AI.DashScope.Model == "" {
 		cfg.AI.DashScope.Model = "qwen-plus"
 	}

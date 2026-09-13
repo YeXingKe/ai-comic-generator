@@ -3,12 +3,17 @@ package service
 import (
 	"archive/zip"
 	"context"
+	"encoding/json"
 	"fmt"
 	"image/color"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -24,9 +29,11 @@ import (
 )
 
 const (
-	customPanelCountMin = 2
-	customPanelCountMax = 8
-	customPanelDefault  = 4
+	customPanelCountMin     = 1
+	customPanelCountMax     = 8
+	customPanelDefault      = 4
+	customRefImageMax       = 6
+	customRefImageMaxBytes  = 5 << 20 // 5MB
 )
 
 // CustomComicService 自定义创作：一次多格生图
@@ -57,8 +64,8 @@ func NewCustomComicService(
 	}
 }
 
-// Create 创建任务并异步生成多格
-func (s *CustomComicService) Create(userID int64, req *model.CreateCustomComicRequest) (string, error) {
+// Create 创建任务并异步生成多格；refs 为可选角色参考图（multipart 文件头）
+func (s *CustomComicService) Create(userID int64, req *model.CreateCustomComicRequest, refs []*multipart.FileHeader) (string, error) {
 	prompt := strings.TrimSpace(req.Prompt)
 	if prompt == "" {
 		return "", common.ErrParams.WithMessage("提示词不能为空")
@@ -87,8 +94,20 @@ func (s *CustomComicService) Create(userID int64, req *model.CreateCustomComicRe
 	if panelCount < customPanelCountMin || panelCount > customPanelCountMax {
 		return "", common.ErrParams.WithMessage(fmt.Sprintf("格数需在 %d–%d 之间", customPanelCountMin, customPanelCountMax))
 	}
+	if len(refs) > customRefImageMax {
+		return "", common.ErrParams.WithMessage(fmt.Sprintf("角色参考图最多 %d 张", customRefImageMax))
+	}
 
 	taskID := uuid.NewString()
+	if err := s.localStore.EnsureCustomTaskDir(taskID); err != nil {
+		return "", common.ErrSystem
+	}
+
+	refImages, err := s.saveReferenceImages(context.Background(), taskID, refs)
+	if err != nil {
+		return "", err
+	}
+
 	comic := &model.CustomComic{
 		TaskID:       taskID,
 		UserID:       userID,
@@ -97,6 +116,14 @@ func (s *CustomComicService) Create(userID int64, req *model.CreateCustomComicRe
 		ImageBackend: imageBackend,
 		PanelCount:   panelCount,
 		Status:       model.CustomComicStatusPending,
+	}
+	if len(refImages) > 0 {
+		b, marshalErr := json.Marshal(refImages)
+		if marshalErr != nil {
+			return "", common.ErrSystem
+		}
+		sJSON := string(b)
+		comic.ReferenceImages = &sJSON
 	}
 	if err := s.store.Create(comic); err != nil {
 		return "", common.ErrOperation.WithMessage("创建自定义任务失败")
@@ -110,6 +137,73 @@ func (s *CustomComicService) Create(userID int64, req *model.CreateCustomComicRe
 	}()
 
 	return taskID, nil
+}
+
+func (s *CustomComicService) saveReferenceImages(ctx context.Context, taskID string, refs []*multipart.FileHeader) ([]model.ReferenceImage, error) {
+	if len(refs) == 0 {
+		return nil, nil
+	}
+	out := make([]model.ReferenceImage, 0, len(refs))
+	for i, fh := range refs {
+		if fh == nil {
+			continue
+		}
+		if fh.Size > customRefImageMaxBytes {
+			return nil, common.ErrParams.WithMessage(fmt.Sprintf("角色参考图「%s」超过 5MB", fh.Filename))
+		}
+		ext, ok := allowedRefExt(fh.Filename)
+		if !ok {
+			return nil, common.ErrParams.WithMessage("角色参考图仅支持 jpg / png / webp")
+		}
+		index := i + 1
+		dest := s.localStore.CustomRefPath(taskID, index, ext)
+		if err := saveUploadedFile(fh, dest); err != nil {
+			return nil, common.ErrOperation.WithMessage("保存角色参考图失败")
+		}
+		url := s.localStore.CustomPublicURL(taskID, filepath.Base(dest))
+		if s.cos != nil && s.cos.Enabled() {
+			cosKey := fmt.Sprintf("comics/custom/%s/%s", taskID, filepath.Base(dest))
+			if cosURL, uploadErr := s.cos.UploadFile(ctx, cosKey, dest); uploadErr != nil {
+				log.Printf("custom comic ref cos upload failed taskId=%s: %v", taskID, uploadErr)
+			} else {
+				url = cosURL
+			}
+		}
+		out = append(out, model.ReferenceImage{
+			Index: index,
+			URL:   url,
+			Name:  fh.Filename,
+		})
+	}
+	return out, nil
+}
+
+func saveUploadedFile(fh *multipart.FileHeader, dest string) error {
+	src, err := fh.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+	if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
+		return err
+	}
+	out, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = io.Copy(out, src)
+	return err
+}
+
+func allowedRefExt(filename string) (string, bool) {
+	ext := strings.ToLower(filepath.Ext(filename))
+	switch ext {
+	case ".jpg", ".jpeg", ".png", ".webp":
+		return ext, true
+	default:
+		return "", false
+	}
 }
 
 // GetForUser 查询任务详情（本人或管理员）
@@ -278,10 +372,14 @@ func (s *CustomComicService) runGenerate(ctx context.Context, comic *model.Custo
 		return err
 	}
 
-	prompts, err := s.splitPanelPrompts(ctx, comic.Prompt, comic.PanelCount, comic.AspectRatio)
+	info := comic.ToCustomComicInfo()
+	refPaths := s.localReferencePaths(taskID, info.ReferenceImages)
+	refCount := len(refPaths)
+
+	prompts, err := s.resolvePanelPrompts(ctx, comic.Prompt, comic.PanelCount, comic.AspectRatio, refCount)
 	if err != nil {
-		log.Printf("custom comic split prompts fallback taskId=%s err=%v", taskID, err)
-		prompts = fallbackPanelPrompts(comic.Prompt, comic.PanelCount, comic.AspectRatio)
+		log.Printf("custom comic resolve prompts fallback taskId=%s err=%v", taskID, err)
+		prompts = fallbackPanelPrompts(comic.Prompt, comic.PanelCount, comic.AspectRatio, refCount)
 	}
 
 	generator := s.resolveGenerator(comic.ImageBackend)
@@ -290,47 +388,168 @@ func (s *CustomComicService) runGenerate(ctx context.Context, comic *model.Custo
 
 	for i := 0; i < comic.PanelCount; i++ {
 		panelNo := i + 1
-		imagePrompt := prompts[i]
-		dest := s.localStore.CustomPanelPath(taskID, panelNo)
-
-		var genErr error
-		if generator != nil {
-			if sized, ok := generator.(SizedImageGenerator); ok && sizeHint != "" {
-				genErr = sized.GenerateWithSize(ctx, imagePrompt, dest, sizeHint)
-			} else {
-				genErr = generator.Generate(ctx, imagePrompt, dest)
-			}
-		} else {
-			log.Printf("custom comic generator disabled, placeholder: taskId=%s panel=%d", taskID, panelNo)
-			genErr = renderCustomPlaceholder(dest, comic.AspectRatio, panelNo, imagePrompt)
-		}
+		panel, genErr := s.generateOnePanel(ctx, comic, panelNo, prompts[i], refPaths, generator, sizeHint)
 		if genErr != nil {
 			_ = s.store.MarkFailed(taskID, fmt.Sprintf("panel %d: %v", panelNo, genErr))
 			return fmt.Errorf("panel %d: %w", panelNo, genErr)
 		}
-
-		url := s.localStore.CustomPublicURL(taskID, fmt.Sprintf("panel_%d.png", panelNo))
-		if s.cos != nil && s.cos.Enabled() {
-			cosKey := fmt.Sprintf("comics/custom/%s/panel_%d.png", taskID, panelNo)
-			if cosURL, uploadErr := s.cos.UploadFile(ctx, cosKey, dest); uploadErr != nil {
-				log.Printf("custom comic cos upload failed taskId=%s panel=%d: %v", taskID, panelNo, uploadErr)
-			} else {
-				url = cosURL
-			}
-		}
-
-		results = append(results, model.PanelImageResult{
-			PanelNo:     panelNo,
-			URL:         url,
-			Method:      panelImageMethod(generator != nil),
-			ImagePrompt: imagePrompt,
-		})
+		results = append(results, panel)
 		if saveErr := s.store.SavePanelImages(taskID, results); saveErr != nil {
 			log.Printf("custom comic save panels failed taskId=%s: %v", taskID, saveErr)
 		}
 	}
 
 	return s.store.MarkCompleted(taskID, results)
+}
+
+// RegeneratePanel 同步重绘某一格（不改任务状态，便于前端局部刷新）
+func (s *CustomComicService) RegeneratePanel(userID int64, req *model.RegenerateCustomPanelRequest, isAdmin bool) (*model.CustomComicInfo, error) {
+	if req == nil || strings.TrimSpace(req.TaskID) == "" || req.PanelNo <= 0 {
+		return nil, common.ErrParams
+	}
+	comic, err := s.store.GetByTaskID(req.TaskID)
+	if err != nil {
+		return nil, common.ErrNotFound
+	}
+	if !isAdmin && comic.UserID != userID {
+		return nil, common.ErrNoAuth
+	}
+	if comic.Status != model.CustomComicStatusCompleted && comic.Status != model.CustomComicStatusFailed {
+		return nil, common.ErrOperation.WithMessage("任务生成中，请稍后再试")
+	}
+	if req.PanelNo > comic.PanelCount {
+		return nil, common.ErrParams.WithMessage("分镜格号超出范围")
+	}
+
+	info := comic.ToCustomComicInfo()
+	refPaths := s.localReferencePaths(comic.TaskID, info.ReferenceImages)
+	refCount := len(refPaths)
+
+	imagePrompt := strings.TrimSpace(req.Prompt)
+	if imagePrompt == "" {
+		for _, p := range info.PanelImages {
+			if p.PanelNo == req.PanelNo && strings.TrimSpace(p.ImagePrompt) != "" {
+				imagePrompt = p.ImagePrompt
+				break
+			}
+		}
+	}
+	if imagePrompt == "" {
+		prompts, resolveErr := s.resolvePanelPrompts(context.Background(), comic.Prompt, comic.PanelCount, comic.AspectRatio, refCount)
+		if resolveErr != nil || req.PanelNo > len(prompts) {
+			return nil, common.ErrOperation.WithMessage("无法解析该格提示词，请手动填写")
+		}
+		imagePrompt = prompts[req.PanelNo-1]
+	} else {
+		aspectHint := aspectRatioPromptHint(comic.AspectRatio)
+		imagePrompt = enforceSinglePanelImagePrompt(imagePrompt, aspectHint, refCount > 0)
+		imagePrompt = common.TruncateHunyuanPrompt(common.SanitizeHunyuanImagePrompt(imagePrompt))
+	}
+
+	if err := s.localStore.EnsureCustomTaskDir(comic.TaskID); err != nil {
+		return nil, common.ErrSystem
+	}
+
+	generator := s.resolveGenerator(comic.ImageBackend)
+	sizeHint := aspectRatioToGeneratorSize(comic.AspectRatio, comic.ImageBackend)
+	panel, genErr := s.generateOnePanel(context.Background(), comic, req.PanelNo, imagePrompt, refPaths, generator, sizeHint)
+	if genErr != nil {
+		return nil, common.ErrOperation.WithMessage(fmt.Sprintf("重绘失败: %v", genErr))
+	}
+
+	panels := info.PanelImages
+	replaced := false
+	for i := range panels {
+		if panels[i].PanelNo == req.PanelNo {
+			panels[i] = panel
+			replaced = true
+			break
+		}
+	}
+	if !replaced {
+		panels = append(panels, panel)
+	}
+	if err := s.store.SavePanelImages(comic.TaskID, panels); err != nil {
+		return nil, common.ErrSystem
+	}
+	if comic.Status == model.CustomComicStatusFailed && len(panels) >= comic.PanelCount {
+		_ = s.store.MarkCompleted(comic.TaskID, panels)
+	}
+
+	return s.GetForUser(comic.TaskID, userID, isAdmin)
+}
+
+func (s *CustomComicService) generateOnePanel(
+	ctx context.Context,
+	comic *model.CustomComic,
+	panelNo int,
+	imagePrompt string,
+	refPaths []string,
+	generator ImageGenerator,
+	sizeHint string,
+) (model.PanelImageResult, error) {
+	taskID := comic.TaskID
+	dest := s.localStore.CustomPanelPath(taskID, panelNo)
+
+	var genErr error
+	if generator != nil {
+		if refGen, ok := generator.(RefImageGenerator); ok && len(refPaths) > 0 {
+			charPrompt := "ONE single full-bleed illustration only. Never draw a multi-panel comic page or grid. Use uploaded image(s) ONLY as character reference sheets (same face hair outfit). Do not copy sheet pose or background. Scene: " + imagePrompt
+			genErr = refGen.GenerateWithRefs(ctx, charPrompt, dest, sizeHint, refPaths)
+		} else if sized, ok := generator.(SizedImageGenerator); ok && sizeHint != "" {
+			genErr = sized.GenerateWithSize(ctx, imagePrompt, dest, sizeHint)
+		} else {
+			genErr = generator.Generate(ctx, imagePrompt, dest)
+		}
+	} else {
+		log.Printf("custom comic generator disabled, placeholder: taskId=%s panel=%d", taskID, panelNo)
+		genErr = renderCustomPlaceholder(dest, comic.AspectRatio, panelNo, imagePrompt)
+	}
+	if genErr != nil {
+		return model.PanelImageResult{}, genErr
+	}
+
+	url := s.localStore.CustomPublicURL(taskID, fmt.Sprintf("panel_%d.png", panelNo))
+	if s.cos != nil && s.cos.Enabled() {
+		cosKey := fmt.Sprintf("comics/custom/%s/panel_%d.png", taskID, panelNo)
+		if cosURL, uploadErr := s.cos.UploadFile(ctx, cosKey, dest); uploadErr != nil {
+			log.Printf("custom comic cos upload failed taskId=%s panel=%d: %v", taskID, panelNo, uploadErr)
+		} else {
+			url = cosURL
+		}
+	}
+
+	return model.PanelImageResult{
+		PanelNo:     panelNo,
+		URL:         url,
+		Method:      panelImageMethod(generator != nil),
+		ImagePrompt: imagePrompt,
+	}, nil
+}
+
+func (s *CustomComicService) localReferencePaths(taskID string, refs []model.ReferenceImage) []string {
+	paths := make([]string, 0, len(refs))
+	for _, ref := range refs {
+		candidates := []string{
+			s.localStore.CustomRefPath(taskID, ref.Index, filepath.Ext(ref.URL)),
+			s.localStore.CustomRefPath(taskID, ref.Index, ".png"),
+			s.localStore.CustomRefPath(taskID, ref.Index, ".jpg"),
+			s.localStore.CustomRefPath(taskID, ref.Index, ".jpeg"),
+			s.localStore.CustomRefPath(taskID, ref.Index, ".webp"),
+		}
+		if ref.Name != "" {
+			candidates = append([]string{
+				s.localStore.CustomRefPath(taskID, ref.Index, filepath.Ext(ref.Name)),
+			}, candidates...)
+		}
+		for _, p := range candidates {
+			if st, err := os.Stat(p); err == nil && !st.IsDir() {
+				paths = append(paths, p)
+				break
+			}
+		}
+	}
+	return paths
 }
 
 func (s *CustomComicService) resolveGenerator(backend string) ImageGenerator {
@@ -351,24 +570,98 @@ type panelPromptList struct {
 	} `json:"panels"`
 }
 
-func (s *CustomComicService) splitPanelPrompts(ctx context.Context, userPrompt string, panelCount int, aspectRatio string) ([]string, error) {
+func (s *CustomComicService) resolvePanelPrompts(ctx context.Context, userPrompt string, panelCount int, aspectRatio string, refCount int) ([]string, error) {
+	aspectHint := aspectRatioPromptHint(aspectRatio)
+	// 优先按「第N张：」结构化解析，避免 LLM 改写丢失用户分镜
+	if beats, ok := parseStructuredBeats(userPrompt, panelCount); ok {
+		out := make([]string, panelCount)
+		for i := 0; i < panelCount; i++ {
+			p := enforceSinglePanelImagePrompt(beats[i], aspectHint, refCount > 0)
+			out[i] = common.TruncateHunyuanPrompt(common.SanitizeHunyuanImagePrompt(p))
+		}
+		log.Printf("custom comic prompts: structured beats used count=%d", panelCount)
+		return out, nil
+	}
+	return s.splitPanelPrompts(ctx, userPrompt, panelCount, aspectRatio, refCount)
+}
+
+var structuredBeatHeadRe = regexp.MustCompile(`第\s*(\d+)\s*张[^\n：:]*[：:]`)
+
+// parseStructuredBeats 从用户大纲解析「第N张：…」；凑齐 1..panelCount 才成功
+func parseStructuredBeats(userPrompt string, panelCount int) ([]string, bool) {
+	heads := structuredBeatHeadRe.FindAllStringSubmatchIndex(userPrompt, -1)
+	if len(heads) == 0 {
+		return nil, false
+	}
+	byNo := make(map[int]string, len(heads))
+	for i, loc := range heads {
+		// loc: full start/end, group1 start/end
+		if len(loc) < 4 {
+			continue
+		}
+		n, err := strconv.Atoi(userPrompt[loc[2]:loc[3]])
+		if err != nil || n <= 0 {
+			continue
+		}
+		contentStart := loc[1]
+		contentEnd := len(userPrompt)
+		if i+1 < len(heads) {
+			contentEnd = heads[i+1][0]
+		}
+		text := strings.TrimSpace(userPrompt[contentStart:contentEnd])
+		for _, stop := range []string{"【后期", "【质检", "### "} {
+			if idx := strings.Index(text, stop); idx >= 0 {
+				text = strings.TrimSpace(text[:idx])
+			}
+		}
+		if idx := strings.Index(text, "【对话"); idx >= 0 {
+			text = strings.TrimSpace(text[:idx])
+		}
+		text = strings.Join(strings.Fields(text), " ")
+		if text == "" {
+			continue
+		}
+		byNo[n] = text
+	}
+	out := make([]string, panelCount)
+	for i := 1; i <= panelCount; i++ {
+		t, ok := byNo[i]
+		if !ok {
+			return nil, false
+		}
+		out[i-1] = t
+	}
+	return out, true
+}
+
+func (s *CustomComicService) splitPanelPrompts(ctx context.Context, userPrompt string, panelCount int, aspectRatio string, refCount int) ([]string, error) {
 	if s.llm == nil {
-		return fallbackPanelPrompts(userPrompt, panelCount, aspectRatio), nil
+		return fallbackPanelPrompts(userPrompt, panelCount, aspectRatio, refCount), nil
 	}
 	aspectHint := aspectRatioPromptHint(aspectRatio)
-	meta := fmt.Sprintf(`You are a comic storyboard artist. Split the user's idea into exactly %d sequential comic panels.
+	refHint := ""
+	if refCount > 0 {
+		refHint = fmt.Sprintf(`
+- User uploaded %d CHARACTER REFERENCE sheet(s) (character design / turnaround / portrait). These define WHO the characters are.
+- Every panel imagePrompt MUST lock character identity to those sheets: same face, hair, body type, clothing, species/features. Do NOT invent a different character look.
+- Do NOT treat the sheets as scene, composition, or background references — only character appearance.`, refCount)
+	}
+	meta := fmt.Sprintf(`You are a comic storyboard artist. Split the user's idea into exactly %d sequential beats.
 Return ONLY valid JSON:
 {"panels":[{"panelNo":1,"imagePrompt":"..."},...]}
 
-Rules for each imagePrompt:
-- English keyword-style, under 180 characters
-- Include: subject, action, scene, lighting, cartoon comic style
+CRITICAL for every imagePrompt (this will be sent to an image model one image at a time):
+- Describe ONLY ONE moment / ONE camera shot for THAT beat
+- Must be a SINGLE full-bleed illustration filling the whole frame
+- FORBIDDEN in imagePrompt: multi-panel page, comic strip layout, grid, collage, gutters, panel borders, "6 panels", storyboard sheet, manga page with multiple frames
+- English keyword-style, under 160 characters
+- Include: subject, action, scene, lighting, atmospheric anime illustration style
 - Must include aspect framing: %s
-- No text, letters, speech bubbles, watermark
-- Panels should form a coherent short sequence from the same idea
+- No text, letters, speech bubbles, watermark, UI text
+- Beats form one coherent short sequence%s
 
-User idea:
-%s`, panelCount, aspectHint, userPrompt)
+User idea (story bible only — extract each beat separately, never copy "generate N images" instructions into imagePrompt):
+%s`, panelCount, aspectHint, refHint, userPrompt)
 
 	content, err := llms.GenerateFromSinglePrompt(ctx, s.llm, meta)
 	if err != nil {
@@ -387,24 +680,84 @@ User idea:
 		if p == "" {
 			return nil, fmt.Errorf("empty imagePrompt at panel %d", i+1)
 		}
-		if !strings.Contains(strings.ToLower(p), "comic") {
-			p = p + ", cartoon comic panel, " + aspectHint
-		}
+		p = enforceSinglePanelImagePrompt(p, aspectHint, refCount > 0)
 		out[i] = common.TruncateHunyuanPrompt(common.SanitizeHunyuanImagePrompt(p))
 	}
 	return out, nil
 }
 
-func fallbackPanelPrompts(userPrompt string, panelCount int, aspectRatio string) []string {
+func fallbackPanelPrompts(userPrompt string, panelCount int, aspectRatio string, refCount int) []string {
 	hint := aspectRatioPromptHint(aspectRatio)
+	if beats, ok := parseStructuredBeats(userPrompt, panelCount); ok {
+		out := make([]string, panelCount)
+		for i := 0; i < panelCount; i++ {
+			p := enforceSinglePanelImagePrompt(beats[i], hint, refCount > 0)
+			out[i] = common.TruncateHunyuanPrompt(common.SanitizeHunyuanImagePrompt(p))
+		}
+		return out
+	}
+	story := summarizeUserIdeaForFallback(userPrompt)
+	refSuffix := ""
+	if refCount > 0 {
+		refSuffix = ", same character as character reference sheet, consistent face hair outfit"
+	}
 	out := make([]string, panelCount)
 	for i := 0; i < panelCount; i++ {
-		out[i] = common.TruncateHunyuanPrompt(fmt.Sprintf(
-			"cartoon comic panel, %s, panel %d of %d sequence, %s, no text, no watermark",
-			hint, i+1, panelCount, strings.TrimSpace(userPrompt),
-		))
+		raw := fmt.Sprintf(
+			"ONE single full-bleed illustration only, not multi-panel comic page, not grid, %s, beat %d of %d, %s%s, no text no bubbles",
+			hint, i+1, panelCount, story, refSuffix,
+		)
+		out[i] = common.TruncateHunyuanPrompt(common.SanitizeHunyuanImagePrompt(raw))
 	}
 	return out
+}
+
+// enforceSinglePanelImagePrompt 强制单格满幅，避免模型画出合并分镜页
+func enforceSinglePanelImagePrompt(p, aspectHint string, withCharRef bool) string {
+	lower := strings.ToLower(p)
+	// 去掉易诱发多格页的词
+	for _, bad := range []string{
+		"multi-panel", "multipanel", "multi panel", "comic page", "manga page",
+		"storyboard sheet", "panel grid", "comic strip", "6 panels", "4 panels", "8 panels",
+	} {
+		if strings.Contains(lower, bad) {
+			p = strings.ReplaceAll(p, bad, "")
+			lower = strings.ToLower(p)
+		}
+	}
+	prefix := "ONE single full-bleed shot only, no multi-panel page, no grid collage, "
+	if !strings.HasPrefix(lower, "one single") && !strings.Contains(lower, "full-bleed") {
+		p = prefix + p
+	}
+	if !strings.Contains(strings.ToLower(p), aspectHint) {
+		p = p + ", " + aspectHint
+	}
+	if withCharRef && !strings.Contains(strings.ToLower(p), "character reference") {
+		p = p + ", same character as character reference sheet"
+	}
+	if !strings.Contains(strings.ToLower(p), "no text") {
+		p = p + ", no text no speech bubbles"
+	}
+	return strings.Join(strings.Fields(p), " ")
+}
+
+// summarizeUserIdeaForFallback 避免把「一次性生成N张+全部分镜」整段塞进单张生图
+func summarizeUserIdeaForFallback(userPrompt string) string {
+	s := strings.TrimSpace(userPrompt)
+	// 优先取「本集故事」一行
+	for _, line := range strings.Split(s, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "【本集故事】") {
+			return strings.TrimSpace(strings.TrimPrefix(line, "【本集故事】"))
+		}
+	}
+	// 去掉明显的批量生成指令
+	s = strings.ReplaceAll(s, "一次性生成", "")
+	s = strings.ReplaceAll(s, "分别生成", "")
+	if len([]rune(s)) > 80 {
+		return string([]rune(s)[:80])
+	}
+	return s
 }
 
 func isValidAspectRatio(v string) bool {

@@ -83,6 +83,7 @@ create table if not exists custom_comic
     imageBackend varchar(50)  default 'hunyuan'     not null comment '生图后端',
     panelCount   int          default 4             not null comment '分镜格数 2-8',
     panelImages  json                               null comment '分镜图片列表',
+    referenceImages json                            null comment '角色参考图列表（角色设定/立绘）',
     status       varchar(20)  default 'PENDING'     not null comment 'PENDING/PROCESSING/COMPLETED/FAILED',
     errorMessage text                               null comment '失败错误信息',
     createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',

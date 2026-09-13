@@ -48,9 +48,9 @@ func (s *UserService) Register(req *model.RegisterRequest) (int64, error) {
 		return 0, common.ErrParams.WithMessage("账号重复") // 拒绝重复注册
 	}
 
-	hashed, err := hashPassword(req.UserPassword)
-	if err != nil {
-		return 0, common.ErrSystem
+	hashed, err := hashPassword(req.UserPassword) // bcrypt 哈希明文密码
+	if err != nil { // 哈希失败
+		return 0, common.ErrSystem // 系统错误
 	}
 	userName := "无名"
 	now := time.Now()

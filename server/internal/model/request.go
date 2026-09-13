@@ -9,8 +9,8 @@ type RegisterRequest struct {
 
 // LoginRequest 用户登录请求
 type LoginRequest struct {
-	UserAccount  string `json:"userAccount" binding:"required,min=4" example:"zhangsan"`  // 登录账号
-	UserPassword string `json:"userPassword" binding:"required,min=8" example:"12345678"` // 登录密码
+	UserAccount  string `json:"userAccount" form:"userAccount" example:"zhangsan"`  // 登录账号
+	UserPassword string `json:"userPassword" form:"userPassword" example:"12345678"` // 登录密码
 }
 
 // AddUserRequest 创建用户请求（管理员）

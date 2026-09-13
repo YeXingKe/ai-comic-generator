@@ -1,7 +1,11 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"net/http"
+	"strings"
 
 	"github.com/ai-comic-generator/server/internal/common"
 	"github.com/ai-comic-generator/server/internal/model"
@@ -59,14 +63,14 @@ func (h *UserHandler) Register(c *gin.Context) {
 // @Failure      200   {object}  common.BaseResponse  "业务错误（账号或密码错误等）"
 // @Router       /user/login [post]
 func (h *UserHandler) Login(c *gin.Context) {
-	var req model.LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, common.Error(common.ErrParams))
+	req, err := bindLoginRequest(c)
+	if err != nil {
+		c.JSON(http.StatusOK, common.Error(common.ErrParams.WithMessage("请提交 JSON，字段为 userAccount、userPassword")))
 		return
 	}
 
 	session := sessions.Default(c) // 当前请求的 Session
-	loginUser, err := h.svc.Login(&req, session) // 调用 UserService 的 Login 方法
+	loginUser, err := h.svc.Login(req, session) // 调用 UserService 的 Login 方法
 	if err != nil {
 		handleError(c, err) // 统一错误处理
 		return
@@ -319,6 +323,52 @@ func (h *UserHandler) ListPageVO(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, common.Success(page))
+}
+
+// loginPayload 兼容 JSON / 表单，以及 username、password 等常见别名
+type loginPayload struct {
+	UserAccount  string `json:"userAccount" form:"userAccount"`
+	UserPassword string `json:"userPassword" form:"userPassword"`
+	Username     string `json:"username" form:"username"`
+	Account      string `json:"account" form:"account"`
+	Password     string `json:"password" form:"password"`
+}
+
+func (p loginPayload) toRequest() *model.LoginRequest {
+	account := firstNonEmpty(p.UserAccount, p.Username, p.Account)
+	password := firstNonEmpty(p.UserPassword, p.Password)
+	return &model.LoginRequest{UserAccount: account, UserPassword: password}
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, v := range values {
+		if s := strings.TrimSpace(v); s != "" {
+			return s
+		}
+	}
+	return ""
+}
+
+func bindLoginRequest(c *gin.Context) (*model.LoginRequest, error) {
+	var payload loginPayload
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		return nil, err
+	}
+	c.Request.Body = io.NopCloser(bytes.NewReader(body))
+
+	trim := bytes.TrimSpace(body)
+	if len(trim) > 0 && trim[0] == '{' {
+		if err := json.Unmarshal(trim, &payload); err != nil {
+			return nil, err
+		}
+		return payload.toRequest(), nil
+	}
+
+	if err := c.ShouldBind(&payload); err != nil {
+		return nil, err
+	}
+	return payload.toRequest(), nil
 }
 
 // handleError 统一错误处理

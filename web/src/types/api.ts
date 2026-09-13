@@ -276,11 +276,25 @@ export type AspectRatio = '1:1' | '16:9' | '9:16' | '2:3'
 /** 自定义创作任务状态 */
 export type CustomComicStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
 
+/** 角色参考图（角色设定/立绘，用于跨格外貌一致） */
+export interface ReferenceImage {
+  index: number
+  url: string
+  name?: string
+}
+
 export interface CreateCustomComicRequest {
   prompt: string
   aspectRatio?: AspectRatio
   imageBackend?: ImageBackend
   panelCount?: number
+}
+
+export interface RegenerateCustomPanelRequest {
+  taskId: string
+  panelNo: number
+  /** 可选：覆盖该格生图提示 */
+  prompt?: string
 }
 
 export interface CustomComicInfo {
@@ -294,6 +308,7 @@ export interface CustomComicInfo {
   imageBackend: ImageBackend
   panelCount: number
   panelImages: PanelImageResult[]
+  referenceImages?: ReferenceImage[]
   status: CustomComicStatus
   errorMessage?: string | null
   createTime: string

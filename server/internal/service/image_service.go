@@ -28,6 +28,12 @@ type SizedImageGenerator interface {
 	GenerateWithSize(ctx context.Context, prompt, destPath, size string) error
 }
 
+// RefImageGenerator 支持参考图生图（如 OpenAI images/edits）
+type RefImageGenerator interface {
+	SizedImageGenerator
+	GenerateWithRefs(ctx context.Context, prompt, destPath, size string, refPaths []string) error
+}
+
 // ImageService 步骤 4：生图（支持混元 / OpenAI 兼容后端；未启用时生成占位图）
 type ImageService struct {
 	generators    map[string]ImageGenerator // 生图后端注册表：image_backend 值 -> 对应 generator

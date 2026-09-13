@@ -55,6 +55,57 @@
   margin-top: 4px;
 }
 
+.custom-create__ref-upload-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--app-text-secondary, #64748b);
+  font-size: 12px;
+}
+
+.custom-create__task-refs {
+  margin-top: 10px;
+}
+
+.custom-create__task-refs-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--app-text-secondary, #64748b);
+}
+
+.custom-create__task-refs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.custom-create__prompt-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--app-surface, #fff);
+  border: 1px solid var(--app-surface-border, rgba(15, 23, 42, 0.08));
+}
+
+.custom-create__prompt-box-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-text, #0f172a);
+}
+
+.custom-create__prompt-box-hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--app-text-secondary, #64748b);
+}
+
 /* 顶栏：横跨预览 + 列表 */
 .custom-create__toolbar {
   grid-area: toolbar;

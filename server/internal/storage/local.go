@@ -42,6 +42,17 @@ func (l *Local) CustomPanelPath(taskID string, panelNo int) string {
 	return filepath.Join(l.CustomTaskDir(taskID), fmt.Sprintf("panel_%d.png", panelNo))
 }
 
+// CustomRefPath 自定义创作参考图路径
+func (l *Local) CustomRefPath(taskID string, index int, ext string) string {
+	if ext == "" {
+		ext = ".png"
+	}
+	if ext[0] != '.' {
+		ext = "." + ext
+	}
+	return filepath.Join(l.CustomTaskDir(taskID), fmt.Sprintf("ref_%d%s", index, ext))
+}
+
 func (l *Local) ComposedPath(taskID string) string {
 	return filepath.Join(l.TaskDir(taskID), "composed.png")
 }

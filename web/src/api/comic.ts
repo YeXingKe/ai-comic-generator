@@ -13,6 +13,7 @@ import type {
   PublishResult,
   QueryComicRequest,
   QueryCustomComicRequest,
+  RegenerateCustomPanelRequest,
   RegeneratePanelRequest,
   RetryComicRequest,
   StartComicRequest,
@@ -22,7 +23,23 @@ export async function createComic(body: CreateComicRequest) {
   return unwrap(await request.post<BaseResponse<{ taskId: string }>>('/comic/create', body))
 }
 
-export async function createCustomComic(body: CreateCustomComicRequest) {
+export async function createCustomComic(body: CreateCustomComicRequest, referenceFiles?: File[]) {
+  const files = (referenceFiles || []).filter(Boolean)
+  if (files.length > 0) {
+    const fd = new FormData()
+    fd.append('prompt', body.prompt)
+    if (body.aspectRatio) fd.append('aspectRatio', body.aspectRatio)
+    if (body.imageBackend) fd.append('imageBackend', body.imageBackend)
+    if (body.panelCount != null) fd.append('panelCount', String(body.panelCount))
+    for (const file of files) {
+      fd.append('references', file)
+    }
+    return unwrap(
+      await request.post<BaseResponse<{ taskId: string }>>('/comic/custom/create', fd, {
+        timeout: 120000,
+      }),
+    )
+  }
   return unwrap(await request.post<BaseResponse<{ taskId: string }>>('/comic/custom/create', body))
 }
 
@@ -32,6 +49,15 @@ export async function getCustomComic(taskId: string) {
 
 export async function listCustomComicPage(body: QueryCustomComicRequest) {
   return unwrap(await request.post<BaseResponse<CustomComicPageResult>>('/comic/custom/page', body))
+}
+
+/** 重绘自定义创作某一格（可覆盖该格 imagePrompt） */
+export async function regenerateCustomPanel(body: RegenerateCustomPanelRequest) {
+  return unwrap(
+    await request.post<BaseResponse<CustomComicInfo>>('/comic/custom/regenerate-panel', body, {
+      timeout: 180000,
+    }),
+  )
 }
 
 /** 下载自定义创作全部分镜 zip（需登录 Cookie） */

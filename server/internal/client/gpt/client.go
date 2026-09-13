@@ -3,9 +3,11 @@ package gpt // OpenAI 图片生成客户端包（支持中转站 API）
 import (
 	"bytes"         // 用于将 JSON 字节转换为 io.Reader
 	"context"       // 控制请求超时与取消
+	"encoding/base64"
 	"encoding/json" // JSON 序列化与反序列化
 	"fmt"           // 格式化错误信息
 	"io"            // 读取 HTTP 响应体与文件拷贝
+	"mime/multipart"
 	"net/http"      // HTTP 客户端请求
 	"os"            // 文件创建与目录操作
 	"path/filepath" // 路径解析与目录提取
@@ -145,45 +147,115 @@ func (c *Client) GenerateWithSize(ctx context.Context, prompt, destPath, size st
 	req.Header.Set("Authorization", "Bearer "+c.apiKey) // 设置 Authorization 头（Bearer Token 认证）
 	req.Header.Set("Content-Type", "application/json")  // 设置 Content-Type 为 JSON
 
-	// 发送请求
-	resp, err := c.client.Do(req) // 发送 HTTP 请求到 OpenAI API
-	if err != nil {               // 网络错误或超时
-		return fmt.Errorf("http request: %w", err) // 包装错误并返回
-	}
-	defer resp.Body.Close() // 确保响应体在函数结束时关闭
+	return c.doImageRequest(ctx, req, destPath)
+}
 
-	// 读取响应
-	bodyBytes, err := io.ReadAll(resp.Body) // 读取完整的响应体字节
-	if err != nil {                         // 读取失败
-		return fmt.Errorf("read response: %w", err) // 包装错误并返回
+// GenerateWithRefs 基于参考图编辑/生图（OpenAI images/edits）
+func (c *Client) GenerateWithRefs(ctx context.Context, prompt, destPath, size string, refPaths []string) error {
+	if !c.Enabled() {
+		return fmt.Errorf("openai image generator disabled")
+	}
+	if len(refPaths) == 0 {
+		return c.GenerateWithSize(ctx, prompt, destPath, size)
+	}
+	if size == "" {
+		size = c.size
 	}
 
-	// 检查错误响应
-	if resp.StatusCode != http.StatusOK { // 如果 HTTP 状态码不是 200
-		var errResp errorResponse                                   // 定义错误响应结构体
-		if err := json.Unmarshal(bodyBytes, &errResp); err == nil { // 尝试解析为错误响应格式
-			return fmt.Errorf("openai api error [%d]: %s (type: %s, code: %s)", // 返回格式化的 API 错误信息
-				resp.StatusCode,       // HTTP 状态码
-				errResp.Error.Message, // 错误消息
-				errResp.Error.Type,    // 错误类型
-				errResp.Error.Code)    // 错误代码
+	var buf bytes.Buffer
+	w := multipart.NewWriter(&buf)
+	_ = w.WriteField("model", c.model)
+	_ = w.WriteField("prompt", prompt)
+	_ = w.WriteField("n", "1")
+	_ = w.WriteField("size", size)
+	if c.quality != "" {
+		_ = w.WriteField("quality", c.quality)
+	}
+	_ = w.WriteField("response_format", "url")
+
+	for _, path := range refPaths {
+		if err := addMultipartFile(w, "image[]", path); err != nil {
+			_ = w.Close()
+			return err
 		}
-		return fmt.Errorf("http status %d: %s", resp.StatusCode, string(bodyBytes)) // 解析失败则返回原始响应
+	}
+	if err := w.Close(); err != nil {
+		return fmt.Errorf("close multipart: %w", err)
 	}
 
-	// 解析成功响应
-	var imgResp imageResponse                                   // 定义图片响应结构体
-	if err := json.Unmarshal(bodyBytes, &imgResp); err != nil { // 反序列化 JSON 响应
-		return fmt.Errorf("unmarshal response: %w", err) // 解析失败返回错误
+	req, err := http.NewRequestWithContext(ctx, "POST", c.baseURL+"/v1/images/edits", &buf)
+	if err != nil {
+		return fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	return c.doImageRequest(ctx, req, destPath)
+}
+
+func addMultipartFile(w *multipart.Writer, field, path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("open ref image: %w", err)
+	}
+	defer f.Close()
+	part, err := w.CreateFormFile(field, filepath.Base(path))
+	if err != nil {
+		return fmt.Errorf("create form file: %w", err)
+	}
+	if _, err := io.Copy(part, f); err != nil {
+		return fmt.Errorf("copy ref image: %w", err)
+	}
+	return nil
+}
+
+func (c *Client) doImageRequest(ctx context.Context, req *http.Request, destPath string) error {
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("http request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read response: %w", err)
 	}
 
-	if len(imgResp.Data) == 0 || imgResp.Data[0].URL == "" { // 检查响应中是否有图片 URL
-		return fmt.Errorf("empty image response") // 没有图片数据则返回错误
+	if resp.StatusCode != http.StatusOK {
+		var errResp errorResponse
+		if err := json.Unmarshal(bodyBytes, &errResp); err == nil && errResp.Error.Message != "" {
+			return fmt.Errorf("openai api error [%d]: %s (type: %s, code: %s)",
+				resp.StatusCode, errResp.Error.Message, errResp.Error.Type, errResp.Error.Code)
+		}
+		return fmt.Errorf("http status %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	// 下载图片
-	imageURL := imgResp.Data[0].URL                 // 提取第一张图片的 URL
-	return c.downloadImage(ctx, imageURL, destPath) // 调用下载方法保存到本地
+	var imgResp imageResponse
+	if err := json.Unmarshal(bodyBytes, &imgResp); err != nil {
+		return fmt.Errorf("unmarshal response: %w", err)
+	}
+	if len(imgResp.Data) == 0 {
+		return fmt.Errorf("empty image response")
+	}
+	item := imgResp.Data[0]
+	if item.URL != "" {
+		return c.downloadImage(ctx, item.URL, destPath)
+	}
+	if item.B64JSON != "" {
+		return c.writeB64Image(item.B64JSON, destPath)
+	}
+	return fmt.Errorf("empty image response")
+}
+
+func (c *Client) writeB64Image(b64, destPath string) error {
+	data, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		return fmt.Errorf("decode b64 image: %w", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+		return fmt.Errorf("create directory: %w", err)
+	}
+	return os.WriteFile(destPath, data, 0o644)
 }
 
 // downloadImage 下载图片到本地
