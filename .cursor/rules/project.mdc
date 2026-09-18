@@ -40,11 +40,14 @@ Hooks（`.cursor/hooks.json`）：编辑后格式化，`git commit` 前 lint + �
 <type>(<scope>): <subject>
 
 type：feat | fix | docs | style | refactor | perf | test | chore | ci | build | revert
+scope（推荐固定）：web | server | docs | ci | chore
+subject：简体中文，header 整行 ≤ 100 字符
 示例：feat(web): 添加用户中心表格
       fix(server): 修复登录 session 过期
 ```
 
-手动校验：`echo "feat: demo" | npm run commitlint`
+- **Source Control ✨ 生成**：读仓库根 **`.cursorrules`**（中文 subject + 上表 scope）；不读 `.cursor/rules` 与 Skill。Agent 里用 **`/git-commit`** 更完整。
+- 手动校验：`echo "feat: demo" | npm run commitlint`
 
 默认管理员（自动创建）：`admin` / `admin123456`
 
