@@ -19,6 +19,7 @@ type Config struct {
 	Storage  StorageConfig  `mapstructure:"storage"`
 	COS      COSConfig      `mapstructure:"cos"`
 	WeChat   WeChatConfig   `mapstructure:"wechat"`
+	Pay      PayConfig      `mapstructure:"pay"`
 }
 
 type ServerConfig struct {
@@ -129,6 +130,31 @@ type WeChatConfig struct {
 	Enabled   bool   `mapstructure:"enabled"`
 }
 
+// PayConfig 积分充值（支付宝当面付等）
+type PayConfig struct {
+	MockEnabled   bool              `mapstructure:"mock_enabled"`
+	NotifyBaseURL string            `mapstructure:"notify_base_url"`
+	Packages      []PayPackageItem  `mapstructure:"packages"`
+	Alipay        PayAlipayConfig   `mapstructure:"alipay"`
+}
+
+// PayPackageItem 充值套餐（与 model.PayPackage 字段一致）
+type PayPackageItem struct {
+	Code      string `mapstructure:"code"`
+	Name      string `mapstructure:"name"`
+	AmountFen int    `mapstructure:"amount_fen"`
+	Points    int    `mapstructure:"points"`
+}
+
+// PayAlipayConfig 支付宝开放平台
+type PayAlipayConfig struct {
+	Enabled         bool   `mapstructure:"enabled"`
+	AppID           string `mapstructure:"app_id"`
+	PrivateKey      string `mapstructure:"private_key"`
+	AlipayPublicKey string `mapstructure:"alipay_public_key"`
+	Sandbox         bool   `mapstructure:"sandbox"`
+}
+
 func LoadConfig(configPath string) (*Config, error) {
 	v := viper.New()
 	v.SetConfigFile(configPath)
@@ -190,6 +216,13 @@ func applyDefaults(cfg *Config) {
 	}
 	if cfg.Storage.PublicURL == "" {
 		cfg.Storage.PublicURL = "/static/comics"
+	}
+	if len(cfg.Pay.Packages) == 0 {
+		cfg.Pay.Packages = []PayPackageItem{
+			{Code: "p60", Name: "入门包", AmountFen: 600, Points: 60},
+			{Code: "p180", Name: "常用包", AmountFen: 1800, Points: 200},
+			{Code: "p680", Name: "创作包", AmountFen: 6800, Points: 800},
+		}
 	}
 }
 

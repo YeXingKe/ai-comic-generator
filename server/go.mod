@@ -13,6 +13,7 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/aiart v1.3.83
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.3.128
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.75
+	github.com/smartwalle/alipay/v3 v3.2.31
 	github.com/tmc/langchaingo v0.1.14
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.12
@@ -22,6 +23,9 @@ require (
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/mozillazg/go-httpheader v0.2.1 // indirect
+	github.com/smartwalle/ncrypto v1.0.4 // indirect
+	github.com/smartwalle/ngx v1.1.2 // indirect
+	github.com/smartwalle/nsign v1.0.9 // indirect
 )
 
 require (

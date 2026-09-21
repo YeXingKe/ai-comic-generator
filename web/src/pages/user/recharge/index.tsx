@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { TablePaginationConfig } from 'antd'
 import {
+  Alert,
   Button,
   Card,
   Col,
@@ -8,6 +9,7 @@ import {
   Modal,
   QRCode,
   Row,
+  Space,
   Spin,
   Statistic,
   Table,
@@ -43,6 +45,7 @@ export default function RechargePage() {
   const [packages, setPackages] = useState<PayPackageVO[]>([])
   const [mockEnabled, setMockEnabled] = useState(false)
   const [alipayEnabled, setAlipayEnabled] = useState(false)
+  const [alipaySandbox, setAlipaySandbox] = useState(false)
   const [buyingCode, setBuyingCode] = useState<string | null>(null)
   const [payOpen, setPayOpen] = useState(false)
   const [activeOrder, setActiveOrder] = useState<{
@@ -68,6 +71,7 @@ export default function RechargePage() {
         setPackages(res.data.packages ?? [])
         setMockEnabled(res.data.mockEnabled)
         setAlipayEnabled(res.data.alipayEnabled)
+        setAlipaySandbox(Boolean(res.data.alipaySandbox))
       } else {
         message.error(res.message || '加载套餐失败')
       }
@@ -134,14 +138,7 @@ export default function RechargePage() {
     }, 2000)
   }
 
-  const pickChannel = (): 'alipay' | 'mock' => {
-    if (alipayEnabled) return 'alipay'
-    if (mockEnabled) return 'mock'
-    return 'mock'
-  }
-
-  const handleBuy = async (pkg: PayPackageVO) => {
-    const channel = pickChannel()
+  const handleBuy = async (pkg: PayPackageVO, channel: 'alipay' | 'mock') => {
     if (channel === 'alipay' && !alipayEnabled) {
       message.warning('支付宝未配置，请联系管理员')
       return
@@ -151,7 +148,7 @@ export default function RechargePage() {
       return
     }
 
-    setBuyingCode(pkg.code)
+    setBuyingCode(`${pkg.code}:${channel}`)
     try {
       const res = await createPayOrder({ packageCode: pkg.code, channel })
       if (res.code !== 0 || !res.data) {
@@ -238,6 +235,21 @@ export default function RechargePage() {
           </div>
         </header>
 
+        {alipaySandbox && (
+          <Alert
+            type="info"
+            showIcon
+            className="recharge-page__sandbox-alert"
+            message="当前为支付宝沙箱环境"
+            description={
+              <>
+                请使用 Android「支付宝沙箱版」扫码，并用开放平台沙箱买家账号登录；沙箱仅支持余额支付。
+                若出现 CA305（人气太旺），多为沙箱服务不稳定，可换网络、稍后重试，或点击下方「模拟支付」完成本地联调。
+              </>
+            }
+          />
+        )}
+
         <Spin spinning={catalogLoading}>
           <Row gutter={[16, 16]} className="recharge-page__packages">
             {packages.map((p) => (
@@ -246,14 +258,33 @@ export default function RechargePage() {
                   <div className="recharge-page__pkg-name">{p.name}</div>
                   <div className="recharge-page__pkg-price">{formatYuan(p.amountFen)}</div>
                   <div className="recharge-page__pkg-points">{p.points} 积分</div>
-                  <Button
-                    type="primary"
-                    block
-                    loading={buyingCode === p.code}
-                    onClick={() => void handleBuy(p)}
-                  >
-                    {alipayEnabled ? '支付宝支付' : mockEnabled ? '模拟支付' : '暂不可用'}
-                  </Button>
+                  <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                    {alipayEnabled && (
+                      <Button
+                        type="primary"
+                        block
+                        loading={buyingCode === `${p.code}:alipay`}
+                        onClick={() => void handleBuy(p, 'alipay')}
+                      >
+                        支付宝支付
+                      </Button>
+                    )}
+                    {mockEnabled && (
+                      <Button
+                        block
+                        type={alipayEnabled ? 'default' : 'primary'}
+                        loading={buyingCode === `${p.code}:mock`}
+                        onClick={() => void handleBuy(p, 'mock')}
+                      >
+                        模拟支付
+                      </Button>
+                    )}
+                    {!alipayEnabled && !mockEnabled && (
+                      <Button block disabled>
+                        暂不可用
+                      </Button>
+                    )}
+                  </Space>
                 </Card>
               </Col>
             ))}

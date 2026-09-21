@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	alipayx "github.com/ai-comic-generator/server/internal/client/alipay"
 	"github.com/ai-comic-generator/server/internal/client/cos"
 	"github.com/ai-comic-generator/server/internal/client/gpt"
 	"github.com/ai-comic-generator/server/internal/client/hunyuan"
@@ -32,6 +33,7 @@ type App struct {
 	ComicHandler       *handler.ComicHandler
 	CustomComicHandler *handler.CustomComicHandler
 	StatHandler        *handler.StatHandler
+	PayHandler         *handler.PayHandler
 	UserService        *service.UserService
 }
 
@@ -51,6 +53,7 @@ func New(cfg *config.Config) (*App, error) {
 	comicStore := store.NewComicStore(db)
 	customComicStore := store.NewCustomComicStore(db)
 	statStore := store.NewStatStore(db)
+	payStore := store.NewPayStore(db)
 
 	userService := service.NewUserService(userStore)
 	statService := service.NewStatService(statStore)
@@ -110,6 +113,26 @@ func New(cfg *config.Config) (*App, error) {
 	customComicService := service.NewCustomComicService(customComicStore, userStore, localStore, generators, cosClient, llm)
 	customComicHandler := handler.NewCustomComicHandler(customComicService)
 
+	notifyURL := cfg.Pay.NotifyBaseURL + "/pay/notify/alipay"
+	if cfg.Pay.NotifyBaseURL == "" {
+		notifyURL = ""
+	}
+	alipayClient, err := alipayx.New(&alipayx.Config{
+		Enabled:         cfg.Pay.Alipay.Enabled,
+		AppID:           cfg.Pay.Alipay.AppID,
+		PrivateKey:      cfg.Pay.Alipay.PrivateKey,
+		AlipayPublicKey: cfg.Pay.Alipay.AlipayPublicKey,
+		Sandbox:         cfg.Pay.Alipay.Sandbox,
+	}, notifyURL)
+	if err != nil {
+		return nil, fmt.Errorf("init alipay: %w", err)
+	}
+	if cfg.Pay.Alipay.Enabled && notifyURL == "" {
+		log.Printf("warn: pay.alipay.enabled but pay.notify_base_url is empty, precreate notify may fail")
+	}
+	payService := service.NewPayService(cfg, payStore, alipayClient)
+	payHandler := handler.NewPayHandler(payService)
+
 	return &App{
 		Config:             cfg,
 		DB:                 db,
@@ -119,6 +142,7 @@ func New(cfg *config.Config) (*App, error) {
 		ComicHandler:       comicHandler,
 		CustomComicHandler: customComicHandler,
 		StatHandler:        statHandler,
+		PayHandler:         payHandler,
 		UserService:        userService,
 	}, nil
 }

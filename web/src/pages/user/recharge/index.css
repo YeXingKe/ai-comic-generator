@@ -2,6 +2,10 @@
   min-width: 120px;
 }
 
+.recharge-page__sandbox-alert {
+  margin-bottom: 16px;
+}
+
 .recharge-page__packages {
   margin-bottom: 24px;
 }

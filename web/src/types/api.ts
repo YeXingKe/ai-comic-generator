@@ -440,6 +440,8 @@ export interface PayPackageVO {
 export interface PayCatalogVO {
   mockEnabled: boolean
   alipayEnabled: boolean
+  /** 服务端 pay.alipay.sandbox，沙箱联调时用于页面提示 */
+  alipaySandbox?: boolean
   packages: PayPackageVO[]
 }
 

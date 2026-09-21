@@ -82,3 +82,28 @@ wechat:
   enabled: false
   app_id: ""
   app_secret: ""
+
+# 积分充值（支付宝当面付扫码）
+pay:
+  mock_enabled: true
+  notify_base_url: "https://your-domain.com/api"  # 必须公网 HTTPS
+  packages:
+    - code: p60
+      name: "入门包"
+      amount_fen: 600      # ¥6.00
+      points: 60
+    - code: p180
+      name: "常用包"
+      amount_fen: 1800
+      points: 200
+    - code: p680
+      name: "创作包"
+      amount_fen: 6800
+      points: 800
+  alipay:
+    enabled: false           # true 表示在本服务里打开「真实支付宝当面付」
+    app_id: ""
+    private_key: ""          # 应用私钥 PKCS1，勿提交
+    alipay_public_key: ""    # 支付宝公钥（不是应用公钥）
+    sandbox: true            # 沙箱 true，正式 false
+
