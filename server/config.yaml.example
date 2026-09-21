@@ -87,6 +87,7 @@ wechat:
 pay:
   mock_enabled: true
   notify_base_url: "https://your-domain.com/api"  # 必须公网 HTTPS
+  return_base_url: "https://your-domain.com"   # 电脑网站支付付完跳回
   packages:
     - code: p60
       name: "入门包"
@@ -106,4 +107,5 @@ pay:
     private_key: ""          # 应用私钥 PKCS1，勿提交
     alipay_public_key: ""    # 支付宝公钥（不是应用公钥）
     sandbox: true            # 沙箱 true，正式 false
-
+    mode: "qrcode"    # qrcode = 当面付弹窗扫码
+                      # page   = 电脑网站支付，跳转支付宝
