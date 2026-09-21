@@ -39,6 +39,12 @@ export const NAV_ITEMS: NavItem[] = [
     path: '/admin/data',
     visible: ({ isAdmin }) => isAdmin,
   },
+  {
+    key: '/admin/pay',
+    label: '充值',
+    path: '/admin/pay',
+    visible: ({ isAdmin }) => isAdmin,
+  },
 ]
 
 export function getVisibleNavItems(isLoggedIn: boolean, isAdmin: boolean) {

@@ -23,3 +23,13 @@
   font-size: 13px;
   color: var(--app-text-secondary);
 }
+
+.user-info-page__points-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info-page__points-row .ant-input {
+  flex: 1;
+}

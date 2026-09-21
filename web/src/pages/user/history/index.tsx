@@ -2,18 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { TablePaginationConfig, ColumnsType } from 'antd/es/table'
 import { Table, Tag, Button, Space, Modal, Tabs, message } from 'antd'
-import dayjs from 'dayjs'
 import { listComicPage, listCustomComicPage, publishComic } from '@/api/comic'
+import { formatListDateTime } from '@/utils/formatDateTime'
 import type { ComicInfo, CustomComicInfo } from '@/types/api'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
 import '@/styles/pageShell.css'
 
 type HistoryMode = 'auto' | 'custom'
-
-function formatTime(time?: string) {
-  if (!time) return '--'
-  return dayjs(time).format('YYYY-MM-DD HH:mm:ss')
-}
 
 function autoStatusTag(status?: string) {
   if (status === 'COMPLETED') return <Tag color="purple">已完成</Tag>
@@ -179,7 +174,7 @@ export default function HistoryPage() {
         title: '创建时间',
         dataIndex: 'createTime',
         width: 180,
-        render: (time: string | undefined) => formatTime(time),
+        render: (time: string | undefined) => formatListDateTime(time),
       },
       {
         title: '操作',
@@ -271,7 +266,7 @@ export default function HistoryPage() {
         title: '创建时间',
         dataIndex: 'createTime',
         width: 180,
-        render: (time: string | undefined) => formatTime(time),
+        render: (time: string | undefined) => formatListDateTime(time),
       },
       {
         title: '操作',

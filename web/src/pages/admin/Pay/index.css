@@ -1,0 +1,9 @@
+.admin-pay__toolbar {
+  margin-bottom: 16px;
+}
+
+.admin-pay__search {
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px 0;
+}

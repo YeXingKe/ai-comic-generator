@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Form, Button, Input, Avatar, Card, message } from 'antd'
 import { UserOutlined } from '@ant-design/icons'
 import { updateProfile } from '@/api/user'
@@ -102,7 +103,10 @@ export default function UserInfoPage() {
             </Form.Item>
 
             <Form.Item label="积分">
-              <Input value={String(loginUser.points)} disabled />
+              <div className="user-info-page__points-row">
+                <Input value={String(loginUser.points)} disabled />
+                <Link to="/user/recharge">去充值</Link>
+              </div>
             </Form.Item>
 
             <Form.Item name="userName" label="用户名">

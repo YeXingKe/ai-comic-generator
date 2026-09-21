@@ -429,6 +429,101 @@ export interface StatOverview {
   }
 }
 
+/** 充值套餐 */
+export interface PayPackageVO {
+  code: string
+  name: string
+  amountFen: number
+  points: number
+}
+
+export interface PayCatalogVO {
+  mockEnabled: boolean
+  alipayEnabled: boolean
+  packages: PayPackageVO[]
+}
+
+export interface CreatePayOrderRequest {
+  packageCode: string
+  channel: 'alipay' | 'mock'
+}
+
+export interface CreatePayOrderVO {
+  orderNo: string
+  amountFen: number
+  points: number
+  channel: string
+  codeUrl: string
+  expireAt: string
+  status: string
+}
+
+export interface PayOrderVO {
+  orderNo: string
+  amountFen: number
+  points: number
+  channel: string
+  status: string
+  paidAt?: string | null
+  createTime: string
+}
+
+export interface PayOrderPageRequest {
+  pageNum: number
+  pageSize: number
+}
+
+export interface PayPackagePlan {
+  id: number
+  code: string
+  name: string
+  amountFen: number
+  points: number
+  sortOrder: number
+  enabled: number
+  createTime: string
+  updateTime: string
+}
+
+export interface PayPackagePlanPageRequest {
+  pageNum: number
+  pageSize: number
+}
+
+export interface AddPayPackagePlanRequest {
+  code: string
+  name: string
+  amountFen: number
+  points: number
+  sortOrder?: number
+  enabled?: number
+}
+
+export interface UpdatePayPackagePlanRequest {
+  id: number
+  name: string
+  amountFen: number
+  points: number
+  sortOrder?: number
+  enabled?: number
+}
+
+export interface AdminPayOrderPageRequest {
+  pageNum: number
+  pageSize: number
+  status?: string
+  userId?: number
+  orderNo?: string
+  userAccount?: string
+}
+
+export interface PayOrderAdminVO extends PayOrderVO {
+  userId: number
+  userAccount: string
+  packageCode: string
+  channelTxnId?: string | null
+}
+
 /** 统计页聚合响应 */
 export interface StatDashboard {
   overview: StatOverview

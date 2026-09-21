@@ -1,0 +1,58 @@
+.recharge-page__stat {
+  min-width: 120px;
+}
+
+.recharge-page__packages {
+  margin-bottom: 24px;
+}
+
+.recharge-page__pkg-card {
+  text-align: center;
+  background: var(--app-surface, #fff);
+}
+
+.recharge-page__pkg-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.recharge-page__pkg-price {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--app-primary, #1677ff);
+  margin-bottom: 4px;
+}
+
+.recharge-page__pkg-points {
+  color: var(--app-text-secondary, rgba(0, 0, 0, 0.45));
+  margin-bottom: 16px;
+}
+
+.recharge-page__table-card {
+  margin-bottom: 16px;
+}
+
+.recharge-page__pay-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0 4px;
+}
+
+.recharge-page__pay-hint {
+  margin: 0;
+  color: var(--app-text-secondary, rgba(0, 0, 0, 0.45));
+  text-align: center;
+}
+
+.recharge-page__pay-amount {
+  margin: 0;
+  font-weight: 600;
+}
+
+.recharge-page__back {
+  margin: 0;
+  font-size: 14px;
+}

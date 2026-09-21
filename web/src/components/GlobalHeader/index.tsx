@@ -2,7 +2,16 @@ import { useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { MenuProps } from 'antd'
 import { Menu, Avatar, Button, Dropdown } from 'antd'
-import { HomeOutlined, EditOutlined, UserOutlined, HistoryOutlined, BarChartOutlined, LogoutOutlined, LockOutlined } from '@ant-design/icons'
+import {
+  HomeOutlined,
+  EditOutlined,
+  UserOutlined,
+  HistoryOutlined,
+  BarChartOutlined,
+  LogoutOutlined,
+  LockOutlined,
+  WalletOutlined,
+} from '@ant-design/icons'
 import ThemeToggle from '../ThemeToggle'
 import { getVisibleNavItems } from '@/router/nav'
 import { ADMIN_ROLE, useLoginUserStore } from '@/stores/loginUser'
@@ -15,6 +24,7 @@ const navIcons: Record<string, React.ReactNode> = {
   '/admin/users': <UserOutlined />,
   '/history': <HistoryOutlined />,
   '/admin/data': <BarChartOutlined />,
+  '/admin/pay': <WalletOutlined />,
 }
 
 function matchNavKey(pathname: string, navItems: { key: string; path: string; children?: { key: string; path: string }[] }[]) {
@@ -92,6 +102,11 @@ export default function GlobalHeader() {
       label: '个人资料',
       icon: <UserOutlined />,
     },
+    {
+      key: 'recharge',
+      label: '充值积分',
+      icon: <WalletOutlined />,
+    },
     { type: 'divider' },
     {
       key: 'updatePwd',
@@ -110,6 +125,10 @@ export default function GlobalHeader() {
   const handleUserMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (key === 'profile') {
       navigate('/user/info')
+      return
+    }
+    if (key === 'recharge') {
+      navigate('/user/recharge')
       return
     }
     if (key === 'updatePwd') {
@@ -138,12 +157,30 @@ export default function GlobalHeader() {
           <ThemeToggle />
           <div className="auth-buttons">
             {isLoggedIn ? (
-              <Dropdown menu={{ items: userMenuItems, onClick: handleUserMenuClick }} placement="bottomRight" trigger={['click']}>
-                <div className="user-info">
-                  <Avatar size={36} src={avatarUrl || undefined} icon={!avatarUrl ? <UserOutlined /> : undefined} />
-                  <span className="user-name">{displayName}</span>
-                </div>
-              </Dropdown>
+              <div className="header-user-cluster">
+                <Link
+                  to="/user/recharge"
+                  className="header-points"
+                  title="充值积分"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className="header-points__value">{loginUser.points.toLocaleString()}</span>
+                  <span className="header-points__sep" aria-hidden>
+                    ·
+                  </span>
+                  <span className="header-points__label">积分</span>
+                </Link>
+                <Dropdown
+                  menu={{ items: userMenuItems, onClick: handleUserMenuClick }}
+                  placement="bottomRight"
+                  trigger={['click']}
+                >
+                  <div className="user-info">
+                    <Avatar size={36} src={avatarUrl || undefined} icon={!avatarUrl ? <UserOutlined /> : undefined} />
+                    <span className="user-name">{displayName}</span>
+                  </div>
+                </Dropdown>
+              </div>
             ) : (
               <Button type="primary" className="header-auth-btn" onClick={() => navigate('/user/login')}>
                 登录 / 注册

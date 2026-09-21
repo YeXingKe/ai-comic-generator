@@ -2,7 +2,8 @@ import type { ColumnsType } from 'antd/es/table'
 import type { UserInfo, UserRole } from '@/types/api'
 import { Avatar, Button, Space, Popconfirm, Tag } from 'antd'
 import { UserOutlined } from '@ant-design/icons'
-import { formatUserTime, roleColor, roleLabel } from '@/utils/userTableHelpers'
+import { formatListDateTime } from '@/utils/formatDateTime'
+import { roleColor, roleLabel } from '@/utils/userTableHelpers'
 
 export function buildUserTableColumns(options: { onEdit: (user: UserInfo) => void; onDelete: (id: number) => void }): ColumnsType<UserInfo> {
   return [
@@ -40,13 +41,13 @@ export function buildUserTableColumns(options: { onEdit: (user: UserInfo) => voi
       title: '注册时间',
       dataIndex: 'createTime',
       width: 170,
-      render: (time: string) => formatUserTime(time),
+      render: (time: string) => formatListDateTime(time),
     },
     {
       title: '更新时间',
       dataIndex: 'updateTime',
       width: 170,
-      render: (time: string) => formatUserTime(time),
+      render: (time: string) => formatListDateTime(time),
     },
     {
       title: '操作',

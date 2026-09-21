@@ -9,8 +9,10 @@ import ComicCustomCreatePage from '@/pages/user/create/custom'
 import ComicDetailPage from '@/pages/user/create/detail'
 import AdminUsersPage from '@/pages/admin/Users'
 import AdminDataPage from '@/pages/admin/StaticPage'
+import AdminPayPage from '@/pages/admin/Pay'
 import UserInfoPage from '@/pages/user/info'
 import PWDPage from '@/pages/user/pwd'
+import RechargePage from '@/pages/user/recharge'
 
 function LegacyArticleRedirect() {
   const { taskId } = useParams<{ taskId: string }>()
@@ -67,6 +69,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/user/recharge',
+        element: (
+          <RequireAuth>
+            <RechargePage />
+          </RequireAuth>
+        ),
+      },
+      {
         path: '/history',
         element: (
           <RequireAdmin>
@@ -95,6 +105,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAdmin>
             <AdminDataPage />
+          </RequireAdmin>
+        ),
+      },
+      {
+        path: '/admin/pay',
+        element: (
+          <RequireAdmin>
+            <AdminPayPage />
           </RequireAdmin>
         ),
       },

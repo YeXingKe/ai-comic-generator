@@ -173,6 +173,61 @@
   gap: 4px;
 }
 
+.header-user-cluster {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-points {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  color: inherit;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--app-glass-border);
+  box-shadow: var(--app-surface-shadow);
+  line-height: 1;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-normal),
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.header-points:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-primary-light);
+  box-shadow: var(--shadow-purple);
+}
+
+.header-points__value {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-header-nav-active);
+}
+
+.header-points__sep {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--app-text-muted);
+  user-select: none;
+}
+
+.header-points__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--app-text-secondary);
+}
+
+.global-header--immersive .header-points:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .user-info {
   display: flex;
   align-items: center;
@@ -200,6 +255,16 @@
 @media (max-width: 768px) {
   .user-name {
     display: none;
+  }
+  .header-points__label,
+  .header-points__sep {
+    display: none;
+  }
+  .header-points {
+    padding: 5px 10px;
+  }
+  .header-points__value {
+    font-size: 14px;
   }
   .nav-menu {
     display: none;
