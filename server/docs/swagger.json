@@ -1,0 +1,2873 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "REST API。HTTP 多为 200，业务结果看 JSON 的 code（0 成功）；鉴权接口需 Cookie session。",
+        "title": "AI Comic Generator API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/api",
+    "paths": {
+        "/comic/confirm-storyboard": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "漫画"
+                ],
+                "summary": "确认分镜",
+                "parameters": [
+                    {
+                        "description": "分镜列表",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.ConfirmStoryboardRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/confirm-title": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "漫画"
+                ],
+                "summary": "确认标题",
+                "parameters": [
+                    {
+                        "description": "taskId 与 title",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.ConfirmTitleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/create": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "漫画"
+                ],
+                "summary": "创建漫画任务",
+                "parameters": [
+                    {
+                        "description": "主题与风格等",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.CreateComicRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/custom/create": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json",
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "自定义漫画"
+                ],
+                "summary": "创建自定义漫画",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/custom/download": {
+            "get": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "produces": [
+                    "application/zip"
+                ],
+                "tags": [
+                    "自定义漫画"
+                ],
+                "summary": "下载分镜 ZIP",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务 ID",
+                        "name": "taskId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ZIP 文件",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/custom/get": {
+            "get": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "自定义漫画"
+                ],
+                "summary": "查询自定义任务",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务 ID",
+                        "name": "taskId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/custom/page": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "自定义漫画"
+                ],
+                "summary": "自定义任务分页",
+                "parameters": [
+                    {
+                        "description": "分页与筛选",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.QueryCustomComicRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.CustomComicPageResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/custom/regenerate-panel": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "自定义漫画"
+                ],
+                "summary": "自定义单格重绘",
+                "parameters": [
+                    {
+                        "description": "任务与分镜序号",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.RegenerateCustomPanelRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/get": {
+            "get": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "漫画"
+                ],
+                "summary": "查询漫画任务",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务 ID",
+                        "name": "taskId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/page": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "漫画"
+                ],
+                "summary": "漫画任务分页",
+                "parameters": [
+                    {
+                        "description": "分页与筛选",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.QueryComicRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.ComicPageResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/publish": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "漫画"
+                ],
+                "summary": "发布到公众号",
+                "parameters": [
+                    {
+                        "description": "taskId",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.PublishComicRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/regenerate-panel": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "漫画"
+                ],
+                "summary": "单格重绘",
+                "parameters": [
+                    {
+                        "description": "格号与场景",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.RegeneratePanelRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/retry": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "漫画"
+                ],
+                "summary": "失败重试",
+                "parameters": [
+                    {
+                        "description": "taskId",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.RetryComicRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/comic/start": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "漫画"
+                ],
+                "summary": "启动生成流水线",
+                "parameters": [
+                    {
+                        "description": "taskId",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StartComicRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "系统"
+                ],
+                "summary": "健康检查",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pay/admin/order/page": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付管理"
+                ],
+                "summary": "全站支付订单分页",
+                "parameters": [
+                    {
+                        "description": "筛选与分页",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.AdminPayOrderPageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.PageResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pay/admin/package/add": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付管理"
+                ],
+                "summary": "新增充值方案",
+                "parameters": [
+                    {
+                        "description": "方案",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.AddPayPackagePlanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pay/admin/package/delete": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付管理"
+                ],
+                "summary": "删除充值方案",
+                "parameters": [
+                    {
+                        "description": "id",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.DeletePayPackagePlanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pay/admin/package/page": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付管理"
+                ],
+                "summary": "管理端充值方案分页",
+                "parameters": [
+                    {
+                        "description": "分页",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.PayPackagePlanPageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.PageResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pay/admin/package/update": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付管理"
+                ],
+                "summary": "更新充值方案",
+                "parameters": [
+                    {
+                        "description": "方案",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.UpdatePayPackagePlanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pay/admin/receipt/page": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付管理"
+                ],
+                "summary": "收款记录分页（已支付）",
+                "parameters": [
+                    {
+                        "description": "筛选与分页",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.AdminPayOrderPageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.PageResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pay/mock-pay": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付"
+                ],
+                "summary": "模拟支付成功",
+                "parameters": [
+                    {
+                        "description": "订单号",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "orderNo": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pay/notify/alipay": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "支付"
+                ],
+                "summary": "支付宝支付回调",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/pay/order": {
+            "get": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付"
+                ],
+                "summary": "查询充值订单",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "订单号",
+                        "name": "orderNo",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付"
+                ],
+                "summary": "创建充值订单",
+                "parameters": [
+                    {
+                        "description": "套餐 code 等",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.CreatePayOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pay/order/page": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付"
+                ],
+                "summary": "我的充值订单分页",
+                "parameters": [
+                    {
+                        "description": "分页",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.PayOrderPageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.PageResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pay/packages": {
+            "get": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付"
+                ],
+                "summary": "充值套餐列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stat/dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "统计"
+                ],
+                "summary": "管理端统计看板",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "7d|30d|90d，默认 30d",
+                        "name": "range",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/add": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "管理员创建用户，需 admin 角色",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "创建用户",
+                "parameters": [
+                    {
+                        "description": "创建参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.AddUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "业务错误（无权限、参数错误等）",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/delete": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "管理员逻辑删除用户，需 admin 角色",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "删除用户",
+                "parameters": [
+                    {
+                        "description": "删除参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.DeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "业务错误",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/info": {
+            "get": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "从 Session 读取当前登录用户信息，含配额等",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "获取当前登录用户",
+                "responses": {
+                    "200": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/login": {
+            "post": {
+                "description": "登录成功后写入 Session Cookie（session），后续受保护接口需携带",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "用户登录",
+                "parameters": [
+                    {
+                        "description": "登录参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "业务错误（账号或密码错误等）",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/logout": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "清除 Session，退出登录",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "用户注销",
+                "responses": {
+                    "200": {
+                        "description": "业务错误",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/page/vo": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "管理员分页查询用户，支持多条件筛选与排序，需 admin 角色",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "分页查询用户列表",
+                "parameters": [
+                    {
+                        "description": "查询参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.QueryUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "业务错误",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/password/update": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "修改密码",
+                "parameters": [
+                    {
+                        "description": "原密码与新密码",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.UpdatePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/profile/update": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "更新个人资料",
+                "parameters": [
+                    {
+                        "description": "昵称/头像/简介",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.UpdateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/register": {
+            "post": {
+                "description": "注册新用户，账号至少 4 位，密码至少 8 位",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "用户注册",
+                "parameters": [
+                    {
+                        "description": "注册参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "业务错误（参数错误、账号重复等）",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/update": {
+            "post": {
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "description": "管理员更新用户信息，需 admin 角色",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "更新用户",
+                "parameters": [
+                    {
+                        "description": "更新参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "业务错误",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github_com_ai-comic-generator_server_internal_common.BaseResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "业务状态码，0 表示成功，非 0 表示失败",
+                    "type": "integer",
+                    "example": 0
+                },
+                "data": {
+                    "description": "响应数据，成功时返回；失败时通常为 null"
+                },
+                "message": {
+                    "description": "响应消息，成功时为 ok，失败时为错误描述",
+                    "type": "string",
+                    "example": "ok"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.AddPayPackagePlanRequest": {
+            "type": "object",
+            "required": [
+                "amountFen",
+                "code",
+                "name",
+                "points"
+            ],
+            "properties": {
+                "amountFen": {
+                    "description": "售价（分）",
+                    "type": "integer"
+                },
+                "code": {
+                    "description": "套餐编码",
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 2
+                },
+                "enabled": {
+                    "description": "上架状态（可选，默认 1）",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "展示名称",
+                    "type": "string",
+                    "maxLength": 64,
+                    "minLength": 1
+                },
+                "points": {
+                    "description": "到账积分",
+                    "type": "integer"
+                },
+                "sortOrder": {
+                    "description": "排序（可选）",
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.AddUserRequest": {
+            "type": "object",
+            "required": [
+                "userAccount"
+            ],
+            "properties": {
+                "points": {
+                    "description": "积分（可选，不传则使用库表默认值）",
+                    "type": "integer",
+                    "example": 100
+                },
+                "status": {
+                    "description": "状态（可选）",
+                    "type": "integer",
+                    "example": 1
+                },
+                "userAccount": {
+                    "description": "登录账号",
+                    "type": "string",
+                    "example": "newuser"
+                },
+                "userAvatar": {
+                    "description": "头像 URL（可选）",
+                    "type": "string",
+                    "example": "https://example.com/avatar.png"
+                },
+                "userName": {
+                    "description": "用户昵称（可选）",
+                    "type": "string",
+                    "example": "新用户"
+                },
+                "userProfile": {
+                    "description": "个人简介（可选）",
+                    "type": "string",
+                    "example": "个人简介"
+                },
+                "userRole": {
+                    "description": "用户角色：user / admin",
+                    "type": "string",
+                    "enum": [
+                        "user",
+                        "admin"
+                    ],
+                    "example": "user"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.AdminPayOrderPageRequest": {
+            "type": "object",
+            "required": [
+                "pageNum",
+                "pageSize"
+            ],
+            "properties": {
+                "orderNo": {
+                    "description": "订单号模糊筛选",
+                    "type": "string"
+                },
+                "pageNum": {
+                    "description": "页码",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer",
+                    "maximum": 100
+                },
+                "status": {
+                    "description": "订单状态筛选",
+                    "type": "string"
+                },
+                "userAccount": {
+                    "description": "登录账号模糊筛选",
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "用户 ID 筛选",
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.ComicCharacter": {
+            "type": "object",
+            "properties": {
+                "appearance": {
+                    "description": "外貌详细描述（供分镜与定妆照）",
+                    "type": "string"
+                },
+                "avatarUrl": {
+                    "description": "定妆照 URL（角色设定后生成）",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "角色名称",
+                    "type": "string"
+                },
+                "personality": {
+                    "description": "性格特征",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "角色类型：protagonist 主角 / antagonist 反派 / supporting 配角",
+                    "type": "string"
+                },
+                "visualAnchor": {
+                    "description": "外貌短锚点（15-40 字，每格生图强制复用）",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.ComicInfo": {
+            "type": "object",
+            "properties": {
+                "captionTextMode": {
+                    "description": "文案模式：none / top / bubble",
+                    "type": "string"
+                },
+                "characters": {
+                    "description": "角色列表（已解析）",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.ComicCharacter"
+                    }
+                },
+                "completedTime": {
+                    "description": "完成时间",
+                    "type": "string"
+                },
+                "composedLayout": {
+                    "description": "排版结果（已解析）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.ComposedLayoutResult"
+                        }
+                    ]
+                },
+                "coverImage": {
+                    "description": "封面图 URL",
+                    "type": "string"
+                },
+                "createTime": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "errorMessage": {
+                    "description": "错误信息",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键 ID",
+                    "type": "integer"
+                },
+                "imageBackend": {
+                    "description": "生图后端",
+                    "type": "string"
+                },
+                "panelCount": {
+                    "description": "分镜格数",
+                    "type": "integer"
+                },
+                "panelImages": {
+                    "description": "分镜图片列表（已解析）",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.PanelImageResult"
+                    }
+                },
+                "phase": {
+                    "description": "当前阶段",
+                    "type": "string"
+                },
+                "publishResult": {
+                    "description": "发布结果（已解析）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.PublishResult"
+                        }
+                    ]
+                },
+                "status": {
+                    "description": "任务总状态",
+                    "type": "string"
+                },
+                "storyIdeation": {
+                    "description": "故事构思（已解析）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StoryIdeationResult"
+                        }
+                    ]
+                },
+                "storyboard": {
+                    "description": "分镜脚本（已解析）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StoryboardResult"
+                        }
+                    ]
+                },
+                "style": {
+                    "description": "漫画风格",
+                    "type": "string"
+                },
+                "taskId": {
+                    "description": "任务 UUID",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "漫画标题",
+                    "type": "string"
+                },
+                "titleOptions": {
+                    "description": "标题推荐列表（已解析）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.TitleOptionsResult"
+                        }
+                    ]
+                },
+                "topic": {
+                    "description": "创作主题",
+                    "type": "string"
+                },
+                "userAccount": {
+                    "description": "创建者账号（联查，不落库）",
+                    "type": "string"
+                },
+                "userDescription": {
+                    "description": "用户补充描述",
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "所属用户 ID",
+                    "type": "integer"
+                },
+                "userName": {
+                    "description": "创建者昵称（联查，不落库）",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.ComicPageResult": {
+            "type": "object",
+            "properties": {
+                "pageNum": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "records": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.ComicInfo"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.ComposedLayoutResult": {
+            "type": "object",
+            "properties": {
+                "assetUrls": {
+                    "description": "各页或各资源的最终文件 URL 列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "coverImage": {
+                    "description": "封面图 URL（用于列表展示）",
+                    "type": "string"
+                },
+                "format": {
+                    "description": "排版格式：long_image 长图 / grid 宫格 / page_pdf 分页 PDF",
+                    "type": "string",
+                    "example": "long_image"
+                },
+                "previewUrl": {
+                    "description": "合成预览图 URL",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.ConfirmStoryboardRequest": {
+            "type": "object",
+            "required": [
+                "storyboard",
+                "taskId"
+            ],
+            "properties": {
+                "storyboard": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StoryboardPanel"
+                    }
+                },
+                "taskId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.ConfirmTitleRequest": {
+            "type": "object",
+            "required": [
+                "taskId",
+                "title"
+            ],
+            "properties": {
+                "taskId": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.CreateComicRequest": {
+            "type": "object",
+            "required": [
+                "topic"
+            ],
+            "properties": {
+                "captionTextMode": {
+                    "type": "string",
+                    "enum": [
+                        "none",
+                        "top",
+                        "bubble"
+                    ],
+                    "example": "top"
+                },
+                "imageBackend": {
+                    "type": "string",
+                    "enum": [
+                        "hunyuan",
+                        "openai_image_1k",
+                        "openai_image_4k"
+                    ],
+                    "example": "hunyuan"
+                },
+                "panelCount": {
+                    "description": "分镜格数：4 / 6 / 8",
+                    "type": "integer",
+                    "example": 4
+                },
+                "style": {
+                    "type": "string",
+                    "enum": [
+                        "cartoon",
+                        "realistic",
+                        "chibi",
+                        "animal"
+                    ],
+                    "example": "cartoon"
+                },
+                "topic": {
+                    "type": "string",
+                    "example": "哪吒闹海"
+                },
+                "userDescription": {
+                    "type": "string",
+                    "example": "搞笑风格，保持角色一致性"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.CreatePayOrderRequest": {
+            "type": "object",
+            "required": [
+                "channel",
+                "packageCode"
+            ],
+            "properties": {
+                "channel": {
+                    "description": "支付渠道：alipay | mock",
+                    "type": "string"
+                },
+                "packageCode": {
+                    "description": "充值方案编码",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.CustomComicInfo": {
+            "type": "object",
+            "properties": {
+                "aspectRatio": {
+                    "type": "string"
+                },
+                "createTime": {
+                    "type": "string"
+                },
+                "errorMessage": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "imageBackend": {
+                    "type": "string"
+                },
+                "panelCount": {
+                    "type": "integer"
+                },
+                "panelImages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.PanelImageResult"
+                    }
+                },
+                "prompt": {
+                    "type": "string"
+                },
+                "referenceImages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.ReferenceImage"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "taskId": {
+                    "type": "string"
+                },
+                "updateTime": {
+                    "type": "string"
+                },
+                "userAccount": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.CustomComicPageResult": {
+            "type": "object",
+            "properties": {
+                "pageNum": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "records": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.CustomComicInfo"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.DeletePayPackagePlanRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "方案主键 ID",
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.DeleteRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "要删除的记录主键 ID（用户或文章）",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "userAccount": {
+                    "description": "登录账号",
+                    "type": "string",
+                    "example": "zhangsan"
+                },
+                "userPassword": {
+                    "description": "登录密码",
+                    "type": "string",
+                    "example": "12345678"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.LoginUser": {
+            "type": "object",
+            "properties": {
+                "createTime": {
+                    "type": "string"
+                },
+                "editTime": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "updateTime": {
+                    "type": "string"
+                },
+                "userAccount": {
+                    "type": "string"
+                },
+                "userAvatar": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                },
+                "userProfile": {
+                    "type": "string"
+                },
+                "userRole": {
+                    "type": "string",
+                    "enum": [
+                        "user",
+                        "admin"
+                    ],
+                    "example": "user"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.PageResult": {
+            "type": "object",
+            "properties": {
+                "pageNum": {
+                    "description": "当前页码",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer",
+                    "example": 10
+                },
+                "records": {
+                    "description": "当前页数据列表（用户列表或文章列表）"
+                },
+                "total": {
+                    "description": "符合条件的总条数",
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.PanelImageResult": {
+            "type": "object",
+            "properties": {
+                "imagePrompt": {
+                    "description": "实际使用的生图 Prompt（便于追溯）",
+                    "type": "string"
+                },
+                "method": {
+                    "description": "图片来源：AI 生成 或 用户上传",
+                    "type": "string",
+                    "enum": [
+                        "AI_GENERATE",
+                        "UPLOAD"
+                    ]
+                },
+                "panelNo": {
+                    "description": "对应分镜格序号",
+                    "type": "integer"
+                },
+                "url": {
+                    "description": "图片访问地址",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.PayOrderPageRequest": {
+            "type": "object",
+            "required": [
+                "pageNum",
+                "pageSize"
+            ],
+            "properties": {
+                "pageNum": {
+                    "description": "页码",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer",
+                    "maximum": 100
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.PayPackagePlanPageRequest": {
+            "type": "object",
+            "required": [
+                "pageNum",
+                "pageSize"
+            ],
+            "properties": {
+                "pageNum": {
+                    "description": "页码",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer",
+                    "maximum": 100
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.PublishComicRequest": {
+            "type": "object",
+            "required": [
+                "taskId"
+            ],
+            "properties": {
+                "platform": {
+                    "type": "string",
+                    "enum": [
+                        "WECHAT_MP"
+                    ],
+                    "example": "WECHAT_MP"
+                },
+                "taskId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.PublishResult": {
+            "type": "object",
+            "properties": {
+                "articleUrl": {
+                    "description": "发布后的文章链接（若有）",
+                    "type": "string"
+                },
+                "mediaId": {
+                    "description": "微信素材库中的 media_id",
+                    "type": "string"
+                },
+                "platform": {
+                    "description": "发布平台，当前为微信公众号 WECHAT_MP",
+                    "type": "string",
+                    "example": "WECHAT_MP"
+                },
+                "publishedAt": {
+                    "description": "发布时间（未发布时为 nil）",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "发布状态：草稿 / 已发布 / 失败",
+                    "type": "string",
+                    "enum": [
+                        "DRAFT",
+                        "PUBLISHED",
+                        "FAILED"
+                    ]
+                },
+                "title": {
+                    "description": "发布标题（来自故事构思）",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.QueryComicRequest": {
+            "type": "object",
+            "properties": {
+                "pageNum": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "phase": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "PENDING",
+                        "PROCESSING",
+                        "AWAITING_CONFIRM",
+                        "TITLE_CONFIRMED",
+                        "AWAITING_STORYBOARD",
+                        "COMPLETED",
+                        "FAILED"
+                    ]
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.QueryCustomComicRequest": {
+            "type": "object",
+            "properties": {
+                "pageNum": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "PENDING",
+                        "PROCESSING",
+                        "COMPLETED",
+                        "FAILED"
+                    ]
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.QueryUserRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "按用户 ID 筛选（可选）",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageNum": {
+                    "description": "页码，从 1 开始",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer",
+                    "example": 10
+                },
+                "sortField": {
+                    "description": "排序字段（可选）",
+                    "type": "string",
+                    "example": "createTime"
+                },
+                "sortOrder": {
+                    "description": "排序方向：asc / desc（可选）",
+                    "type": "string",
+                    "example": "desc"
+                },
+                "userAccount": {
+                    "description": "按账号模糊筛选（可选）",
+                    "type": "string",
+                    "example": "zhangsan"
+                },
+                "userName": {
+                    "description": "按昵称模糊筛选（可选）",
+                    "type": "string",
+                    "example": "张三"
+                },
+                "userProfile": {
+                    "description": "按简介模糊筛选（可选）",
+                    "type": "string"
+                },
+                "userRole": {
+                    "description": "按角色筛选（可选）",
+                    "type": "string",
+                    "example": "user"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.ReferenceImage": {
+            "type": "object",
+            "properties": {
+                "index": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.RegenerateCustomPanelRequest": {
+            "type": "object",
+            "required": [
+                "panelNo",
+                "taskId"
+            ],
+            "properties": {
+                "panelNo": {
+                    "type": "integer"
+                },
+                "prompt": {
+                    "description": "可选：覆盖该格生图提示；空则沿用已有 imagePrompt 或从大纲重解析",
+                    "type": "string"
+                },
+                "taskId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.RegeneratePanelRequest": {
+            "type": "object",
+            "required": [
+                "panelNo",
+                "taskId"
+            ],
+            "properties": {
+                "dialogue": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "narration": {
+                    "type": "string"
+                },
+                "panelNo": {
+                    "type": "integer"
+                },
+                "scene": {
+                    "type": "string"
+                },
+                "taskId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "checkPassword",
+                "userAccount",
+                "userPassword"
+            ],
+            "properties": {
+                "checkPassword": {
+                    "description": "确认密码，需与 userPassword 一致",
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "12345678"
+                },
+                "userAccount": {
+                    "description": "登录账号，至少 4 位",
+                    "type": "string",
+                    "minLength": 4,
+                    "example": "zhangsan"
+                },
+                "userPassword": {
+                    "description": "登录密码，至少 8 位",
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "12345678"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.RetryComicRequest": {
+            "type": "object",
+            "required": [
+                "taskId"
+            ],
+            "properties": {
+                "taskId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.StartComicRequest": {
+            "type": "object",
+            "required": [
+                "taskId"
+            ],
+            "properties": {
+                "taskId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.StatBucket": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "description": "维度键，如状态码、风格；前端用于映射颜色和逻辑",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "展示标签，如\"已完成\"、\"卡通风格\"",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "数量",
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.StatDashboard": {
+            "type": "object",
+            "properties": {
+                "overview": {
+                    "description": "KPI 概览卡片",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StatOverview"
+                        }
+                    ]
+                },
+                "phaseFunnel": {
+                    "description": "流水线阶段漏斗，按阶段顺序排列",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StatBucket"
+                    }
+                },
+                "publishDistribution": {
+                    "description": "发布状态分布，key 为 publishResult.status",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StatBucket"
+                    }
+                },
+                "roleDistribution": {
+                    "description": "用户角色分布，key 为 UserRole 常量",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StatBucket"
+                    }
+                },
+                "statusDistribution": {
+                    "description": "任务状态分布，key 为 ComicStatus 常量",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StatBucket"
+                    }
+                },
+                "styleDistribution": {
+                    "description": "漫画风格占比，key 为 style 字段值",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StatBucket"
+                    }
+                },
+                "trend": {
+                    "description": "创作趋势（按天，范围内每天都有，无数据补零）",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StatTrendPoint"
+                    }
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.StatDeltas": {
+            "type": "object",
+            "properties": {
+                "completionRate": {
+                    "description": "完成率环比",
+                    "type": "number"
+                },
+                "totalComics": {
+                    "description": "总创作数环比",
+                    "type": "number"
+                },
+                "totalUsers": {
+                    "description": "总用户数环比",
+                    "type": "number"
+                },
+                "weeklyNewComics": {
+                    "description": "本周新增环比",
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.StatOverview": {
+            "type": "object",
+            "properties": {
+                "avgDurationMin": {
+                    "description": "平均耗时（分钟）",
+                    "type": "number"
+                },
+                "completedComics": {
+                    "description": "完成数",
+                    "type": "integer"
+                },
+                "completionRate": {
+                    "description": "完成率 0-1，前端显示为百分比",
+                    "type": "number"
+                },
+                "deltas": {
+                    "description": "各 KPI 环比变化",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StatDeltas"
+                        }
+                    ]
+                },
+                "totalComics": {
+                    "description": "总创作数",
+                    "type": "integer"
+                },
+                "totalUsers": {
+                    "description": "总用户数（全量，不受 range 影响）",
+                    "type": "integer"
+                },
+                "weeklyNewComics": {
+                    "description": "本周新增创作（固定取最近 7 天）",
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.StatTrendPoint": {
+            "type": "object",
+            "properties": {
+                "avgDurationMin": {
+                    "description": "当日平均耗时（分钟），无完成则为 0",
+                    "type": "number"
+                },
+                "completed": {
+                    "description": "当日完成数",
+                    "type": "integer"
+                },
+                "count": {
+                    "description": "当日创作数",
+                    "type": "integer"
+                },
+                "date": {
+                    "description": "日期，格式 YYYY-MM-DD",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.StoryIdeationResult": {
+            "type": "object",
+            "properties": {
+                "highlights": {
+                    "description": "亮点情节列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "keyConflict": {
+                    "description": "核心冲突（推动剧情的主矛盾）",
+                    "type": "string"
+                },
+                "synopsis": {
+                    "description": "故事梗概（一段话摘要）",
+                    "type": "string"
+                },
+                "theme": {
+                    "description": "主题（如成长、友情）",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "AI 推荐的漫画标题",
+                    "type": "string"
+                },
+                "tone": {
+                    "description": "基调（搞笑 / 热血 / 治愈等）",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.StoryboardPanel": {
+            "type": "object",
+            "properties": {
+                "camera": {
+                    "description": "镜头类型（特写 / 中景 / 全景等）",
+                    "type": "string"
+                },
+                "dialogue": {
+                    "description": "角色台词列表（中文）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "dialogueEn": {
+                    "description": "台词英文版（供 bubble 模式 / 英文气泡使用）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "imagePrompt": {
+                    "description": "该格 AI 生图的英文 Prompt",
+                    "type": "string"
+                },
+                "narration": {
+                    "description": "旁白文字",
+                    "type": "string"
+                },
+                "panelNo": {
+                    "description": "分镜格序号，从 1 开始",
+                    "type": "integer"
+                },
+                "scene": {
+                    "description": "场景与画面描述",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.StoryboardResult": {
+            "type": "object",
+            "properties": {
+                "pageCount": {
+                    "description": "预计页数",
+                    "type": "integer"
+                },
+                "panels": {
+                    "description": "全部分镜格列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.StoryboardPanel"
+                    }
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.TitleOption": {
+            "type": "object",
+            "properties": {
+                "subtitle": {
+                    "description": "副标题/卖点，可选",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "漫画标题，不超过 20 字",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.TitleOptionsResult": {
+            "type": "object",
+            "properties": {
+                "options": {
+                    "description": "3-5 个标题方案",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ai-comic-generator_server_internal_model.TitleOption"
+                    }
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.UpdatePasswordRequest": {
+            "type": "object",
+            "required": [
+                "checkPassword",
+                "newPassword",
+                "oldPassword"
+            ],
+            "properties": {
+                "checkPassword": {
+                    "description": "确认新密码",
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "87654321"
+                },
+                "newPassword": {
+                    "description": "新密码",
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "87654321"
+                },
+                "oldPassword": {
+                    "description": "原密码",
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "12345678"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.UpdatePayPackagePlanRequest": {
+            "type": "object",
+            "required": [
+                "amountFen",
+                "id",
+                "name",
+                "points"
+            ],
+            "properties": {
+                "amountFen": {
+                    "description": "售价（分）",
+                    "type": "integer"
+                },
+                "enabled": {
+                    "description": "上架状态（可选）",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "方案主键 ID",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "展示名称",
+                    "type": "string",
+                    "maxLength": 64,
+                    "minLength": 1
+                },
+                "points": {
+                    "description": "到账积分",
+                    "type": "integer"
+                },
+                "sortOrder": {
+                    "description": "排序（可选）",
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.UpdateProfileRequest": {
+            "type": "object",
+            "properties": {
+                "userAvatar": {
+                    "description": "头像 URL（可选）",
+                    "type": "string",
+                    "example": "https://example.com/avatar.png"
+                },
+                "userName": {
+                    "description": "用户昵称（可选）",
+                    "type": "string",
+                    "example": "新昵称"
+                },
+                "userProfile": {
+                    "description": "个人简介（可选）",
+                    "type": "string",
+                    "example": "个人简介"
+                }
+            }
+        },
+        "github_com_ai-comic-generator_server_internal_model.UpdateUserRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "用户主键 ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "points": {
+                    "description": "积分（可选）",
+                    "type": "integer",
+                    "example": 100
+                },
+                "status": {
+                    "description": "状态（可选）",
+                    "type": "integer",
+                    "example": 1
+                },
+                "userAvatar": {
+                    "description": "头像 URL（可选）",
+                    "type": "string",
+                    "example": "https://example.com/avatar.png"
+                },
+                "userName": {
+                    "description": "用户昵称（可选）",
+                    "type": "string",
+                    "example": "新昵称"
+                },
+                "userProfile": {
+                    "description": "个人简介（可选）",
+                    "type": "string",
+                    "example": "更新后的简介"
+                },
+                "userRole": {
+                    "description": "用户角色（可选）",
+                    "type": "string",
+                    "enum": [
+                        "user",
+                        "admin"
+                    ],
+                    "example": "user"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "SessionCookie": {
+            "type": "apiKey",
+            "name": "session",
+            "in": "cookie"
+        }
+    }
+}

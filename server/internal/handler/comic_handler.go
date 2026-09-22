@@ -21,6 +21,14 @@ func NewComicHandler(svc *service.ComicService) *ComicHandler {
 }
 
 // Create 创建漫画生成任务（异步标题推荐 + 五步创作流水线）
+// @Summary      创建漫画任务
+// @Tags         漫画
+// @Accept       json
+// @Produce      json
+// @Param        body  body  model.CreateComicRequest  true  "主题与风格等"
+// @Success      200   {object}  common.BaseResponse
+// @Security     SessionCookie
+// @Router       /comic/create [post]
 func (h *ComicHandler) Create(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c) // 从 AuthCheck 中间件注入的 Context 读取登录用户
 	if !ok { // 未挂中间件或登录态异常（正常流程下 AuthCheck 已拦截）
@@ -43,6 +51,14 @@ func (h *ComicHandler) Create(c *gin.Context) {
 }
 
 // ConfirmTitle 用户确认标题（不启动流水线）
+// @Summary      确认标题
+// @Tags         漫画
+// @Accept       json
+// @Produce      json
+// @Param        body  body  model.ConfirmTitleRequest  true  "taskId 与 title"
+// @Success      200   {object}  common.BaseResponse{data=bool}
+// @Security     SessionCookie
+// @Router       /comic/confirm-title [post]
 func (h *ComicHandler) ConfirmTitle(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -64,6 +80,14 @@ func (h *ComicHandler) ConfirmTitle(c *gin.Context) {
 }
 
 // Start 正式启动后续五步流水线
+// @Summary      启动生成流水线
+// @Tags         漫画
+// @Accept       json
+// @Produce      json
+// @Param        body  body  model.StartComicRequest  true  "taskId"
+// @Success      200   {object}  common.BaseResponse{data=bool}
+// @Security     SessionCookie
+// @Router       /comic/start [post]
 func (h *ComicHandler) Start(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -85,6 +109,14 @@ func (h *ComicHandler) Start(c *gin.Context) {
 }
 
 // ConfirmStoryboard 确认/编辑分镜后启动生图
+// @Summary      确认分镜
+// @Tags         漫画
+// @Accept       json
+// @Produce      json
+// @Param        body  body  model.ConfirmStoryboardRequest  true  "分镜列表"
+// @Success      200   {object}  common.BaseResponse{data=bool}
+// @Security     SessionCookie
+// @Router       /comic/confirm-storyboard [post]
 func (h *ComicHandler) ConfirmStoryboard(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -106,6 +138,14 @@ func (h *ComicHandler) ConfirmStoryboard(c *gin.Context) {
 }
 
 // Retry 失败任务从当前步骤重试
+// @Summary      失败重试
+// @Tags         漫画
+// @Accept       json
+// @Produce      json
+// @Param        body  body  model.RetryComicRequest  true  "taskId"
+// @Success      200   {object}  common.BaseResponse{data=bool}
+// @Security     SessionCookie
+// @Router       /comic/retry [post]
 func (h *ComicHandler) Retry(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -127,6 +167,14 @@ func (h *ComicHandler) Retry(c *gin.Context) {
 }
 
 // RegeneratePanel 修改单格后重绘并重排版
+// @Summary      单格重绘
+// @Tags         漫画
+// @Accept       json
+// @Produce      json
+// @Param        body  body  model.RegeneratePanelRequest  true  "格号与场景"
+// @Success      200   {object}  common.BaseResponse
+// @Security     SessionCookie
+// @Router       /comic/regenerate-panel [post]
 func (h *ComicHandler) RegeneratePanel(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -149,6 +197,14 @@ func (h *ComicHandler) RegeneratePanel(c *gin.Context) {
 }
 
 // Publish 将已完成作品发布至微信公众号
+// @Summary      发布到公众号
+// @Tags         漫画
+// @Accept       json
+// @Produce      json
+// @Param        body  body  model.PublishComicRequest  true  "taskId"
+// @Success      200   {object}  common.BaseResponse
+// @Security     SessionCookie
+// @Router       /comic/publish [post]
 func (h *ComicHandler) Publish(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -171,6 +227,13 @@ func (h *ComicHandler) Publish(c *gin.Context) {
 }
 
 // Get 查询任务详情
+// @Summary      查询漫画任务
+// @Tags         漫画
+// @Produce      json
+// @Param        taskId  query  string  true  "任务 ID"
+// @Success      200     {object}  common.BaseResponse
+// @Security     SessionCookie
+// @Router       /comic/get [get]
 func (h *ComicHandler) Get(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c) // 从 AuthCheck 中间件注入的 Context 读取登录用户
 	if !ok { // 未挂中间件或登录态异常
@@ -193,6 +256,14 @@ func (h *ComicHandler) Get(c *gin.Context) {
 }
 
 // ListPage 分页查询漫画任务
+// @Summary      漫画任务分页
+// @Tags         漫画
+// @Accept       json
+// @Produce      json
+// @Param        body  body  model.QueryComicRequest  true  "分页与筛选"
+// @Success      200   {object}  common.BaseResponse{data=model.ComicPageResult}
+// @Security     SessionCookie
+// @Router       /comic/page [post]
 func (h *ComicHandler) ListPage(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c) // 从 AuthCheck 中间件注入的 Context 读取登录用户
 	if !ok { // 未挂中间件或登录态异常

@@ -23,6 +23,7 @@
 npm run dev      # web :5173 + server :8080
 npm run web      # 仅前端
 npm run server   # 仅后端
+npm run swagger  # 生成 server/docs OpenAPI（Swaggo）
 npm run lint --prefix web
 cd server && go vet ./...
 ```

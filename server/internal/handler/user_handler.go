@@ -87,7 +87,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 // @Success      200  {object}  common.BaseResponse{data=model.LoginUser}
 // @Failure      200  {object}  common.BaseResponse  "未登录"
 // @Security     SessionCookie
-// @Router       /user/get/login [get]
+// @Router       /user/info [get]
 func (h *UserHandler) GetLoginUser(c *gin.Context) {
 	session := sessions.Default(c)
 	user, err := h.svc.GetLoginUser(session)
@@ -119,6 +119,15 @@ func (h *UserHandler) Logout(c *gin.Context) {
 }
 
 // UpdateProfile 更新当前登录用户资料
+// @Summary      更新个人资料
+// @Tags         用户
+// @Accept       json
+// @Produce      json
+// @Param        body  body      model.UpdateProfileRequest  true  "昵称/头像/简介"
+// @Success      200   {object}  common.BaseResponse{data=model.LoginUser}
+// @Failure      200   {object}  common.BaseResponse
+// @Security     SessionCookie
+// @Router       /user/profile/update [post]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	var req model.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -137,6 +146,15 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 }
 
 // UpdatePassword 修改当前登录用户密码
+// @Summary      修改密码
+// @Tags         用户
+// @Accept       json
+// @Produce      json
+// @Param        body  body      model.UpdatePasswordRequest  true  "原密码与新密码"
+// @Success      200   {object}  common.BaseResponse{data=bool}
+// @Failure      200   {object}  common.BaseResponse
+// @Security     SessionCookie
+// @Router       /user/password/update [post]
 func (h *UserHandler) UpdatePassword(c *gin.Context) {
 	var req model.UpdatePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -180,16 +198,7 @@ func (h *UserHandler) Add(c *gin.Context) {
 	c.JSON(http.StatusOK, common.Success(userID))
 }
 
-// Get 根据 ID 获取用户（管理员）
-// @Summary      根据 ID 获取用户
-// @Description  管理员获取用户完整信息（含密码哈希等敏感字段），需 admin 角色
-// @Tags         用户管理
-// @Produce      json
-// @Param        id  query     int64  true  "用户 ID"
-// @Success      200  {object}  common.BaseResponse{data=model.User}
-// @Failure      200  {object}  common.BaseResponse  "业务错误"
-// @Security     SessionCookie
-// @Router       /user/get [get]
+// Get 根据 ID 获取用户（管理员）；当前未在 router 注册，仅供内部或后续启用。
 func (h *UserHandler) Get(c *gin.Context) {
 	var req struct {
 		ID int64 `form:"id" binding:"required,gt=0"`
@@ -208,15 +217,7 @@ func (h *UserHandler) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, common.Success(user))
 }
 
-// GetVO 根据 ID 获取用户信息
-// @Summary      根据 ID 获取用户脱敏信息
-// @Description  获取用户公开信息（UserInfo），不含密码
-// @Tags         用户
-// @Produce      json
-// @Param        id  query     int64  true  "用户 ID"
-// @Success      200  {object}  common.BaseResponse{data=model.UserInfo}
-// @Failure      200  {object}  common.BaseResponse  "业务错误"
-// @Router       /user/get/vo [get]
+// GetVO 根据 ID 获取用户脱敏信息；当前未在 router 注册。
 func (h *UserHandler) GetVO(c *gin.Context) {
 	var req struct {
 		ID int64 `form:"id" binding:"required,gt=0"`
@@ -297,7 +298,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 // @Success      200   {object}  common.BaseResponse{data=model.PageResult}
 // @Failure      200   {object}  common.BaseResponse  "业务错误"
 // @Security     SessionCookie
-// @Router       /user/list/page/vo [post]
+// @Router       /user/page/vo [post]
 func (h *UserHandler) ListPageVO(c *gin.Context) {
 	var req model.QueryUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

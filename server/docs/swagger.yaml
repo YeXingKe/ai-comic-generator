@@ -1,0 +1,1857 @@
+basePath: /api
+definitions:
+  github_com_ai-comic-generator_server_internal_common.BaseResponse:
+    properties:
+      code:
+        description: 业务状态码，0 表示成功，非 0 表示失败
+        example: 0
+        type: integer
+      data:
+        description: 响应数据，成功时返回；失败时通常为 null
+      message:
+        description: 响应消息，成功时为 ok，失败时为错误描述
+        example: ok
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.AddPayPackagePlanRequest:
+    properties:
+      amountFen:
+        description: 售价（分）
+        type: integer
+      code:
+        description: 套餐编码
+        maxLength: 32
+        minLength: 2
+        type: string
+      enabled:
+        description: 上架状态（可选，默认 1）
+        type: integer
+      name:
+        description: 展示名称
+        maxLength: 64
+        minLength: 1
+        type: string
+      points:
+        description: 到账积分
+        type: integer
+      sortOrder:
+        description: 排序（可选）
+        type: integer
+    required:
+    - amountFen
+    - code
+    - name
+    - points
+    type: object
+  github_com_ai-comic-generator_server_internal_model.AddUserRequest:
+    properties:
+      points:
+        description: 积分（可选，不传则使用库表默认值）
+        example: 100
+        type: integer
+      status:
+        description: 状态（可选）
+        example: 1
+        type: integer
+      userAccount:
+        description: 登录账号
+        example: newuser
+        type: string
+      userAvatar:
+        description: 头像 URL（可选）
+        example: https://example.com/avatar.png
+        type: string
+      userName:
+        description: 用户昵称（可选）
+        example: 新用户
+        type: string
+      userProfile:
+        description: 个人简介（可选）
+        example: 个人简介
+        type: string
+      userRole:
+        description: 用户角色：user / admin
+        enum:
+        - user
+        - admin
+        example: user
+        type: string
+    required:
+    - userAccount
+    type: object
+  github_com_ai-comic-generator_server_internal_model.AdminPayOrderPageRequest:
+    properties:
+      orderNo:
+        description: 订单号模糊筛选
+        type: string
+      pageNum:
+        description: 页码
+        type: integer
+      pageSize:
+        description: 每页条数
+        maximum: 100
+        type: integer
+      status:
+        description: 订单状态筛选
+        type: string
+      userAccount:
+        description: 登录账号模糊筛选
+        type: string
+      userId:
+        description: 用户 ID 筛选
+        type: integer
+    required:
+    - pageNum
+    - pageSize
+    type: object
+  github_com_ai-comic-generator_server_internal_model.ComicCharacter:
+    properties:
+      appearance:
+        description: 外貌详细描述（供分镜与定妆照）
+        type: string
+      avatarUrl:
+        description: 定妆照 URL（角色设定后生成）
+        type: string
+      name:
+        description: 角色名称
+        type: string
+      personality:
+        description: 性格特征
+        type: string
+      role:
+        description: 角色类型：protagonist 主角 / antagonist 反派 / supporting 配角
+        type: string
+      visualAnchor:
+        description: 外貌短锚点（15-40 字，每格生图强制复用）
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.ComicInfo:
+    properties:
+      captionTextMode:
+        description: 文案模式：none / top / bubble
+        type: string
+      characters:
+        description: 角色列表（已解析）
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.ComicCharacter'
+        type: array
+      completedTime:
+        description: 完成时间
+        type: string
+      composedLayout:
+        allOf:
+        - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.ComposedLayoutResult'
+        description: 排版结果（已解析）
+      coverImage:
+        description: 封面图 URL
+        type: string
+      createTime:
+        description: 创建时间
+        type: string
+      errorMessage:
+        description: 错误信息
+        type: string
+      id:
+        description: 主键 ID
+        type: integer
+      imageBackend:
+        description: 生图后端
+        type: string
+      panelCount:
+        description: 分镜格数
+        type: integer
+      panelImages:
+        description: 分镜图片列表（已解析）
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.PanelImageResult'
+        type: array
+      phase:
+        description: 当前阶段
+        type: string
+      publishResult:
+        allOf:
+        - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.PublishResult'
+        description: 发布结果（已解析）
+      status:
+        description: 任务总状态
+        type: string
+      storyIdeation:
+        allOf:
+        - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StoryIdeationResult'
+        description: 故事构思（已解析）
+      storyboard:
+        allOf:
+        - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StoryboardResult'
+        description: 分镜脚本（已解析）
+      style:
+        description: 漫画风格
+        type: string
+      taskId:
+        description: 任务 UUID
+        type: string
+      title:
+        description: 漫画标题
+        type: string
+      titleOptions:
+        allOf:
+        - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.TitleOptionsResult'
+        description: 标题推荐列表（已解析）
+      topic:
+        description: 创作主题
+        type: string
+      userAccount:
+        description: 创建者账号（联查，不落库）
+        type: string
+      userDescription:
+        description: 用户补充描述
+        type: string
+      userId:
+        description: 所属用户 ID
+        type: integer
+      userName:
+        description: 创建者昵称（联查，不落库）
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.ComicPageResult:
+    properties:
+      pageNum:
+        type: integer
+      pageSize:
+        type: integer
+      records:
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.ComicInfo'
+        type: array
+      total:
+        type: integer
+    type: object
+  github_com_ai-comic-generator_server_internal_model.ComposedLayoutResult:
+    properties:
+      assetUrls:
+        description: 各页或各资源的最终文件 URL 列表
+        items:
+          type: string
+        type: array
+      coverImage:
+        description: 封面图 URL（用于列表展示）
+        type: string
+      format:
+        description: 排版格式：long_image 长图 / grid 宫格 / page_pdf 分页 PDF
+        example: long_image
+        type: string
+      previewUrl:
+        description: 合成预览图 URL
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.ConfirmStoryboardRequest:
+    properties:
+      storyboard:
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StoryboardPanel'
+        type: array
+      taskId:
+        type: string
+    required:
+    - storyboard
+    - taskId
+    type: object
+  github_com_ai-comic-generator_server_internal_model.ConfirmTitleRequest:
+    properties:
+      taskId:
+        type: string
+      title:
+        type: string
+    required:
+    - taskId
+    - title
+    type: object
+  github_com_ai-comic-generator_server_internal_model.CreateComicRequest:
+    properties:
+      captionTextMode:
+        enum:
+        - none
+        - top
+        - bubble
+        example: top
+        type: string
+      imageBackend:
+        enum:
+        - hunyuan
+        - openai_image_1k
+        - openai_image_4k
+        example: hunyuan
+        type: string
+      panelCount:
+        description: 分镜格数：4 / 6 / 8
+        example: 4
+        type: integer
+      style:
+        enum:
+        - cartoon
+        - realistic
+        - chibi
+        - animal
+        example: cartoon
+        type: string
+      topic:
+        example: 哪吒闹海
+        type: string
+      userDescription:
+        example: 搞笑风格，保持角色一致性
+        type: string
+    required:
+    - topic
+    type: object
+  github_com_ai-comic-generator_server_internal_model.CreatePayOrderRequest:
+    properties:
+      channel:
+        description: 支付渠道：alipay | mock
+        type: string
+      packageCode:
+        description: 充值方案编码
+        type: string
+    required:
+    - channel
+    - packageCode
+    type: object
+  github_com_ai-comic-generator_server_internal_model.CustomComicInfo:
+    properties:
+      aspectRatio:
+        type: string
+      createTime:
+        type: string
+      errorMessage:
+        type: string
+      id:
+        type: integer
+      imageBackend:
+        type: string
+      panelCount:
+        type: integer
+      panelImages:
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.PanelImageResult'
+        type: array
+      prompt:
+        type: string
+      referenceImages:
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.ReferenceImage'
+        type: array
+      status:
+        type: string
+      taskId:
+        type: string
+      updateTime:
+        type: string
+      userAccount:
+        type: string
+      userId:
+        type: integer
+      userName:
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.CustomComicPageResult:
+    properties:
+      pageNum:
+        type: integer
+      pageSize:
+        type: integer
+      records:
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.CustomComicInfo'
+        type: array
+      total:
+        type: integer
+    type: object
+  github_com_ai-comic-generator_server_internal_model.DeletePayPackagePlanRequest:
+    properties:
+      id:
+        description: 方案主键 ID
+        type: integer
+    required:
+    - id
+    type: object
+  github_com_ai-comic-generator_server_internal_model.DeleteRequest:
+    properties:
+      id:
+        description: 要删除的记录主键 ID（用户或文章）
+        example: 1
+        type: integer
+    required:
+    - id
+    type: object
+  github_com_ai-comic-generator_server_internal_model.LoginRequest:
+    properties:
+      userAccount:
+        description: 登录账号
+        example: zhangsan
+        type: string
+      userPassword:
+        description: 登录密码
+        example: "12345678"
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.LoginUser:
+    properties:
+      createTime:
+        type: string
+      editTime:
+        type: string
+      id:
+        type: integer
+      points:
+        type: integer
+      status:
+        type: integer
+      updateTime:
+        type: string
+      userAccount:
+        type: string
+      userAvatar:
+        type: string
+      userName:
+        type: string
+      userProfile:
+        type: string
+      userRole:
+        enum:
+        - user
+        - admin
+        example: user
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.PageResult:
+    properties:
+      pageNum:
+        description: 当前页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页条数
+        example: 10
+        type: integer
+      records:
+        description: 当前页数据列表（用户列表或文章列表）
+      total:
+        description: 符合条件的总条数
+        example: 100
+        type: integer
+    type: object
+  github_com_ai-comic-generator_server_internal_model.PanelImageResult:
+    properties:
+      imagePrompt:
+        description: 实际使用的生图 Prompt（便于追溯）
+        type: string
+      method:
+        description: 图片来源：AI 生成 或 用户上传
+        enum:
+        - AI_GENERATE
+        - UPLOAD
+        type: string
+      panelNo:
+        description: 对应分镜格序号
+        type: integer
+      url:
+        description: 图片访问地址
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.PayOrderPageRequest:
+    properties:
+      pageNum:
+        description: 页码
+        type: integer
+      pageSize:
+        description: 每页条数
+        maximum: 100
+        type: integer
+    required:
+    - pageNum
+    - pageSize
+    type: object
+  github_com_ai-comic-generator_server_internal_model.PayPackagePlanPageRequest:
+    properties:
+      pageNum:
+        description: 页码
+        type: integer
+      pageSize:
+        description: 每页条数
+        maximum: 100
+        type: integer
+    required:
+    - pageNum
+    - pageSize
+    type: object
+  github_com_ai-comic-generator_server_internal_model.PublishComicRequest:
+    properties:
+      platform:
+        enum:
+        - WECHAT_MP
+        example: WECHAT_MP
+        type: string
+      taskId:
+        type: string
+    required:
+    - taskId
+    type: object
+  github_com_ai-comic-generator_server_internal_model.PublishResult:
+    properties:
+      articleUrl:
+        description: 发布后的文章链接（若有）
+        type: string
+      mediaId:
+        description: 微信素材库中的 media_id
+        type: string
+      platform:
+        description: 发布平台，当前为微信公众号 WECHAT_MP
+        example: WECHAT_MP
+        type: string
+      publishedAt:
+        description: 发布时间（未发布时为 nil）
+        type: string
+      status:
+        description: 发布状态：草稿 / 已发布 / 失败
+        enum:
+        - DRAFT
+        - PUBLISHED
+        - FAILED
+        type: string
+      title:
+        description: 发布标题（来自故事构思）
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.QueryComicRequest:
+    properties:
+      pageNum:
+        example: 1
+        type: integer
+      pageSize:
+        example: 10
+        type: integer
+      phase:
+        type: string
+      status:
+        enum:
+        - PENDING
+        - PROCESSING
+        - AWAITING_CONFIRM
+        - TITLE_CONFIRMED
+        - AWAITING_STORYBOARD
+        - COMPLETED
+        - FAILED
+        type: string
+      userId:
+        type: integer
+    type: object
+  github_com_ai-comic-generator_server_internal_model.QueryCustomComicRequest:
+    properties:
+      pageNum:
+        example: 1
+        type: integer
+      pageSize:
+        example: 10
+        type: integer
+      status:
+        enum:
+        - PENDING
+        - PROCESSING
+        - COMPLETED
+        - FAILED
+        type: string
+      userId:
+        type: integer
+    type: object
+  github_com_ai-comic-generator_server_internal_model.QueryUserRequest:
+    properties:
+      id:
+        description: 按用户 ID 筛选（可选）
+        example: 1
+        type: integer
+      pageNum:
+        description: 页码，从 1 开始
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页条数
+        example: 10
+        type: integer
+      sortField:
+        description: 排序字段（可选）
+        example: createTime
+        type: string
+      sortOrder:
+        description: 排序方向：asc / desc（可选）
+        example: desc
+        type: string
+      userAccount:
+        description: 按账号模糊筛选（可选）
+        example: zhangsan
+        type: string
+      userName:
+        description: 按昵称模糊筛选（可选）
+        example: 张三
+        type: string
+      userProfile:
+        description: 按简介模糊筛选（可选）
+        type: string
+      userRole:
+        description: 按角色筛选（可选）
+        example: user
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.ReferenceImage:
+    properties:
+      index:
+        type: integer
+      name:
+        type: string
+      url:
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.RegenerateCustomPanelRequest:
+    properties:
+      panelNo:
+        type: integer
+      prompt:
+        description: 可选：覆盖该格生图提示；空则沿用已有 imagePrompt 或从大纲重解析
+        type: string
+      taskId:
+        type: string
+    required:
+    - panelNo
+    - taskId
+    type: object
+  github_com_ai-comic-generator_server_internal_model.RegeneratePanelRequest:
+    properties:
+      dialogue:
+        items:
+          type: string
+        type: array
+      narration:
+        type: string
+      panelNo:
+        type: integer
+      scene:
+        type: string
+      taskId:
+        type: string
+    required:
+    - panelNo
+    - taskId
+    type: object
+  github_com_ai-comic-generator_server_internal_model.RegisterRequest:
+    properties:
+      checkPassword:
+        description: 确认密码，需与 userPassword 一致
+        example: "12345678"
+        minLength: 8
+        type: string
+      userAccount:
+        description: 登录账号，至少 4 位
+        example: zhangsan
+        minLength: 4
+        type: string
+      userPassword:
+        description: 登录密码，至少 8 位
+        example: "12345678"
+        minLength: 8
+        type: string
+    required:
+    - checkPassword
+    - userAccount
+    - userPassword
+    type: object
+  github_com_ai-comic-generator_server_internal_model.RetryComicRequest:
+    properties:
+      taskId:
+        type: string
+    required:
+    - taskId
+    type: object
+  github_com_ai-comic-generator_server_internal_model.StartComicRequest:
+    properties:
+      taskId:
+        type: string
+    required:
+    - taskId
+    type: object
+  github_com_ai-comic-generator_server_internal_model.StatBucket:
+    properties:
+      key:
+        description: 维度键，如状态码、风格；前端用于映射颜色和逻辑
+        type: string
+      label:
+        description: 展示标签，如"已完成"、"卡通风格"
+        type: string
+      value:
+        description: 数量
+        type: integer
+    type: object
+  github_com_ai-comic-generator_server_internal_model.StatDashboard:
+    properties:
+      overview:
+        allOf:
+        - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StatOverview'
+        description: KPI 概览卡片
+      phaseFunnel:
+        description: 流水线阶段漏斗，按阶段顺序排列
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StatBucket'
+        type: array
+      publishDistribution:
+        description: 发布状态分布，key 为 publishResult.status
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StatBucket'
+        type: array
+      roleDistribution:
+        description: 用户角色分布，key 为 UserRole 常量
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StatBucket'
+        type: array
+      statusDistribution:
+        description: 任务状态分布，key 为 ComicStatus 常量
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StatBucket'
+        type: array
+      styleDistribution:
+        description: 漫画风格占比，key 为 style 字段值
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StatBucket'
+        type: array
+      trend:
+        description: 创作趋势（按天，范围内每天都有，无数据补零）
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StatTrendPoint'
+        type: array
+    type: object
+  github_com_ai-comic-generator_server_internal_model.StatDeltas:
+    properties:
+      completionRate:
+        description: 完成率环比
+        type: number
+      totalComics:
+        description: 总创作数环比
+        type: number
+      totalUsers:
+        description: 总用户数环比
+        type: number
+      weeklyNewComics:
+        description: 本周新增环比
+        type: number
+    type: object
+  github_com_ai-comic-generator_server_internal_model.StatOverview:
+    properties:
+      avgDurationMin:
+        description: 平均耗时（分钟）
+        type: number
+      completedComics:
+        description: 完成数
+        type: integer
+      completionRate:
+        description: 完成率 0-1，前端显示为百分比
+        type: number
+      deltas:
+        allOf:
+        - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StatDeltas'
+        description: 各 KPI 环比变化
+      totalComics:
+        description: 总创作数
+        type: integer
+      totalUsers:
+        description: 总用户数（全量，不受 range 影响）
+        type: integer
+      weeklyNewComics:
+        description: 本周新增创作（固定取最近 7 天）
+        type: integer
+    type: object
+  github_com_ai-comic-generator_server_internal_model.StatTrendPoint:
+    properties:
+      avgDurationMin:
+        description: 当日平均耗时（分钟），无完成则为 0
+        type: number
+      completed:
+        description: 当日完成数
+        type: integer
+      count:
+        description: 当日创作数
+        type: integer
+      date:
+        description: 日期，格式 YYYY-MM-DD
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.StoryIdeationResult:
+    properties:
+      highlights:
+        description: 亮点情节列表
+        items:
+          type: string
+        type: array
+      keyConflict:
+        description: 核心冲突（推动剧情的主矛盾）
+        type: string
+      synopsis:
+        description: 故事梗概（一段话摘要）
+        type: string
+      theme:
+        description: 主题（如成长、友情）
+        type: string
+      title:
+        description: AI 推荐的漫画标题
+        type: string
+      tone:
+        description: 基调（搞笑 / 热血 / 治愈等）
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.StoryboardPanel:
+    properties:
+      camera:
+        description: 镜头类型（特写 / 中景 / 全景等）
+        type: string
+      dialogue:
+        description: 角色台词列表（中文）
+        items:
+          type: string
+        type: array
+      dialogueEn:
+        description: 台词英文版（供 bubble 模式 / 英文气泡使用）
+        items:
+          type: string
+        type: array
+      imagePrompt:
+        description: 该格 AI 生图的英文 Prompt
+        type: string
+      narration:
+        description: 旁白文字
+        type: string
+      panelNo:
+        description: 分镜格序号，从 1 开始
+        type: integer
+      scene:
+        description: 场景与画面描述
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.StoryboardResult:
+    properties:
+      pageCount:
+        description: 预计页数
+        type: integer
+      panels:
+        description: 全部分镜格列表
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StoryboardPanel'
+        type: array
+    type: object
+  github_com_ai-comic-generator_server_internal_model.TitleOption:
+    properties:
+      subtitle:
+        description: 副标题/卖点，可选
+        type: string
+      title:
+        description: 漫画标题，不超过 20 字
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.TitleOptionsResult:
+    properties:
+      options:
+        description: 3-5 个标题方案
+        items:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.TitleOption'
+        type: array
+    type: object
+  github_com_ai-comic-generator_server_internal_model.UpdatePasswordRequest:
+    properties:
+      checkPassword:
+        description: 确认新密码
+        example: "87654321"
+        minLength: 8
+        type: string
+      newPassword:
+        description: 新密码
+        example: "87654321"
+        minLength: 8
+        type: string
+      oldPassword:
+        description: 原密码
+        example: "12345678"
+        minLength: 8
+        type: string
+    required:
+    - checkPassword
+    - newPassword
+    - oldPassword
+    type: object
+  github_com_ai-comic-generator_server_internal_model.UpdatePayPackagePlanRequest:
+    properties:
+      amountFen:
+        description: 售价（分）
+        type: integer
+      enabled:
+        description: 上架状态（可选）
+        type: integer
+      id:
+        description: 方案主键 ID
+        type: integer
+      name:
+        description: 展示名称
+        maxLength: 64
+        minLength: 1
+        type: string
+      points:
+        description: 到账积分
+        type: integer
+      sortOrder:
+        description: 排序（可选）
+        type: integer
+    required:
+    - amountFen
+    - id
+    - name
+    - points
+    type: object
+  github_com_ai-comic-generator_server_internal_model.UpdateProfileRequest:
+    properties:
+      userAvatar:
+        description: 头像 URL（可选）
+        example: https://example.com/avatar.png
+        type: string
+      userName:
+        description: 用户昵称（可选）
+        example: 新昵称
+        type: string
+      userProfile:
+        description: 个人简介（可选）
+        example: 个人简介
+        type: string
+    type: object
+  github_com_ai-comic-generator_server_internal_model.UpdateUserRequest:
+    properties:
+      id:
+        description: 用户主键 ID
+        example: 1
+        type: integer
+      points:
+        description: 积分（可选）
+        example: 100
+        type: integer
+      status:
+        description: 状态（可选）
+        example: 1
+        type: integer
+      userAvatar:
+        description: 头像 URL（可选）
+        example: https://example.com/avatar.png
+        type: string
+      userName:
+        description: 用户昵称（可选）
+        example: 新昵称
+        type: string
+      userProfile:
+        description: 个人简介（可选）
+        example: 更新后的简介
+        type: string
+      userRole:
+        description: 用户角色（可选）
+        enum:
+        - user
+        - admin
+        example: user
+        type: string
+    required:
+    - id
+    type: object
+info:
+  contact: {}
+  description: REST API。HTTP 多为 200，业务结果看 JSON 的 code（0 成功）；鉴权接口需 Cookie session。
+  title: AI Comic Generator API
+  version: "1.0"
+paths:
+  /comic/confirm-storyboard:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 分镜列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.ConfirmStoryboardRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 确认分镜
+      tags:
+      - 漫画
+  /comic/confirm-title:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: taskId 与 title
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.ConfirmTitleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 确认标题
+      tags:
+      - 漫画
+  /comic/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 主题与风格等
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.CreateComicRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 创建漫画任务
+      tags:
+      - 漫画
+  /comic/custom/create:
+    post:
+      consumes:
+      - application/json
+      - multipart/form-data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 创建自定义漫画
+      tags:
+      - 自定义漫画
+  /comic/custom/download:
+    get:
+      parameters:
+      - description: 任务 ID
+        in: query
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/zip
+      responses:
+        "200":
+          description: ZIP 文件
+          schema:
+            type: file
+      security:
+      - SessionCookie: []
+      summary: 下载分镜 ZIP
+      tags:
+      - 自定义漫画
+  /comic/custom/get:
+    get:
+      parameters:
+      - description: 任务 ID
+        in: query
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 查询自定义任务
+      tags:
+      - 自定义漫画
+  /comic/custom/page:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 分页与筛选
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.QueryCustomComicRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.CustomComicPageResult'
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 自定义任务分页
+      tags:
+      - 自定义漫画
+  /comic/custom/regenerate-panel:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 任务与分镜序号
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.RegenerateCustomPanelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 自定义单格重绘
+      tags:
+      - 自定义漫画
+  /comic/get:
+    get:
+      parameters:
+      - description: 任务 ID
+        in: query
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 查询漫画任务
+      tags:
+      - 漫画
+  /comic/page:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 分页与筛选
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.QueryComicRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.ComicPageResult'
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 漫画任务分页
+      tags:
+      - 漫画
+  /comic/publish:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: taskId
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.PublishComicRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 发布到公众号
+      tags:
+      - 漫画
+  /comic/regenerate-panel:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 格号与场景
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.RegeneratePanelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 单格重绘
+      tags:
+      - 漫画
+  /comic/retry:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: taskId
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.RetryComicRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 失败重试
+      tags:
+      - 漫画
+  /comic/start:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: taskId
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.StartComicRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 启动生成流水线
+      tags:
+      - 漫画
+  /health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      summary: 健康检查
+      tags:
+      - 系统
+  /pay/admin/order/page:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 筛选与分页
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.AdminPayOrderPageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.PageResult'
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 全站支付订单分页
+      tags:
+      - 支付管理
+  /pay/admin/package/add:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 方案
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.AddPayPackagePlanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 新增充值方案
+      tags:
+      - 支付管理
+  /pay/admin/package/delete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.DeletePayPackagePlanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 删除充值方案
+      tags:
+      - 支付管理
+  /pay/admin/package/page:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 分页
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.PayPackagePlanPageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.PageResult'
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 管理端充值方案分页
+      tags:
+      - 支付管理
+  /pay/admin/package/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 方案
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.UpdatePayPackagePlanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 更新充值方案
+      tags:
+      - 支付管理
+  /pay/admin/receipt/page:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 筛选与分页
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.AdminPayOrderPageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.PageResult'
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 收款记录分页（已支付）
+      tags:
+      - 支付管理
+  /pay/mock-pay:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订单号
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            orderNo:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 模拟支付成功
+      tags:
+      - 支付
+  /pay/notify/alipay:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+      summary: 支付宝支付回调
+      tags:
+      - 支付
+  /pay/order:
+    get:
+      parameters:
+      - description: 订单号
+        in: query
+        name: orderNo
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 查询充值订单
+      tags:
+      - 支付
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 套餐 code 等
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.CreatePayOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 创建充值订单
+      tags:
+      - 支付
+  /pay/order/page:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 分页
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.PayOrderPageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.PageResult'
+              type: object
+      security:
+      - SessionCookie: []
+      summary: 我的充值订单分页
+      tags:
+      - 支付
+  /pay/packages:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 充值套餐列表
+      tags:
+      - 支付
+  /stat/dashboard:
+    get:
+      parameters:
+      - description: 7d|30d|90d，默认 30d
+        in: query
+        name: range
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 管理端统计看板
+      tags:
+      - 统计
+  /user/add:
+    post:
+      consumes:
+      - application/json
+      description: 管理员创建用户，需 admin 角色
+      parameters:
+      - description: 创建参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.AddUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 业务错误（无权限、参数错误等）
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 创建用户
+      tags:
+      - 用户管理
+  /user/delete:
+    post:
+      consumes:
+      - application/json
+      description: 管理员逻辑删除用户，需 admin 角色
+      parameters:
+      - description: 删除参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.DeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 业务错误
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 删除用户
+      tags:
+      - 用户管理
+  /user/info:
+    get:
+      description: 从 Session 读取当前登录用户信息，含配额等
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 未登录
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 获取当前登录用户
+      tags:
+      - 用户
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: 登录成功后写入 Session Cookie（session），后续受保护接口需携带
+      parameters:
+      - description: 登录参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 业务错误（账号或密码错误等）
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      summary: 用户登录
+      tags:
+      - 用户
+  /user/logout:
+    post:
+      description: 清除 Session，退出登录
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 业务错误
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 用户注销
+      tags:
+      - 用户
+  /user/page/vo:
+    post:
+      consumes:
+      - application/json
+      description: 管理员分页查询用户，支持多条件筛选与排序，需 admin 角色
+      parameters:
+      - description: 查询参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.QueryUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 业务错误
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 分页查询用户列表
+      tags:
+      - 用户管理
+  /user/password/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 原密码与新密码
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 修改密码
+      tags:
+      - 用户
+  /user/profile/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 昵称/头像/简介
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 更新个人资料
+      tags:
+      - 用户
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: 注册新用户，账号至少 4 位，密码至少 8 位
+      parameters:
+      - description: 注册参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 业务错误（参数错误、账号重复等）
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      summary: 用户注册
+      tags:
+      - 用户
+  /user/update:
+    post:
+      consumes:
+      - application/json
+      description: 管理员更新用户信息，需 admin 角色
+      parameters:
+      - description: 更新参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ai-comic-generator_server_internal_model.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 业务错误
+          schema:
+            $ref: '#/definitions/github_com_ai-comic-generator_server_internal_common.BaseResponse'
+      security:
+      - SessionCookie: []
+      summary: 更新用户
+      tags:
+      - 用户管理
+schemes:
+- http
+- https
+securityDefinitions:
+  SessionCookie:
+    in: cookie
+    name: session
+    type: apiKey
+swagger: "2.0"

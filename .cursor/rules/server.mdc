@@ -51,3 +51,9 @@ server/
 5. 在 `internal/router/router.go` 的 `Register` 中注册路由
 
 Handler 保持薄层，不在 handler 写 SQL。命名与现有一致（`UserHandler`、`UserService`、`UserStore`）。
+
+## OpenAPI（Swaggo）
+
+- 在 handler 方法上写 `// @Summary`、`@Tags`、`@Router` 等；全局元信息在 `cmd/server/main.go`。
+- 改注解后：`npm run swagger`（生成 `server/docs/`），再提交 `docs.go` / `swagger.json` / `swagger.yaml`。
+- 本地 UI：`http://localhost:<port>/swagger/index.html`（不在 `/api` 下）；鉴权接口在 Swagger 里勾选 **SessionCookie**（Cookie 名 `session`）。

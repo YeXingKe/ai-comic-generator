@@ -26,6 +26,13 @@ func NewCustomComicHandler(svc *service.CustomComicService) *CustomComicHandler 
 
 // Create POST /comic/custom/create
 // 支持 application/json 或 multipart/form-data（字段 references：角色参考图，可多张）
+// @Summary      创建自定义漫画
+// @Tags         自定义漫画
+// @Accept       json,multipart/form-data
+// @Produce      json
+// @Success      200  {object}  common.BaseResponse
+// @Security     SessionCookie
+// @Router       /comic/custom/create [post]
 func (h *CustomComicHandler) Create(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -81,6 +88,13 @@ func bindCreateCustomComic(c *gin.Context) (*model.CreateCustomComicRequest, []*
 }
 
 // Get GET /comic/custom/get?taskId=
+// @Summary      查询自定义任务
+// @Tags         自定义漫画
+// @Produce      json
+// @Param        taskId  query  string  true  "任务 ID"
+// @Success      200     {object}  common.BaseResponse
+// @Security     SessionCookie
+// @Router       /comic/custom/get [get]
 func (h *CustomComicHandler) Get(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -102,6 +116,14 @@ func (h *CustomComicHandler) Get(c *gin.Context) {
 }
 
 // ListPage POST /comic/custom/page
+// @Summary      自定义任务分页
+// @Tags         自定义漫画
+// @Accept       json
+// @Produce      json
+// @Param        body  body  model.QueryCustomComicRequest  true  "分页与筛选"
+// @Success      200   {object}  common.BaseResponse{data=model.CustomComicPageResult}
+// @Security     SessionCookie
+// @Router       /comic/custom/page [post]
 func (h *CustomComicHandler) ListPage(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -128,6 +150,13 @@ func (h *CustomComicHandler) ListPage(c *gin.Context) {
 }
 
 // DownloadZip GET /comic/custom/download?taskId=  打包全部分镜为 zip
+// @Summary      下载分镜 ZIP
+// @Tags         自定义漫画
+// @Produce      application/zip
+// @Param        taskId  query  string  true  "任务 ID"
+// @Success      200     {file}   binary  "ZIP 文件"
+// @Security     SessionCookie
+// @Router       /comic/custom/download [get]
 func (h *CustomComicHandler) DownloadZip(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {
@@ -153,6 +182,14 @@ func (h *CustomComicHandler) DownloadZip(c *gin.Context) {
 }
 
 // RegeneratePanel POST /comic/custom/regenerate-panel  重绘某一格
+// @Summary      自定义单格重绘
+// @Tags         自定义漫画
+// @Accept       json
+// @Produce      json
+// @Param        body  body  model.RegenerateCustomPanelRequest  true  "任务与分镜序号"
+// @Success      200   {object}  common.BaseResponse
+// @Security     SessionCookie
+// @Router       /comic/custom/regenerate-panel [post]
 func (h *CustomComicHandler) RegeneratePanel(c *gin.Context) {
 	loginUser, ok := middleware.GetLoginUserFromContext(c)
 	if !ok {

@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "concurrently -n web,server -c blue,magenta \"npm run dev:web\" \"npm run dev:server\"",
     "web": "npm run dev --prefix web",
-    "server": "cd server && go run ./cmd/server/main.go",
+    "server": "node scripts/run-go.mjs run -C server ./cmd/server/main.go",
     "build:web": "npm run build --prefix web",
-    "build:server": "go build -C server -o ../bin/server ./cmd/server/main.go",
+    "build:server": "node scripts/run-go.mjs build -C server -o ../bin/server ./cmd/server/main.go",
+    "swagger": "node scripts/run-go.mjs run -C server github.com/swaggo/swag/cmd/swag@v1.16.4 init -g cmd/server/main.go -o docs --parseDependency --parseInternal",
     "install:web": "pnpm --dir web install",
     "sync:deps": "node scripts/sync-deps.mjs",
     "sync:go": "node scripts/sync-deps.mjs --only go",

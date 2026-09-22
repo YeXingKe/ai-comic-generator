@@ -10,4 +10,4 @@ server/config.yaml
 .vscode/
 .idea/
 .claude
-docs
+# 勿写 docs：会忽略 server/docs（Swag 生成物需入库）

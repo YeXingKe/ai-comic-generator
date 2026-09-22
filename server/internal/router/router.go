@@ -7,10 +7,15 @@ import (
 	"github.com/ai-comic-generator/server/internal/config"
 	"github.com/ai-comic-generator/server/internal/middleware"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Register 挂载全部 API 与静态资源（前缀见 cfg.Server.ContextPath，一般为 /api）。
 func Register(r *gin.Engine, cfg *config.Config, application *app.App) {
+	// Swagger UI：http://localhost:<port>/swagger/index.html
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	api := r.Group(cfg.Server.ContextPath)
 
 	api.GET("/health", application.HealthHandler.Check) // 健康检查，探活与部署校验

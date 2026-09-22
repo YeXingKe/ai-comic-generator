@@ -391,6 +391,7 @@ Gin：r.Static(public_url, base_path)
 3. `cp config.yaml.example config.yaml`，填数据库密码与（可选）DashScope Key。  
 4. 仓库根目录：`npm run server` 或 `cd server && go run ./cmd/server/main.go`。  
 5. 浏览器或 curl：`GET http://localhost:8080/api/health`。  
+6. API 文档（Swaggo）：`http://localhost:8080/swagger/index.html`；改 handler 注解后执行 `npm run swagger` 重新生成 `server/docs/`。  
 6. 登录后走一遍：create → get 轮询 → confirm-title → start → …  
 
 静态检查：`cd server && go vet ./...`；有单测的包：`go test ./internal/common/ ...`。

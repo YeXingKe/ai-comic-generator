@@ -1,8 +1,19 @@
+// @title           AI Comic Generator API
+// @version         1.0
+// @description     REST API。HTTP 多为 200，业务结果看 JSON 的 code（0 成功）；鉴权接口需 Cookie session。
+// @BasePath        /api
+// @schemes         http https
+//
+// @securityDefinitions.apikey SessionCookie
+// @in                          cookie
+// @name                        session
 package main
 
 import (
 	"fmt"
 	"log"
+
+	_ "github.com/ai-comic-generator/server/docs"
 
 	"github.com/ai-comic-generator/server/internal/app"
 	"github.com/ai-comic-generator/server/internal/config"

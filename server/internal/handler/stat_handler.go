@@ -17,8 +17,15 @@ func NewStatHandler(svc *service.StatService) *StatHandler {
 	return &StatHandler{svc: svc}
 }
 
-// Dashboard godoc
-// GET /stat/dashboard?range=7d|30d|90d
+// Dashboard 管理端统计看板
+// @Summary      管理端统计看板
+// @Tags         统计
+// @Produce      json
+// @Param        range  query  string  false  "7d|30d|90d，默认 30d"
+// @Success      200    {object}  common.BaseResponse{data=model.StatDashboard}
+// @Failure      200    {object}  common.BaseResponse
+// @Security     SessionCookie
+// @Router       /stat/dashboard [get]
 func (h *StatHandler) Dashboard(c *gin.Context) {
 	var req model.StatQueryRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
