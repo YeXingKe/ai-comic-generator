@@ -124,10 +124,11 @@ Go 版本见 `server/go.mod`（当前为 1.25.x 一带）。
 
 ```text
 server/
-├── cmd/server/main.go      # 程序入口：读配置、装中间件、注册路由
+├── cmd/server/main.go      # 程序入口：读配置、装中间件、启动
 ├── config.yaml.example     # 配置模板（复制为 config.yaml，勿提交密钥）
 ├── sql/                    # 建表与增量迁移 SQL
 └── internal/               # 业务代码（外部包不能 import internal）
+    ├── router/             # HTTP 路由 Register(r, cfg, app)
     ├── app/                # 组装：DB、Redis、各 Service/Handler 注入
     ├── config/             # 解析 YAML
     ├── handler/            # HTTP 薄层：绑 JSON → 调 service → 统一响应
@@ -361,7 +362,7 @@ Gin：r.Static(public_url, base_path)
 
 新增接口推荐顺序（与仓库 skill `add-api` 一致）：
 
-`model` → `store` → `service` → `handler` → `main.go` 注册 → 前端 `types/api.ts` + `api/`。
+`model` → `store` → `service` → `handler` → `internal/router/router.go` 的 `Register` → 前端 `types/api.ts` + `api/`。
 
 ---
 
@@ -448,7 +449,7 @@ Gin：r.Static(public_url, base_path)
 ## 11. 推荐阅读顺序（小白学习路径）
 
 1. 本文第 1～2 章（产品 + 目录）  
-2. `cmd/server/main.go`（有哪些路由）  
+2. `internal/router/router.go`（有哪些路由）  
 3. `internal/app/app.go`（依赖怎么拼起来）  
 4. `handler/comic_handler.go` + `service/comic_service.go`（人机卡点）  
 5. `service/comic_orchestrator.go`（状态机心脏）  
@@ -477,6 +478,6 @@ Gin：r.Static(public_url, base_path)
 
 ## 13. 文档维护
 
-- 路由以 `cmd/server/main.go` 为准；本文若滞后，以代码为准。  
+- 路由以 `internal/router/router.go` 为准；本文若滞后，以代码为准。  
 - 表结构以 `server/sql/` 为准。  
 - 产品向增强（鉴权、充值）不写进本文细节，见同目录其它 PRD/Tech。

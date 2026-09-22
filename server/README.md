@@ -26,7 +26,8 @@ go run ./cmd/server/main.go
 
 | 路径 | 职责 |
 |------|------|
-| `cmd/server/main.go` | 入口与路由 |
+| `cmd/server/main.go` | 入口（配置、中间件、启动） |
+| `internal/router/router.go` | HTTP 路由 `Register` |
 | `internal/app/` | 依赖组装 |
 | `internal/handler/` | HTTP |
 | `internal/service/` | 业务与流水线 |

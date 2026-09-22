@@ -10,8 +10,9 @@ alwaysApply: false
 
 ```text
 server/
-  cmd/server/main.go     # 入口、路由注册
+  cmd/server/main.go     # 入口：配置、中间件、启动
   internal/
+    router/              # HTTP 路由注册（Register）
     app/                 # 组装：DB、Redis、service、handler
     config/              # YAML 配置
     handler/             # HTTP 处理（薄层）
@@ -47,6 +48,6 @@ server/
 2. `store/` — GORM 查询
 3. `service/` — 校验与业务规则
 4. `handler/` — 绑定 JSON、调 service、返回 `common` 响应
-5. 在 `cmd/server/main.go` 注册路由
+5. 在 `internal/router/router.go` 的 `Register` 中注册路由
 
 Handler 保持薄层，不在 handler 写 SQL。命名与现有一致（`UserHandler`、`UserService`、`UserStore`）。

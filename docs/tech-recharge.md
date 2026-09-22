@@ -90,7 +90,7 @@ server/internal/service/payment_service.go
 server/internal/handler/payment_handler.go
 server/internal/client/wechatpay/   # 真支付阶段
 server/sql/payment.sql
-server/cmd/server/main.go
+server/internal/router/router.go
 server/config.yaml.example         # payment.*
 ```
 
@@ -160,4 +160,4 @@ payment:
 |------|------|
 | DecrementPoints / AddPoints | `server/internal/store/user.go` |
 | 创作页额度 | `web/src/pages/user/create/index.tsx` |
-| 路由注册 | `server/cmd/server/main.go` |
+| 路由注册 | `server/internal/router/router.go` → `Register` |

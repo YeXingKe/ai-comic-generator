@@ -26,7 +26,7 @@ disable-model-invocation: true
 2. [ ] `internal/store/` — GORM 方法
 3. [ ] `internal/service/` — 校验、鉴权、sentinel 业务错误
 4. [ ] `internal/handler/` — 绑定 JSON、调 service、`common.Success` / `common.Error`
-5. [ ] `cmd/server/main.go` — 注册路由 + 中间件（session / admin）
+5. [ ] `internal/router/router.go` — 在 `Register` 中注册路由 + 中间件（session / admin）
 6. [ ] 手动测试：curl 或 `/api/health` + 新接口（带 cookie session）
 
 ```bash

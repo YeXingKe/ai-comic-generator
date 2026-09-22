@@ -29,7 +29,7 @@ c.JSON(http.StatusOK, common.Error(40000, "请求参数错误"))
 
 - Session：`sessions.Default(c)` 获取登录用户
 - 管理端路由：在 handler 或 service 校验角色，勿仅信任客户端传来的 role
-- 在 `cmd/server/main.go` 的 `/api` 路由组注册，并挂正确中间件
+- 在 `internal/router/router.go` 的 `Register` 中挂到 `/api` 路由组，并加正确中间件
 
 ## 命名
 
@@ -42,5 +42,5 @@ c.JSON(http.StatusOK, common.Error(40000, "请求参数错误"))
 1. `model/` 定义请求/响应类型
 2. `service/` 实现业务方法
 3. `handler/` 只调 service
-4. `main.go` 注册路由 + 中间件
+4. `internal/router/router.go` 的 `Register` 注册路由 + 中间件
 5. 前端同步：`web/src/types/api.ts` + `web/src/api/`

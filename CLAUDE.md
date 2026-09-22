@@ -39,7 +39,7 @@ agent/     漫画流水线单步智能体（LLM 步骤）
 client/    外部服务：hunyuan（腾讯混元生图）、wechat（公众号）
 ```
 
-新增接口顺序：`model/` → `store/` → `service/` → `handler/` → `cmd/server/main.go` 注册路由与中间件 → 前端同步 `web/src/types/api.ts` + `web/src/api/`。
+新增接口顺序：`model/` → `store/` → `service/` → `handler/` → `internal/router/router.go` 的 `Register` 注册路由 → 前端同步 `web/src/types/api.ts` + `web/src/api/`。
 
 ### 响应与鉴权约定
 
@@ -57,7 +57,7 @@ client/    外部服务：hunyuan（腾讯混元生图）、wechat（公众号�
 
 ### LLM 与外部依赖降级
 
-- LLM 走 `langchaingo` OpenAI 兼容模式连通义千问（qwen-plus），初始化在 `service.NewLLM`。**若 DashScope api_key 未配置，整个漫画模块被禁用**（`app.go` 里 `comicHandler` 为 nil，`main.go` 跳过 `/comic` 路由注册），用户功能仍可用。
+- LLM 走 `langchaingo` OpenAI 兼容模式连通义千问（qwen-plus），初始化在 `service.NewLLM`。**若 DashScope api_key 未配置，整个漫画模块被禁用**（`app.go` 里 `comicHandler` 为 nil，`router.Register` 跳过 `/comic` 路由），用户功能仍可用。
 - 混元生图（`hunyuan.enabled`）、公众号发布（`wechat.enabled`）未开启时走占位/草稿降级，不阻断流水线。
 - 提示词集中在 `common/prompt.go`（`BuildXxxPrompt`）；LLM 返回的 JSON 用 `pkg/llmjson.Unmarshal` 容错解析。
 

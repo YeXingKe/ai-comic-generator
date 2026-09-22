@@ -24,7 +24,7 @@ disable-model-invocation: true
 - [ ] Handler 薄；逻辑在 service；SQL 在 store
 - [ ] JSON 使用 `common.Success` / `common.Error`，HTTP 200
 - [ ] 管理端接口校验角色
-- [ ] 新路由已在 `cmd/server/main.go` 注册
+- [ ] 新路由已在 `internal/router/router.go` 的 `Register` 中注册
 - [ ] `go vet ./...` 通过
 
 ### 前端（`web/`）
