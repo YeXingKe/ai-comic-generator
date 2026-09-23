@@ -31,7 +31,7 @@ type PayOrder struct {
 	Points       int        `gorm:"column:points" json:"points"`                              // 到账积分
 	Status       string     `gorm:"column:status" json:"status"`                              // 订单状态：PENDING / PAID / CLOSED
 	ChannelTxnID *string    `gorm:"column:channelTxnId" json:"channelTxnId"`                  // 渠道交易号（如支付宝 trade_no）
-	CodeURL      *string    `gorm:"column:codeUrl" json:"codeUrl"`                            // 扫码支付链接（支付宝 qr_code）
+	CodeURL      *string    `gorm:"column:codeUrl;type:text" json:"codeUrl"`                  // 扫码 qr_code 或电脑网站支付跳转 URL
 	ExpireAt     time.Time  `gorm:"column:expireAt" json:"expireAt"`                          // 订单过期时间
 	PaidAt       *time.Time `gorm:"column:paidAt" json:"paidAt"`                              // 支付成功时间
 	CreateTime   time.Time  `gorm:"column:createTime;autoCreateTime" json:"createTime"`       // 创建时间
