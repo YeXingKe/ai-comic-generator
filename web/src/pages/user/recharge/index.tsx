@@ -222,9 +222,15 @@ export default function RechargePage() {
         return
       }
       const vo = res.data
-      // 服务端 config mode=page 时返回 payUrl，整页跳转收银台
+      // 电脑网站支付：新标签打开收银台，本页继续轮询到账
       if (vo.channel === 'alipay' && vo.payUrl) {
-        window.location.href = vo.payUrl
+        const payWin = window.open(vo.payUrl, '_blank', 'noopener,noreferrer')
+        if (!payWin) {
+          message.warning('浏览器拦截了新窗口，请允许弹窗后重试，或点击地址栏允许')
+        } else {
+          message.info('已在新标签打开支付宝，请完成支付')
+        }
+        startPoll(vo.orderNo, vo.points)
         return
       }
       setActiveOrder({
