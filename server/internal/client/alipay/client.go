@@ -57,7 +57,7 @@ func (c *Client) Precreate(outTradeNo, subject string, amountFen int) (string, e
 			OutTradeNo:     outTradeNo,
 			TotalAmount:    fenToYuan(amountFen),
 			ProductCode:    "FACE_TO_FACE_PAYMENT",
-			TimeoutExpress: "15m",
+			TimeoutExpress: "5m",
 		},
 	}
 	rsp, err := c.api.TradePreCreate(context.Background(), p)

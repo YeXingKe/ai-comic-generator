@@ -79,7 +79,7 @@ func (s *PayService) CreateOrder(userID int64, req *model.CreatePayOrderRequest)
 		AmountFen:   pkg.AmountFen,
 		Points:      pkg.Points,
 		Status:      model.PayPending,
-		ExpireAt:    time.Now().Add(15 * time.Minute),
+		ExpireAt:    time.Now().Add(5 * time.Minute),
 	}
 
 	if req.Channel == model.ChannelAlipay {

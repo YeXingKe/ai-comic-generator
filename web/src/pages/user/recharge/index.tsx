@@ -39,6 +39,12 @@ function formatYuan(fen: number) {
   return `¥${(fen / 100).toFixed(2)}`
 }
 
+function formatCountdown(sec: number) {
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
 export default function RechargePage() {
   const { loginUser, fetchLoginUser } = useLoginUserStore()
   const [catalogLoading, setCatalogLoading] = useState(true)
@@ -54,8 +60,11 @@ export default function RechargePage() {
     points: number
     codeUrl: string
     channel: string
+    expireAt: string
   } | null>(null)
+  const [remainSec, setRemainSec] = useState<number | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const payExpired = remainSec !== null && remainSec <= 0
 
   const [records, setRecords] = useState<PayOrderVO[]>([])
   const [total, setTotal] = useState(0)
@@ -115,6 +124,26 @@ export default function RechargePage() {
 
   useEffect(() => () => stopPoll(), [])
 
+  useEffect(() => {
+    if (!payOpen || !activeOrder?.expireAt) {
+      setRemainSec(null)
+      return
+    }
+    const tick = () => {
+      const left = Math.max(
+        0,
+        Math.floor((new Date(activeOrder.expireAt).getTime() - Date.now()) / 1000),
+      )
+      setRemainSec(left)
+      if (left <= 0) {
+        stopPoll()
+      }
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [payOpen, activeOrder?.expireAt, activeOrder?.orderNo])
+
   const onPaid = async (points: number) => {
     stopPoll()
     setPayOpen(false)
@@ -162,6 +191,7 @@ export default function RechargePage() {
         points: vo.points,
         codeUrl: vo.codeUrl,
         channel: vo.channel,
+        expireAt: vo.expireAt,
       })
       setPayOpen(true)
       if (vo.channel === 'alipay' && vo.codeUrl) {
@@ -313,6 +343,8 @@ export default function RechargePage() {
           onCancel={() => {
             stopPoll()
             setPayOpen(false)
+            setActiveOrder(null)
+            setRemainSec(null)
           }}
           destroyOnClose
         >
@@ -320,17 +352,52 @@ export default function RechargePage() {
             <div className="recharge-page__pay-modal">
               {activeOrder.channel === 'alipay' && activeOrder.codeUrl ? (
                 <>
-                  <QRCode value={activeOrder.codeUrl} size={200} />
-                  <p className="recharge-page__pay-hint">请使用支付宝扫一扫完成支付</p>
+                  <QRCode
+                    value={activeOrder.codeUrl}
+                    size={200}
+                    status={payExpired ? 'expired' : 'active'}
+                  />
+                  {payExpired ? (
+                    <p className="recharge-page__pay-expired">二维码已失效，请关闭后重新下单</p>
+                  ) : (
+                    <p className="recharge-page__pay-hint">请使用支付宝扫一扫完成支付</p>
+                  )}
                 </>
               ) : (
-                <p className="recharge-page__pay-hint">开发环境：点击下方按钮模拟支付成功</p>
+                <p className="recharge-page__pay-hint">
+                  {payExpired
+                    ? '订单已超时，请关闭后重新下单'
+                    : '开发环境：点击下方按钮模拟支付成功'}
+                </p>
+              )}
+              {remainSec !== null && !payExpired && (
+                <p className="recharge-page__pay-countdown">
+                  请在 <span>{formatCountdown(remainSec)}</span> 内完成支付
+                </p>
+              )}
+              {payExpired && activeOrder.channel === 'alipay' && (
+                <Button
+                  block
+                  onClick={() => {
+                    stopPoll()
+                    setPayOpen(false)
+                    setActiveOrder(null)
+                    setRemainSec(null)
+                  }}
+                >
+                  关闭
+                </Button>
               )}
               <p className="recharge-page__pay-amount">
                 {formatYuan(activeOrder.amountFen)} · {activeOrder.points} 积分
               </p>
               {activeOrder.channel === 'mock' && mockEnabled && (
-                <Button type="primary" block onClick={() => void handleMockPay()}>
+                <Button
+                  type="primary"
+                  block
+                  disabled={payExpired}
+                  onClick={() => void handleMockPay()}
+                >
                   模拟支付成功
                 </Button>
               )}
