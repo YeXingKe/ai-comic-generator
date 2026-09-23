@@ -28,11 +28,7 @@ func NewPayService(cfg *config.Config, st *store.PayStore, ali *alipayx.Client) 
 }
 
 func (s *PayService) alipayMode() string {
-	mode := strings.TrimSpace(s.cfg.Pay.Alipay.Mode)
-	if mode == "" {
-		return model.AlipayModeQRCode
-	}
-	return mode
+	return common.CoalesceTrim(s.cfg.Pay.Alipay.Mode, model.AlipayModeQRCode)
 }
 
 func (s *PayService) salePackageList() []model.PayPackage {
@@ -114,7 +110,7 @@ func (s *PayService) CreateOrder(userID int64, req *model.CreatePayOrderRequest)
 			}
 			order.CodeURL = &qr
 		case model.AlipayModePage:
-			if strings.TrimSpace(s.cfg.Pay.ReturnBaseURL) == "" {
+			if common.IsBlank(s.cfg.Pay.ReturnBaseURL) {
 				return nil, common.ErrOperation.WithMessage("未配置 return_base_url")
 			}
 			ret := strings.TrimRight(s.cfg.Pay.ReturnBaseURL, "/") + "/user/recharge?orderNo=" + orderNo
@@ -147,8 +143,8 @@ func (s *PayService) CreateOrder(userID int64, req *model.CreatePayOrderRequest)
 }
 
 func (s *PayService) GetMine(userID int64, orderNo string) (*model.PayOrder, error) {
-	if orderNo == "" {
-		return nil, common.ErrParams.WithMessage("缺少 orderNo")
+	if err := common.RequireNonBlank(orderNo, "缺少 orderNo"); err != nil {
+		return nil, err
 	}
 	o, err := s.store.GetByOrderNo(orderNo)
 	if err != nil || o.UserID != userID {

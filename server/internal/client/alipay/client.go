@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ai-comic-generator/server/internal/common"
 	"github.com/smartwalle/alipay/v3"
 )
 
@@ -48,7 +49,7 @@ func fenToYuan(fen int) string {
 
 // Precreate 当面付扫码，返回 qr_code
 func (c *Client) Precreate(outTradeNo, subject string, amountFen int) (string, error) {
-	if c == nil || c.api == nil {
+	if !c.Enabled() {
 		return "", fmt.Errorf("alipay 未启用")
 	}
 	p := alipay.TradePreCreate{
@@ -73,13 +74,11 @@ func (c *Client) Precreate(outTradeNo, subject string, amountFen int) (string, e
 
 // PagePay 电脑网站支付：返回跳转支付宝收银台的 URL
 func (c *Client) PagePay(outTradeNo, subject string, amountFen int, returnURL string) (string, error) {
-	if c == nil || c.api == nil {
+	if !c.Enabled() {
 		return "", fmt.Errorf("alipay 未启用")
 	}
-	if returnURL == "" {
-		returnURL = c.returnURL
-	}
-	if returnURL == "" {
+	returnURL = common.FirstNonBlank(returnURL, c.returnURL)
+	if common.IsBlank(returnURL) {
 		return "", fmt.Errorf("缺少 return_url")
 	}
 	p := alipay.TradePagePay{}
@@ -105,7 +104,7 @@ type Notify struct {
 }
 
 func (c *Client) ParseNotify(r *http.Request) (*Notify, error) {
-	if c == nil || c.api == nil {
+	if !c.Enabled() {
 		return nil, fmt.Errorf("alipay 未启用")
 	}
 	n, err := c.api.GetTradeNotification(r)

@@ -180,45 +180,6 @@ func applyDefaults(cfg *Config) {
 	if len(cfg.CORS.AllowOrigins) == 0 {
 		cfg.CORS.AllowOrigins = []string{"http://localhost:5173"}
 	}
-	if cfg.Session.SameSite == "" {
-		cfg.Session.SameSite = "lax"
-	}
-	if cfg.AI.DashScope.Model == "" {
-		cfg.AI.DashScope.Model = "qwen-plus"
-	}
-	if cfg.AI.DashScope.BaseURL == "" {
-		cfg.AI.DashScope.BaseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-	}
-	if cfg.AI.Hunyuan.Region == "" {
-		cfg.AI.Hunyuan.Region = "ap-guangzhou"
-	}
-	if cfg.AI.Hunyuan.Model == "" {
-		cfg.AI.Hunyuan.Model = "hunyuan-image"
-	}
-	if cfg.AI.ImageBackend == "" {
-		cfg.AI.ImageBackend = "hunyuan"
-	}
-	if cfg.AI.OpenAIImage1K.Timeout == 0 {
-		cfg.AI.OpenAIImage1K.Timeout = 120
-	}
-	if cfg.AI.OpenAIImage1K.Size == "" {
-		cfg.AI.OpenAIImage1K.Size = "1024x1024"
-	}
-	if cfg.AI.OpenAIImage4K.Timeout == 0 {
-		cfg.AI.OpenAIImage4K.Timeout = 120
-	}
-	if cfg.AI.OpenAIImage4K.Size == "" {
-		cfg.AI.OpenAIImage4K.Size = "1024x1024"
-	}
-	if cfg.AI.PromptLang == "" {
-		cfg.AI.PromptLang = "zh"
-	}
-	if cfg.Storage.BasePath == "" {
-		cfg.Storage.BasePath = "./data/comics"
-	}
-	if cfg.Storage.PublicURL == "" {
-		cfg.Storage.PublicURL = "/static/comics"
-	}
 	if len(cfg.Pay.Packages) == 0 {
 		cfg.Pay.Packages = []PayPackageItem{
 			{Code: "p60", Name: "入门包", AmountFen: 600, Points: 60},
@@ -226,43 +187,58 @@ func applyDefaults(cfg *Config) {
 			{Code: "p680", Name: "创作包", AmountFen: 6800, Points: 800},
 		}
 	}
+
+	defaultStr(&cfg.Session.SameSite, "lax")
+	defaultStr(&cfg.AI.DashScope.Model, "qwen-plus")
+	defaultStr(&cfg.AI.DashScope.BaseURL, "https://dashscope.aliyuncs.com/compatible-mode/v1")
+	defaultStr(&cfg.AI.Hunyuan.Region, "ap-guangzhou")
+	defaultStr(&cfg.AI.Hunyuan.Model, "hunyuan-image")
+	defaultStr(&cfg.AI.ImageBackend, "hunyuan")
+	defaultStr(&cfg.AI.PromptLang, "zh")
+	defaultStr(&cfg.AI.OpenAIImage1K.Size, "1024x1024")
+	defaultStr(&cfg.AI.OpenAIImage4K.Size, "1024x1024")
+	defaultStr(&cfg.Storage.BasePath, "./data/comics")
+	defaultStr(&cfg.Storage.PublicURL, "/static/comics")
+	defaultStr(&cfg.Pay.Alipay.Mode, "qrcode")
+
+	defaultInt(&cfg.AI.OpenAIImage1K.Timeout, 120)
+	defaultInt(&cfg.AI.OpenAIImage4K.Timeout, 120)
+}
+
+func defaultStr(dst *string, def string) {
+	if *dst == "" {
+		*dst = def
+	}
+}
+
+func defaultInt(dst *int, def int) {
+	if *dst == 0 {
+		*dst = def
+	}
 }
 
 func applyEnvOverrides(cfg *Config) {
-	if val := getEnv("DB_HOST", ""); val != "" {
-		cfg.Database.Host = val
-	}
-	if val := getEnv("DB_PORT", ""); val != "" {
-		fmt.Sscanf(val, "%d", &cfg.Database.Port)
-	}
-	if val := getEnv("DB_NAME", ""); val != "" {
-		cfg.Database.Name = val
-	}
-	if val := getEnv("DB_USER", ""); val != "" {
-		cfg.Database.User = val
-	}
-	if val := getEnv("DB_PASSWORD", ""); val != "" {
-		cfg.Database.Password = val
-	}
-	if val := getEnv("REDIS_HOST", ""); val != "" {
-		cfg.Redis.Host = val
-	}
-	if val := getEnv("REDIS_PORT", ""); val != "" {
-		fmt.Sscanf(val, "%d", &cfg.Redis.Port)
-	}
-	if val := getEnv("REDIS_PASSWORD", ""); val != "" {
-		cfg.Redis.Password = val
-	}
-	if val := getEnv("DASHSCOPE_API_KEY", ""); val != "" {
-		cfg.AI.DashScope.APIKey = val
+	envStr(&cfg.Database.Host, "DB_HOST")
+	envInt(&cfg.Database.Port, "DB_PORT")
+	envStr(&cfg.Database.Name, "DB_NAME")
+	envStr(&cfg.Database.User, "DB_USER")
+	envStr(&cfg.Database.Password, "DB_PASSWORD")
+	envStr(&cfg.Redis.Host, "REDIS_HOST")
+	envInt(&cfg.Redis.Port, "REDIS_PORT")
+	envStr(&cfg.Redis.Password, "REDIS_PASSWORD")
+	envStr(&cfg.AI.DashScope.APIKey, "DASHSCOPE_API_KEY")
+}
+
+func envStr(dst *string, key string) {
+	if v := os.Getenv(key); v != "" {
+		*dst = v
 	}
 }
 
-func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
+func envInt(dst *int, key string) {
+	if v := os.Getenv(key); v != "" {
+		fmt.Sscanf(v, "%d", dst)
 	}
-	return defaultValue
 }
 
 func (c *DatabaseConfig) GetDSN() string {
