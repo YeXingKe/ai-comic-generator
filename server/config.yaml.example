@@ -102,10 +102,9 @@ pay:
       amount_fen: 6800
       points: 800
   alipay:
-    enabled: false           # true 表示在本服务里打开「真实支付宝当面付」
+    enabled: false           # true 表示打开真实支付宝
     app_id: ""
     private_key: ""          # 应用私钥 PKCS1，勿提交
     alipay_public_key: ""    # 支付宝公钥（不是应用公钥）
     sandbox: true            # 沙箱 true，正式 false
-    mode: "qrcode"    # qrcode = 当面付弹窗扫码
-                      # page   = 电脑网站支付，跳转支付宝
+    mode: "qrcode"           # qrcode=当面付扫码；page=电脑网站支付（需开通产品并配置 return_base_url）

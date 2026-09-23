@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	alipayx "github.com/ai-comic-generator/server/internal/client/alipay"
@@ -24,6 +25,14 @@ func NewPayService(cfg *config.Config, st *store.PayStore, ali *alipayx.Client) 
 	s := &PayService{cfg: cfg, store: st, alipay: ali, packages: map[string]model.PayPackage{}}
 	s.reloadSalePackages()
 	return s
+}
+
+func (s *PayService) alipayMode() string {
+	mode := strings.TrimSpace(s.cfg.Pay.Alipay.Mode)
+	if mode == "" {
+		return model.AlipayModeQRCode
+	}
+	return mode
 }
 
 func (s *PayService) salePackageList() []model.PayPackage {
@@ -70,6 +79,15 @@ func (s *PayService) CreateOrder(userID int64, req *model.CreatePayOrderRequest)
 		return nil, common.ErrOperation.WithMessage("支付宝未配置")
 	}
 
+	payMode := s.alipayMode()
+	if req.Channel == model.ChannelMock {
+		payMode = model.AlipayModeQRCode
+	}
+	if req.Channel == model.ChannelAlipay &&
+		payMode != model.AlipayModeQRCode && payMode != model.AlipayModePage {
+		return nil, common.ErrParams.WithMessage("pay.alipay.mode 仅支持 qrcode 或 page")
+	}
+
 	orderNo := fmt.Sprintf("A%s%06d", time.Now().Format("20060102150405"), rand.Intn(1_000_000))
 	order := &model.PayOrder{
 		OrderNo:     orderNo,
@@ -82,15 +100,31 @@ func (s *PayService) CreateOrder(userID int64, req *model.CreatePayOrderRequest)
 		ExpireAt:    time.Now().Add(5 * time.Minute),
 	}
 
+	var payURL string
 	if req.Channel == model.ChannelAlipay {
 		if !s.alipay.Enabled() {
 			return nil, common.ErrOperation.WithMessage("支付宝未就绪")
 		}
-		qr, err := s.alipay.Precreate(orderNo, "积分充值-"+pkg.Name, pkg.AmountFen)
-		if err != nil {
-			return nil, common.ErrOperation.WithMessage("支付宝下单失败")
+		subject := "积分充值-" + pkg.Name
+		switch payMode {
+		case model.AlipayModeQRCode:
+			qr, err := s.alipay.Precreate(orderNo, subject, pkg.AmountFen)
+			if err != nil {
+				return nil, common.ErrOperation.WithMessage("支付宝下单失败")
+			}
+			order.CodeURL = &qr
+		case model.AlipayModePage:
+			if strings.TrimSpace(s.cfg.Pay.ReturnBaseURL) == "" {
+				return nil, common.ErrOperation.WithMessage("未配置 return_base_url")
+			}
+			ret := strings.TrimRight(s.cfg.Pay.ReturnBaseURL, "/") + "/user/recharge?orderNo=" + orderNo
+			u, err := s.alipay.PagePay(orderNo, subject, pkg.AmountFen, ret)
+			if err != nil {
+				return nil, common.ErrOperation.WithMessage("支付宝电脑支付下单失败")
+			}
+			payURL = u
+			order.CodeURL = &u
 		}
-		order.CodeURL = &qr
 	}
 
 	if err := s.store.Create(order); err != nil {
@@ -101,10 +135,12 @@ func (s *PayService) CreateOrder(userID int64, req *model.CreatePayOrderRequest)
 		AmountFen: order.AmountFen,
 		Points:    order.Points,
 		Channel:   order.Channel,
+		PayMode:   payMode,
 		ExpireAt:  order.ExpireAt.Format(time.RFC3339),
 		Status:    order.Status,
+		PayURL:    payURL,
 	}
-	if order.CodeURL != nil {
+	if payMode == model.AlipayModeQRCode && order.CodeURL != nil {
 		vo.CodeURL = *order.CodeURL
 	}
 	return vo, nil

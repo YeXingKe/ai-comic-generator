@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	alipayx "github.com/ai-comic-generator/server/internal/client/alipay"
 	"github.com/ai-comic-generator/server/internal/client/cos"
@@ -117,13 +118,17 @@ func New(cfg *config.Config) (*App, error) {
 	if cfg.Pay.NotifyBaseURL == "" {
 		notifyURL = ""
 	}
+	returnURL := strings.TrimRight(cfg.Pay.ReturnBaseURL, "/") + "/user/recharge"
+	if cfg.Pay.ReturnBaseURL == "" {
+		returnURL = ""
+	}
 	alipayClient, err := alipayx.New(&alipayx.Config{
 		Enabled:         cfg.Pay.Alipay.Enabled,
 		AppID:           cfg.Pay.Alipay.AppID,
 		PrivateKey:      cfg.Pay.Alipay.PrivateKey,
 		AlipayPublicKey: cfg.Pay.Alipay.AlipayPublicKey,
 		Sandbox:         cfg.Pay.Alipay.Sandbox,
-	}, notifyURL)
+	}, notifyURL, returnURL)
 	if err != nil {
 		return nil, fmt.Errorf("init alipay: %w", err)
 	}

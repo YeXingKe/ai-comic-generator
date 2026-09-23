@@ -456,6 +456,8 @@ export interface CreatePayOrderVO {
   points: number
   channel: string
   codeUrl: string
+  /** 有值则整页跳转支付宝收银台（由服务端 config pay.alipay.mode=page 决定） */
+  payUrl?: string
   expireAt: string
   status: string
 }

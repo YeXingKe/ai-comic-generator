@@ -15,7 +15,7 @@ import {
   Table,
   message,
 } from 'antd'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   createPayOrder,
   getPayCatalog,
@@ -47,6 +47,7 @@ function formatCountdown(sec: number) {
 
 export default function RechargePage() {
   const { loginUser, fetchLoginUser } = useLoginUserStore()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [packages, setPackages] = useState<PayPackageVO[]>([])
   const [mockEnabled, setMockEnabled] = useState(false)
@@ -63,6 +64,7 @@ export default function RechargePage() {
     expireAt: string
   } | null>(null)
   const [remainSec, setRemainSec] = useState<number | null>(null)
+  const [pageReturnPolling, setPageReturnPolling] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const payExpired = remainSec !== null && remainSec <= 0
 
@@ -148,6 +150,12 @@ export default function RechargePage() {
     stopPoll()
     setPayOpen(false)
     setActiveOrder(null)
+    setPageReturnPolling(false)
+    if (searchParams.has('orderNo')) {
+      const next = new URLSearchParams(searchParams)
+      next.delete('orderNo')
+      setSearchParams(next, { replace: true })
+    }
     message.success(`已到账 ${points} 积分`)
     await fetchLoginUser()
     void loadOrders(pageNum, pageSize)
@@ -167,6 +175,35 @@ export default function RechargePage() {
     }, 2000)
   }
 
+  // 电脑网站支付回跳：/user/recharge?orderNo=xxx
+  useEffect(() => {
+    const orderNo = searchParams.get('orderNo')
+    if (!orderNo) return
+    setPageReturnPolling(true)
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await getPayOrder(orderNo)
+        if (cancelled) return
+        if (res.code === 0 && res.data) {
+          if (res.data.status === 'PAID') {
+            await onPaid(res.data.points)
+            return
+          }
+          startPoll(orderNo, res.data.points)
+        } else {
+          setPageReturnPolling(false)
+        }
+      } catch {
+        if (!cancelled) setPageReturnPolling(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅跟 URL orderNo
+  }, [searchParams])
+
   const handleBuy = async (pkg: PayPackageVO, channel: 'alipay' | 'mock') => {
     if (channel === 'alipay' && !alipayEnabled) {
       message.warning('支付宝未配置，请联系管理员')
@@ -185,6 +222,11 @@ export default function RechargePage() {
         return
       }
       const vo = res.data
+      // 服务端 config mode=page 时返回 payUrl，整页跳转收银台
+      if (vo.channel === 'alipay' && vo.payUrl) {
+        window.location.href = vo.payUrl
+        return
+      }
       setActiveOrder({
         orderNo: vo.orderNo,
         amountFen: vo.amountFen,
@@ -258,12 +300,22 @@ export default function RechargePage() {
         <header className="page-shell__header">
           <div className="page-shell__header-main">
             <h1>充值积分</h1>
-            <p>支付宝扫码支付，到账后可用于漫画创作</p>
+            <p>支付宝支付，到账后可用于漫画创作</p>
           </div>
           <div className="page-shell__header-actions recharge-page__stat">
             <Statistic title="当前积分" value={loginUser.points} />
           </div>
         </header>
+
+        {pageReturnPolling && (
+          <Alert
+            type="info"
+            showIcon
+            className="recharge-page__sandbox-alert"
+            message="正在确认支付结果…"
+            description="已从支付宝返回，正在查询订单状态，请稍候。"
+          />
+        )}
 
         {alipaySandbox && (
           <Alert

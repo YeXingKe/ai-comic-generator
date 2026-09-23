@@ -134,6 +134,7 @@ type WeChatConfig struct {
 type PayConfig struct {
 	MockEnabled   bool              `mapstructure:"mock_enabled"`
 	NotifyBaseURL string            `mapstructure:"notify_base_url"`
+	ReturnBaseURL string           `mapstructure:"return_base_url"` // 新增：电脑网站支付回跳根地址
 	Packages      []PayPackageItem  `mapstructure:"packages"`
 	Alipay        PayAlipayConfig   `mapstructure:"alipay"`
 }
@@ -153,6 +154,7 @@ type PayAlipayConfig struct {
 	PrivateKey      string `mapstructure:"private_key"`
 	AlipayPublicKey string `mapstructure:"alipay_public_key"`
 	Sandbox         bool   `mapstructure:"sandbox"`
+	Mode            string `mapstructure:"mode"` // qrcode=当面付扫码；page=电脑网站支付
 }
 
 func LoadConfig(configPath string) (*Config, error) {
