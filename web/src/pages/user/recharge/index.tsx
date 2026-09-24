@@ -19,13 +19,14 @@ import { Link, useSearchParams } from 'react-router-dom'
 import {
   createPayOrder,
   getPayCatalog,
-  getPayOrder,
   listPayOrders,
   mockPayOrder,
+  syncPayOrder,
 } from '@/api/pay'
 import { useLoginUserStore } from '@/stores/loginUser'
 import type { PayOrderVO, PayPackageVO } from '@/types/api'
 import { formatListDateTime } from '@/utils/formatDateTime'
+import { ALIPAY_PAY_RETURN_MSG } from '@/pages/user/recharge/PayReturn'
 import '@/styles/pageShell.css'
 import './index.css'
 
@@ -66,6 +67,8 @@ export default function RechargePage() {
   const [remainSec, setRemainSec] = useState<number | null>(null)
   const [pageReturnPolling, setPageReturnPolling] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const payWinRef = useRef<Window | null>(null)
+  const pendingPageOrderRef = useRef<{ orderNo: string; points: number } | null>(null)
   const payExpired = remainSec !== null && remainSec <= 0
 
   const [records, setRecords] = useState<PayOrderVO[]>([])
@@ -151,6 +154,8 @@ export default function RechargePage() {
     setPayOpen(false)
     setActiveOrder(null)
     setPageReturnPolling(false)
+    pendingPageOrderRef.current = null
+    payWinRef.current = null
     if (searchParams.has('orderNo')) {
       const next = new URLSearchParams(searchParams)
       next.delete('orderNo')
@@ -161,48 +166,56 @@ export default function RechargePage() {
     void loadOrders(pageNum, pageSize)
   }
 
-  const startPoll = (orderNo: string, points: number) => {
+  /** 主动查支付宝入账；未付返回 false */
+  const syncOnce = async (orderNo: string, points: number) => {
+    const res = await syncPayOrder(orderNo)
+    if (res.code === 0 && res.data?.status === 'PAID') {
+      await onPaid(res.data.points || points)
+      return true
+    }
+    return false
+  }
+
+  /** 扫码弹窗：短间隔 sync（窗口有限）；到账后停止 */
+  const startSyncPoll = (orderNo: string, points: number, intervalMs = 2500) => {
     stopPoll()
+    void syncOnce(orderNo, points)
     pollRef.current = setInterval(async () => {
       try {
-        const res = await getPayOrder(orderNo)
-        if (res.code === 0 && res.data?.status === 'PAID') {
-          await onPaid(points)
-        }
+        await syncOnce(orderNo, points)
       } catch {
         /* 轮询静默失败 */
       }
-    }, 2000)
+    }, intervalMs)
   }
 
-  // 电脑网站支付回跳：/user/recharge?orderNo=xxx
+  // PC 收银台回跳页 postMessage → 原页立刻 sync，不再空转打 Query
   useEffect(() => {
-    const orderNo = searchParams.get('orderNo')
-    if (!orderNo) return
-    setPageReturnPolling(true)
-    let cancelled = false
-    ;(async () => {
-      try {
-        const res = await getPayOrder(orderNo)
-        if (cancelled) return
-        if (res.code === 0 && res.data) {
-          if (res.data.status === 'PAID') {
-            await onPaid(res.data.points)
-            return
+    const onMsg = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return
+      if (!e.data || e.data.type !== ALIPAY_PAY_RETURN_MSG) return
+      const orderNo = String(e.data.orderNo || '')
+      if (!orderNo) return
+      const pending = pendingPageOrderRef.current
+      const points = pending?.orderNo === orderNo ? pending.points : 0
+      setPageReturnPolling(true)
+      void (async () => {
+        try {
+          const paid = await syncOnce(orderNo, points)
+          if (!paid) {
+            // 回跳瞬间可能尚未终态，短轮询几次 sync
+            startSyncPoll(orderNo, points, 2000)
           }
-          startPoll(orderNo, res.data.points)
-        } else {
+        } catch {
           setPageReturnPolling(false)
+          message.warning('确认支付结果失败，请稍后刷新或查看充值记录')
         }
-      } catch {
-        if (!cancelled) setPageReturnPolling(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+      })()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅跟 URL orderNo
-  }, [searchParams])
+    window.addEventListener('message', onMsg)
+    return () => window.removeEventListener('message', onMsg)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageNum, pageSize])
 
   const handleBuy = async (pkg: PayPackageVO, channel: 'alipay' | 'mock') => {
     if (channel === 'alipay' && !alipayEnabled) {
@@ -222,15 +235,23 @@ export default function RechargePage() {
         return
       }
       const vo = res.data
-      // 电脑网站支付：新标签打开收银台，本页继续轮询到账
+      // 电脑网站支付：新标签打开；勿加 noopener，否则回跳页无法 postMessage
       if (vo.channel === 'alipay' && vo.payUrl) {
-        const payWin = window.open(vo.payUrl, '_blank', 'noopener,noreferrer')
+        pendingPageOrderRef.current = { orderNo: vo.orderNo, points: vo.points }
+        const payWin = window.open(vo.payUrl, '_blank')
+        payWinRef.current = payWin
         if (!payWin) {
-          message.warning('浏览器拦截了新窗口，请允许弹窗后重试，或点击地址栏允许')
-        } else {
-          message.info('已在新标签打开支付宝，请完成支付')
+          message.warning('浏览器拦截了新窗口，请允许弹窗后重试')
+          return
         }
-        startPoll(vo.orderNo, vo.points)
+        message.info('已在新标签打开支付宝，支付完成后将自动确认到账')
+        // 新标签关闭后再 sync 一次（用户关页 / 回跳 close）
+        const closeWatch = window.setInterval(() => {
+          if (!payWin.closed) return
+          clearInterval(closeWatch)
+          void syncOnce(vo.orderNo, vo.points)
+        }, 800)
+        window.setTimeout(() => clearInterval(closeWatch), 5 * 60 * 1000)
         return
       }
       setActiveOrder({
@@ -243,7 +264,7 @@ export default function RechargePage() {
       })
       setPayOpen(true)
       if (vo.channel === 'alipay' && vo.codeUrl) {
-        startPoll(vo.orderNo, vo.points)
+        startSyncPoll(vo.orderNo, vo.points)
       }
     } catch {
       message.error('下单失败，请稍后重试')

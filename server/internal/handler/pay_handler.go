@@ -81,7 +81,7 @@ func (h *PayHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, common.Success(vo))
 }
 
-// Get 查询单笔订单
+// Get 查询单笔订单（仅读库，不打支付宝）
 // @Summary      查询充值订单
 // @Tags         支付
 // @Produce      json
@@ -97,6 +97,36 @@ func (h *PayHandler) Get(c *gin.Context) {
 	}
 	orderNo := c.Query("orderNo")
 	o, err := h.svc.GetMine(u.ID, orderNo)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, common.Success(o.ToVO()))
+}
+
+// Sync 主动查支付宝并尝试入账（支付回跳 / 扫码确认后调用）
+// @Summary      同步支付宝订单状态
+// @Tags         支付
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object{orderNo=string}  true  "订单号"
+// @Success      200   {object}  common.BaseResponse
+// @Security     SessionCookie
+// @Router       /pay/order/sync [post]
+func (h *PayHandler) Sync(c *gin.Context) {
+	u, ok := middleware.GetLoginUserFromContext(c)
+	if !ok {
+		c.JSON(http.StatusOK, common.Error(common.ErrNotLogin))
+		return
+	}
+	var req struct {
+		OrderNo string `json:"orderNo" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, common.Error(common.ErrParams))
+		return
+	}
+	o, err := h.svc.SyncMine(u.ID, req.OrderNo)
 	if err != nil {
 		handleError(c, err)
 		return

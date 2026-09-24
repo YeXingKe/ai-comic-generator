@@ -29,6 +29,13 @@ export async function getPayOrder(orderNo: string) {
   )
 }
 
+/** 主动向支付宝查单并尝试入账（支付回跳 / 扫码确认后调用，勿高频空转轮询） */
+export async function syncPayOrder(orderNo: string) {
+  return unwrap(
+    await request.post<BaseResponse<PayOrderVO>>('/pay/order/sync', { orderNo }),
+  )
+}
+
 export async function listPayOrders(body: PayOrderPageRequest) {
   return unwrap(await request.post<BaseResponse<PageResult<PayOrderVO>>>('/pay/order/page', body))
 }

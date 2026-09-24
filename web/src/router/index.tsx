@@ -13,6 +13,7 @@ import AdminPayPage from '@/pages/admin/Pay'
 import UserInfoPage from '@/pages/user/info'
 import PWDPage from '@/pages/user/pwd'
 import RechargePage from '@/pages/user/recharge'
+import PayReturnPage from '@/pages/user/recharge/PayReturn'
 
 function LegacyArticleRedirect() {
   const { taskId } = useParams<{ taskId: string }>()
@@ -120,6 +121,14 @@ export const router = createBrowserRouter([
       { path: '/data', element: <Navigate to="/admin/data" replace /> },
       { path: '/article/list', element: <Navigate to="/history" replace /> },
       { path: '/article/:taskId', element: <LegacyArticleRedirect /> },
+      {
+        path: '/user/recharge/pay-return',
+        element: (
+          <RequireAuth>
+            <PayReturnPage />
+          </RequireAuth>
+        ),
+      },
     ],
   },
 ])

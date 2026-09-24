@@ -69,7 +69,8 @@ func Register(r *gin.Engine, cfg *config.Config, application *app.App) {
 	pay := api.Group("/pay")
 	pay.GET("/packages", payAuth, application.PayHandler.ListPackages)  // 充值套餐与支付能力（支付宝/模拟）
 	pay.POST("/order", payAuth, application.PayHandler.Create)          // 创建充值订单，返回扫码 URL 等
-	pay.GET("/order", payAuth, application.PayHandler.Get)              // 查询单笔订单状态（可触发查单补入账）
+	pay.GET("/order", payAuth, application.PayHandler.Get)              // 查询单笔订单（仅读库）
+	pay.POST("/order/sync", payAuth, application.PayHandler.Sync)       // 主动查支付宝并补入账
 	pay.POST("/order/page", payAuth, application.PayHandler.ListPage)   // 当前用户充值订单分页
 	pay.POST("/mock-pay", payAuth, application.PayHandler.MockPay)      // 开发环境模拟支付成功
 	api.POST("/pay/notify/alipay", application.PayHandler.AlipayNotify) // 支付宝异步通知（无 Session，验签后入账）

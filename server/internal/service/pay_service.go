@@ -113,7 +113,7 @@ func (s *PayService) CreateOrder(userID int64, req *model.CreatePayOrderRequest)
 			if common.IsBlank(s.cfg.Pay.ReturnBaseURL) {
 				return nil, common.ErrOperation.WithMessage("未配置 return_base_url")
 			}
-			ret := strings.TrimRight(s.cfg.Pay.ReturnBaseURL, "/") + "/user/recharge?orderNo=" + orderNo
+			ret := strings.TrimRight(s.cfg.Pay.ReturnBaseURL, "/") + "/user/recharge/pay-return?orderNo=" + orderNo
 			u, err := s.alipay.PagePay(orderNo, subject, pkg.AmountFen, ret)
 			if err != nil {
 				return nil, common.ErrOperation.WithMessage("支付宝电脑支付下单失败")
@@ -150,13 +150,32 @@ func (s *PayService) GetMine(userID int64, orderNo string) (*model.PayOrder, err
 	if err != nil || o.UserID != userID {
 		return nil, common.ErrNotFound
 	}
-	// 通知偶发延迟：PENDING 时主动查支付宝
-	if o.Status == model.PayPending && o.Channel == model.ChannelAlipay && s.alipay.Enabled() {
-		tradeNo, st, err := s.alipay.Query(orderNo)
-		if err == nil && (st == "TRADE_SUCCESS" || st == "TRADE_FINISHED") {
-			_ = s.store.CreditIfPending(orderNo, tradeNo, o.AmountFen, "")
-			o, _ = s.store.GetByOrderNo(orderNo)
-		}
+	return o, nil
+}
+
+// SyncMine 主动向支付宝查单；仅在确认支付后由前端调用，避免轮询 GET 狂打 Query。
+func (s *PayService) SyncMine(userID int64, orderNo string) (*model.PayOrder, error) {
+	o, err := s.GetMine(userID, orderNo)
+	if err != nil {
+		return nil, err
+	}
+	if o.Status != model.PayPending || o.Channel != model.ChannelAlipay || !s.alipay.Enabled() {
+		return o, nil
+	}
+	tradeNo, st, qerr := s.alipay.Query(orderNo)
+	if qerr != nil {
+		// 查单失败仍返回库中状态，由前端继续重试
+		return o, nil
+	}
+	if st != "TRADE_SUCCESS" && st != "TRADE_FINISHED" {
+		return o, nil
+	}
+	if err := s.store.CreditIfPending(orderNo, tradeNo, o.AmountFen, ""); err != nil {
+		return nil, err
+	}
+	o, err = s.store.GetByOrderNo(orderNo)
+	if err != nil {
+		return nil, common.ErrSystem
 	}
 	return o, nil
 }
